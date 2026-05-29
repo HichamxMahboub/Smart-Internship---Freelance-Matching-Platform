@@ -1,0 +1,24 @@
+<header class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Platform activity and operational indicators.</p>
+  </div>
+</header>
+
+@if (auth.currentUser?.role === 'RECRUITER') {
+  <mat-card>
+    <mat-card-title>Recruiter workspace</mat-card-title>
+    <mat-card-content>Use Offers, Applications, Notifications and Profile to manage your company activity.</mat-card-content>
+  </mat-card>
+} @else {
+  @if (loading) { <mat-progress-bar mode="indeterminate" /> }
+  <section class="metric-grid">
+    @for (card of cards; track card[0]) {
+      <mat-card class="metric-card">
+        <mat-icon>{{ card[2] }}</mat-icon>
+        <span>{{ card[1] }}</span>
+        <strong>{{ data?.[card[0]] ?? 0 }}</strong>
+      </mat-card>
+    }
+  </section>
+}

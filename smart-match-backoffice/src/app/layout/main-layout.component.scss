@@ -1,0 +1,17 @@
+.shell { min-height: 100vh; background: #f6f8fb; }
+.sidenav { width: 272px; border-right: 1px solid #dde3ec; background: #ffffff; }
+.brand { display: flex; gap: 12px; align-items: center; padding: 20px; border-bottom: 1px solid #edf0f5; }
+.brand-mark { width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center; background: #1f3a5f; color: white; font-weight: 700; }
+.brand span { display: block; color: #667085; font-size: 12px; margin-top: 2px; }
+.active-link { background: #e9f0fa; color: #1f3a5f; }
+.topbar { position: sticky; top: 0; z-index: 2; background: #ffffff; border-bottom: 1px solid #dde3ec; }
+.spacer { flex: 1; }
+.user-block { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; margin-right: 8px; font-size: 14px; }
+.user-block small { color: #667085; font-size: 11px; margin-top: 3px; }
+.content { padding: 24px; max-width: 1440px; margin: 0 auto; }
+.mobile-menu { display: none; }
+@media (max-width: 900px) {
+  .sidenav { width: 248px; }
+  .mobile-menu { display: inline-flex; }
+  .content { padding: 16px; }
+}

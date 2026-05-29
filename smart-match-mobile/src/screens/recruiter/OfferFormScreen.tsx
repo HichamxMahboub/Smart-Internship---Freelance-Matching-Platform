@@ -1,0 +1,12 @@
+import React, { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RecruiterStackParamList } from '../../navigation/RecruiterNavigator';
+import { AppButton } from '../../components/AppButton';
+import { AppInput } from '../../components/AppInput';
+import { offerService } from '../../services/offerService';
+import { OfferPayload, OfferType } from '../../types';
+import { colors } from '../../theme/colors';
+
+export function OfferFormScreen({ route, navigation }: NativeStackScreenProps<RecruiterStackParamList, 'OfferForm'>) { const offer = route.params?.offer; const [form, setForm] = useState({ title: offer?.title ?? '', description: offer?.description ?? '', type: offer?.type ?? 'INTERNSHIP' as OfferType, location: offer?.location ?? '', duration: offer?.duration ?? '', requiredSkills: offer?.requiredSkills?.join(', ') ?? '' }); const set = (key: keyof typeof form, value: string) => setForm({ ...form, [key]: value }); const save = async () => { const payload: OfferPayload = { ...form, type: form.type, requiredSkills: form.requiredSkills.split(',').map((s) => s.trim()).filter(Boolean) }; try { offer ? await offerService.update(offer.id, payload) : await offerService.create(payload); Alert.alert('Saved', 'Offer saved.'); navigation.goBack(); } catch { Alert.alert('Error', 'Could not save offer.'); } }; return <ScrollView style={styles.container} contentContainerStyle={styles.content}><Text style={styles.title}>{offer ? 'Edit offer' : 'Create offer'}</Text><AppInput label="Title" value={form.title} onChangeText={(v) => set('title', v)} /><AppInput label="Description" value={form.description} onChangeText={(v) => set('description', v)} multiline /><AppInput label="Type" value={form.type} onChangeText={(v) => set('type', v.toUpperCase())} /><AppInput label="Location" value={form.location} onChangeText={(v) => set('location', v)} /><AppInput label="Duration" value={form.duration} onChangeText={(v) => set('duration', v)} /><AppInput label="Required skills" value={form.requiredSkills} onChangeText={(v) => set('requiredSkills', v)} /><AppButton title="Save offer" onPress={save} /></ScrollView>; }
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.background }, content: { padding: 16, gap: 12 }, title: { fontSize: 26, fontWeight: '900', color: colors.text } });

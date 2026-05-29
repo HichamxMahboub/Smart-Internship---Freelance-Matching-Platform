@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-match-backend
+  namespace: smart-match
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smart-match-backend
+  template:
+    metadata:
+      labels:
+        app: smart-match-backend
+    spec:
+      containers:
+        - name: backend
+          image: smart-match-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: smart-match-backend-config
+            - secretRef:
+                name: smart-match-backend-secret
+          volumeMounts:
+            - name: uploads
+              mountPath: /uploads
+          readinessProbe:
+            httpGet:
+              path: /swagger-ui.html
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: uploads
+          emptyDir: {}

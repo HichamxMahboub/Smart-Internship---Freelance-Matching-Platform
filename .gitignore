@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Java / Maven
+smart-match-backend/target/
+target/
+*.class
+
+# Frontend builds
+smart-match-backoffice/dist/
+smart-match-mobile/dist/
+build/
+dist/
+.expo/
+.web-build/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+firebase-service-account.json
+*firebase*service*account*.json
+serviceAccountKey.json
+
+# Runtime data
+uploads/
+logs/
+*.log
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+# Local tooling
+coverage/
+.cache/

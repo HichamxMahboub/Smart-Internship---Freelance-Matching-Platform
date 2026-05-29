@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smart-match-backend-config
+  namespace: smart-match
+data:
+  SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/smart_match
+  APP_SEED_ENABLED: "true"
+  APP_CV_UPLOAD_DIR: /uploads/cv

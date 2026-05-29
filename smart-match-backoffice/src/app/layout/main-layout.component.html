@@ -1,0 +1,42 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav #drawer class="sidenav" mode="side" opened>
+    <div class="brand">
+      <div class="brand-mark">SM</div>
+      <div>
+        <strong>Smart Match</strong>
+        <span>Backoffice</span>
+      </div>
+    </div>
+
+    <mat-nav-list>
+      @for (item of navItems; track item.route) {
+        @if (visible(item)) {
+          <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="topbar">
+      <button mat-icon-button class="mobile-menu" (click)="drawer.toggle()" aria-label="Toggle navigation">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="spacer"></span>
+      <div class="user-block">
+        <span>{{ auth.currentUser?.fullName }}</span>
+        <small>{{ auth.currentUser?.role }}</small>
+      </div>
+      <button mat-icon-button matTooltip="Logout" (click)="logout()" aria-label="Logout">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

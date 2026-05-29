@@ -1,0 +1,6 @@
+services:
+  backoffice:
+    build: .
+    container_name: smart-match-backoffice
+    ports:
+      - "4200:80"

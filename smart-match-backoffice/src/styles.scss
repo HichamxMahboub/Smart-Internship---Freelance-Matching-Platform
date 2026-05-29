@@ -1,0 +1,10 @@
+@use '@angular/material' as mat;
+
+html { color-scheme: light; @include mat.theme((color: mat.$azure-palette, typography: Roboto, density: 0)); }
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, Arial, sans-serif; background: #f6f8fb; color: #101828; }
+* { box-sizing: border-box; }
+a { color: inherit; text-decoration: none; }
+.mat-mdc-card { box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08) !important; }
+.mat-mdc-header-cell { font-weight: 700; color: #475467; }
+.mat-mdc-row:hover { background: #f8fafc; }

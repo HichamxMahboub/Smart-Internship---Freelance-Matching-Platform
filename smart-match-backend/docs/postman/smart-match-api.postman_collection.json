@@ -1,0 +1,109 @@
+{
+  "info": {
+    "name": "Smart Match API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "candidateToken", "value": "" },
+    { "key": "recruiterToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "offerId", "value": "" },
+    { "key": "applicationId", "value": "" },
+    { "key": "companyId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth - Sync Candidate User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{candidateToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/auth/sync-user",
+        "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Candidate User\",\n  \"role\": \"CANDIDATE\"\n}" }
+      }
+    },
+    {
+      "name": "Auth - Get Me",
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{candidateToken}}" }], "url": "{{baseUrl}}/api/auth/me" }
+    },
+    {
+      "name": "Users - Update Me",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Authorization", "value": "Bearer {{candidateToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/users/me",
+        "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Updated Candidate\"\n}" }
+      }
+    },
+    {
+      "name": "Companies - Create Company",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{recruiterToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/companies",
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Demo Company\",\n  \"sector\": \"Software\",\n  \"description\": \"Demo company\",\n  \"website\": \"https://example.com\"\n}" }
+      }
+    },
+    {
+      "name": "Admin - Validate Company",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/admin/companies/{{companyId}}/validate",
+        "body": { "mode": "raw", "raw": "{\n  \"validationStatus\": \"APPROVED\",\n  \"description\": \"Documents verified\"\n}" }
+      }
+    },
+    {
+      "name": "Offers - Create Offer",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{recruiterToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/offers",
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"React Native Internship\",\n  \"description\": \"Build mobile features\",\n  \"type\": \"INTERNSHIP\",\n  \"location\": \"Casablanca\",\n  \"duration\": \"3 months\",\n  \"requiredSkills\": [\"React Native\", \"JavaScript\"]\n}" }
+      }
+    },
+    { "name": "Offers - Publish Offer", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{recruiterToken}}" }], "url": "{{baseUrl}}/api/offers/{{offerId}}/publish" } },
+    { "name": "Offers - List Published Offers", "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/offers?keyword=React&page=0&size=10" } },
+    {
+      "name": "Applications - Apply",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{candidateToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/applications",
+        "body": { "mode": "raw", "raw": "{\n  \"offerId\": \"{{offerId}}\",\n  \"message\": \"I am interested.\"\n}" }
+      }
+    },
+    {
+      "name": "Applications - Update Status",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Authorization", "value": "Bearer {{recruiterToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/applications/{{applicationId}}/status",
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"INTERVIEW\"\n}" }
+      }
+    },
+    {
+      "name": "Subscriptions - Upgrade",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{candidateToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/subscriptions/upgrade",
+        "body": { "mode": "raw", "raw": "{\n  \"paymentMethod\": \"SIMULATED_CARD\"\n}" }
+      }
+    },
+    {
+      "name": "AI - Create Job",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{candidateToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/ai/jobs",
+        "body": { "mode": "raw", "raw": "{\n  \"type\": \"CV_ANALYSIS\"\n}" }
+      }
+    },
+    { "name": "Notifications - List", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{candidateToken}}" }], "url": "{{baseUrl}}/api/notifications" } },
+    { "name": "Admin - Dashboard", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/api/admin/dashboard" } }
+  ]
+}
