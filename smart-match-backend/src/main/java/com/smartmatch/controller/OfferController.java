@@ -9,6 +9,7 @@ import com.smartmatch.service.OfferService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,10 @@ public class OfferController {
     private final OfferService offerService;
 
     @GetMapping
-    public ResponseEntity<Page<OfferResponse>> getOffers(@RequestParam(required = false) String keyword,
+    public ResponseEntity<Page<OfferResponse>> getOffers(@RequestParam(required = false) @Size(max = 80) String keyword,
                                                          @RequestParam(required = false) OfferType type,
-                                                         @RequestParam(required = false) String location,
-                                                         @RequestParam(required = false) String skill,
+                                                         @RequestParam(required = false) @Size(max = 80) String location,
+                                                         @RequestParam(required = false) @Size(max = 80) String skill,
                                                          @RequestParam(required = false) OfferStatus status,
                                                          @RequestParam(defaultValue = "0") @Min(0) int page,
                                                          @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {

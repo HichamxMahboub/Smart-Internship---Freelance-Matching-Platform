@@ -27,8 +27,10 @@ public class Subscription {
     private String userId;
 
     private Plan plan;
+    @Indexed
     private boolean active;
     private Instant startDate;
+    @Indexed
     private Instant expirationDate;
     private SubscriptionStatus status;
 

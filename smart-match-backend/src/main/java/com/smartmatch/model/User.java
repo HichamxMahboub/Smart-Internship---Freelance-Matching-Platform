@@ -31,8 +31,10 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
+    @Indexed
     private Role role;
     private Plan plan;
+    @Indexed
     private boolean active;
     private boolean emailVerified;
 

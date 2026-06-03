@@ -58,7 +58,7 @@ docs/postman/
 | `MONGODB_URI` | Fallback MongoDB URI configured in `application.yml` | `mongodb://localhost:27017/smart_match` |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | Firebase service account JSON content | empty |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | Path to Firebase service account file | empty |
-| `APP_PAYMENT_WEBHOOK_SECRET` | Secret required by payment webhook | `dev-payment-secret` |
+| `APP_PAYMENT_WEBHOOK_SECRET` | Secret required by payment webhook/demo confirmation | `change-me` locally, never default in production |
 | `APP_SEED_ENABLED` | Enables development seed data | `false` locally, `true` in Docker Compose |
 | `APP_CV_UPLOAD_DIR` | Local CV upload directory | `/uploads/cv` |
 
@@ -69,7 +69,7 @@ Start MongoDB locally, then run:
 ```bash
 cd smart-match-backend
 export SPRING_DATA_MONGODB_URI=mongodb://localhost:27017/smart_match
-export APP_PAYMENT_WEBHOOK_SECRET=dev-payment-secret
+export APP_PAYMENT_WEBHOOK_SECRET=change-me
 export APP_SEED_ENABLED=true
 mvn spring-boot:run
 ```
@@ -199,3 +199,12 @@ Authorization: Bearer <firebase_id_token>
 ```
 
 The backend verifies the token using Firebase Admin SDK, reads `firebaseUid`, and loads the matching MongoDB user. Use `POST /api/auth/sync-user` after Firebase login to create or update the local user record.
+
+
+## Security Hardening Implemented
+
+- `/api/auth/sync-user` rejects `ADMIN` role self-registration.
+- Subscription upgrade creates a `PENDING` payment and activates premium only after a valid secret-confirmed webhook/demo confirmation.
+- CV uploads are limited to 5MB and only `.pdf`, `.doc`, `.docx` content types are accepted.
+- Chat messages are capped at 2000 characters and message history is paginated.
+- MongoDB indexes were added for high-traffic lookup fields.

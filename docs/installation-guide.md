@@ -21,7 +21,7 @@ mvn test
 mvn spring-boot:run
 ```
 
-Set Firebase Admin credentials using `FIREBASE_SERVICE_ACCOUNT_JSON` or `FIREBASE_SERVICE_ACCOUNT_PATH`.
+Set Firebase Admin credentials using `FIREBASE_SERVICE_ACCOUNT_JSON` or `FIREBASE_SERVICE_ACCOUNT_PATH`. Set `APP_PAYMENT_WEBHOOK_SECRET` to a non-default value before sharing the demo environment.
 
 ## Backoffice Setup
 
@@ -32,7 +32,7 @@ npm run build
 npm start
 ```
 
-Configure Firebase in `src/environments/environment.ts` and `src/environments/environment.development.ts`.
+Configure public Firebase client values in `src/environments/environment.ts` and `src/environments/environment.development.ts`. Keep service account JSON only on the backend.
 
 ## Mobile Setup
 
@@ -43,7 +43,7 @@ npx tsc --noEmit
 npx expo start
 ```
 
-Configure Firebase and backend URL in `src/config/env.ts`.
+Configure Expo public variables from `smart-match-mobile/.env.example` or edit `src/config/env.ts` fallback values for local demos.
 
 ## Firebase Setup
 
@@ -64,7 +64,7 @@ Open:
 
 - Backend: `http://localhost:8080/api`
 - Backoffice: `http://localhost:4200`
-- Mongo Express: `http://localhost:8081`
+- Mongo Express: `http://localhost:8081` using `MONGO_EXPRESS_USERNAME` / `MONGO_EXPRESS_PASSWORD` from `.env`
 
 ## Troubleshooting
 
@@ -73,3 +73,17 @@ Open:
 - If protected endpoints return 401, verify Firebase Admin config and frontend Firebase config.
 - If company cannot publish offer, approve it from admin backoffice first.
 - If AI returns forbidden, upgrade user to premium.
+
+
+## Payment Demo Confirmation
+
+`POST /api/subscriptions/upgrade` creates a pending payment and does not activate premium immediately. For a local demo, confirm with:
+
+```bash
+curl -X POST http://localhost:8080/api/subscriptions/demo-confirm \
+  -H "Content-Type: application/json" \
+  -H "X-Payment-Secret: $APP_PAYMENT_WEBHOOK_SECRET" \
+  -d '{"paymentId":"<payment-id>","status":"PAID"}'
+```
+
+Do not use `change-me` in production profiles.

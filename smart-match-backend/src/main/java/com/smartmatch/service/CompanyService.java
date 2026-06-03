@@ -18,6 +18,8 @@ import com.smartmatch.repository.CompanyRepository;
 import com.smartmatch.repository.RecruiterProfileRepository;
 import com.smartmatch.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -79,6 +81,10 @@ public class CompanyService {
         company.setValidationStatus(ValidationStatus.PENDING);
 
         return toResponse(companyRepository.save(company));
+    }
+
+    public Page<CompanyResponse> getCompaniesPage(int page, int size) {
+        return companyRepository.findAll(PageRequest.of(page, size)).map(this::toResponse);
     }
 
     public List<CompanyResponse> getAllCompanies() {

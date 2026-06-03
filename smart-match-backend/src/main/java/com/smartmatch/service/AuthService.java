@@ -8,6 +8,7 @@ import com.smartmatch.exception.BadRequestException;
 import com.smartmatch.mapper.UserMapper;
 import com.smartmatch.model.User;
 import com.smartmatch.model.enums.Plan;
+import com.smartmatch.model.enums.Role;
 import com.smartmatch.repository.UserRepository;
 import com.smartmatch.security.AuthTokenService;
 import com.smartmatch.util.SecurityUtils;
@@ -51,14 +52,25 @@ public class AuthService {
     }
 
     private User createUser(SyncUserRequest request, FirebaseToken firebaseToken) {
+        Role role = resolveSelfRegistrationRole(request.role());
         return User.builder()
                 .firebaseUid(firebaseToken.getUid())
                 .fullName(request.fullName())
                 .email(firebaseToken.getEmail())
-                .role(request.role())
+                .role(role)
                 .plan(Plan.FREE)
                 .active(true)
                 .emailVerified(Boolean.TRUE.equals(firebaseToken.isEmailVerified()))
                 .build();
+    }
+
+    private Role resolveSelfRegistrationRole(Role requestedRole) {
+        if (requestedRole == null) {
+            return Role.CANDIDATE;
+        }
+        if (requestedRole == Role.ADMIN) {
+            throw new BadRequestException("ADMIN accounts cannot be created through self-registration");
+        }
+        return requestedRole;
     }
 }

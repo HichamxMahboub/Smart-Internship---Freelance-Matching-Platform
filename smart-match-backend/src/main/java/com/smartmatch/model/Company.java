@@ -30,6 +30,7 @@ public class Company {
     private String description;
     private String logoUrl;
     private String website;
+    @Indexed
     private ValidationStatus validationStatus;
 
     @CreatedDate

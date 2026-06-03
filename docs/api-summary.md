@@ -8,7 +8,7 @@ Authorization: Bearer <firebase_id_token>
 
 ## Authentication
 
-- `POST /api/auth/sync-user` public with Firebase bearer token
+- `POST /api/auth/sync-user` public with Firebase bearer token; `ADMIN` role is rejected for self-registration
 - `GET /api/auth/me` authenticated
 - `POST /api/auth/verify-email-status` planned/extendable
 
@@ -19,6 +19,7 @@ Authorization: Bearer <firebase_id_token>
 - `GET /api/users/{id}` admin
 - `PATCH /api/users/{id}/status` admin
 - `GET /api/admin/users` admin
+- `GET /api/admin/users/page?page=0&size=20` admin, paginated
 
 ## Profiles
 
@@ -34,11 +35,12 @@ Authorization: Bearer <firebase_id_token>
 - `GET /api/companies/me` recruiter
 - `PUT /api/companies/{id}` recruiter owner
 - `GET /api/admin/companies` admin
+- `GET /api/admin/companies/page?page=0&size=20` admin, paginated
 - `PATCH /api/admin/companies/{id}/validate` admin
 
 ## Offers
 
-- `GET /api/offers` public, published offers by default
+- `GET /api/offers?page=0&size=10` public, published offers by default, keyword/location/skill limited to 80 chars
 - `GET /api/offers/{id}` public for published offers
 - `POST /api/offers` recruiter
 - `PUT /api/offers/{id}` recruiter owner
@@ -65,8 +67,10 @@ Authorization: Bearer <firebase_id_token>
 ## Subscriptions and Payments
 
 - `GET /api/subscriptions/me` authenticated
-- `POST /api/subscriptions/upgrade` authenticated
-- `POST /api/subscriptions/webhook/payment` public with `X-Payment-Secret`
+- `POST /api/subscriptions/upgrade` authenticated, creates pending payment/subscription
+- `POST /api/subscriptions/webhook/payment` public with `X-Payment-Secret`, activates premium only when status is `PAID`
+- `POST /api/subscriptions/demo-confirm` public with `X-Payment-Secret`, local demo confirmation endpoint
+- `GET /api/subscriptions/admin/page?page=0&size=20` admin, paginated
 - `GET /api/payments/me` authenticated
 - `GET /api/payments/{id}` owner/admin
 - `GET /api/admin/subscriptions` admin
@@ -84,3 +88,11 @@ Authorization: Bearer <firebase_id_token>
 
 - `GET /api/admin/dashboard` admin
 - `GET /api/admin/logs` admin
+
+
+## Chat
+
+- `GET /api/conversations` authenticated participant
+- `POST /api/conversations` candidate/recruiter, requires an existing application for the offer
+- `GET /api/conversations/{id}/messages?page=0&size=50` participant, paginated
+- `POST /api/conversations/{id}/messages` participant, content max 2000 characters

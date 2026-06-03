@@ -4,12 +4,13 @@ import com.smartmatch.model.enums.OfferStatus;
 import com.smartmatch.model.enums.OfferType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 
 public record OfferFilterRequest(
-        String keyword,
+        @Size(max = 80) String keyword,
         OfferType type,
-        String location,
-        String skill,
+        @Size(max = 80) String location,
+        @Size(max = 80) String skill,
         OfferStatus status,
         @Min(0) int page,
         @Min(1) @Max(100) int size

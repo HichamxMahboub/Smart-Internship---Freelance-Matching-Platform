@@ -11,12 +11,15 @@ import com.smartmatch.model.Message;
 import com.smartmatch.model.Offer;
 import com.smartmatch.model.User;
 import com.smartmatch.model.enums.Role;
+import com.smartmatch.repository.ApplicationRepository;
 import com.smartmatch.repository.CompanyRepository;
 import com.smartmatch.repository.ConversationRepository;
 import com.smartmatch.repository.MessageRepository;
 import com.smartmatch.repository.OfferRepository;
 import com.smartmatch.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -27,6 +30,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ChatService {
+    private static final int MAX_MESSAGE_LENGTH = 2000;
+
+    private final ApplicationRepository applicationRepository;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final OfferRepository offerRepository;
@@ -59,6 +65,10 @@ public class ChatService {
             throw new ForbiddenException("Only candidates and recruiters can start conversations");
         }
 
+        if (!applicationRepository.existsByOfferIdAndCandidateId(offerId, candidateId)) {
+            throw new ForbiddenException("Conversation requires an existing application for this offer");
+        }
+
         Conversation conversation = conversationRepository
                 .findByOfferIdAndCandidateIdAndRecruiterId(offerId, candidateId, recruiterId)
                 .orElseGet(() -> conversationRepository.save(Conversation.builder()
@@ -76,7 +86,7 @@ public class ChatService {
                 .toList();
     }
 
-    public List<MessageResponse> getMessages(String userId, String conversationId) {
+    public List<MessageResponse> getMessages(String userId, String conversationId, int page, int size) {
         Conversation conversation = requireParticipant(userId, conversationId);
         // Mark inbound messages read and clear this viewer's unread counter.
         List<Message> unread = messageRepository
@@ -87,7 +97,8 @@ public class ChatService {
         }
         clearUnread(conversation, userId);
         conversationRepository.save(conversation);
-        return messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId).stream()
+        Pageable pageable = PageRequest.of(page, size);
+        return messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId, pageable).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -95,6 +106,9 @@ public class ChatService {
     public MessageResponse sendMessage(String senderId, String conversationId, String content) {
         if (!StringUtils.hasText(content)) {
             throw new BadRequestException("Message content must not be empty");
+        }
+        if (content.length() > MAX_MESSAGE_LENGTH) {
+            throw new BadRequestException("Message content must not exceed 2000 characters");
         }
         Conversation conversation = requireParticipant(senderId, conversationId);
         String recipientId = conversation.getCandidateId().equals(senderId)

@@ -11,12 +11,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class FileStorageService {
+    private static final long MAX_CV_BYTES = 5 * 1024 * 1024;
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".pdf", ".doc", ".docx");
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "application/pdf",
             "application/msword",
@@ -30,20 +33,35 @@ public class FileStorageService {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("CV file is required");
         }
+        if (file.getSize() > MAX_CV_BYTES) {
+            throw new BadRequestException("CV file must not exceed 5MB");
+        }
         if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
             throw new BadRequestException("Only PDF, DOC and DOCX CV files are accepted");
         }
 
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() == null ? "cv" : file.getOriginalFilename());
-        String extension = "";
-        int extensionIndex = originalFilename.lastIndexOf('.');
-        if (extensionIndex >= 0) {
-            extension = originalFilename.substring(extensionIndex);
+        String originalFilename = file.getOriginalFilename();
+        if (!StringUtils.hasText(originalFilename) || originalFilename.contains("..")
+                || originalFilename.contains("/") || originalFilename.contains("\\")) {
+            throw new BadRequestException("Invalid CV filename");
         }
 
-        String storedFilename = userId + "-" + UUID.randomUUID() + extension;
-        Path directory = Path.of(cvUploadDir);
+        String cleanFilename = StringUtils.cleanPath(originalFilename);
+        String extension = "";
+        int extensionIndex = cleanFilename.lastIndexOf('.');
+        if (extensionIndex >= 0) {
+            extension = cleanFilename.substring(extensionIndex).toLowerCase(Locale.ROOT);
+        }
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new BadRequestException("Only PDF, DOC and DOCX CV files are accepted");
+        }
+
+        String storedFilename = "cv-" + UUID.randomUUID() + extension;
+        Path directory = Path.of(cvUploadDir).toAbsolutePath().normalize();
         Path destination = directory.resolve(storedFilename).normalize();
+        if (!destination.startsWith(directory)) {
+            throw new BadRequestException("Invalid CV storage path");
+        }
 
         try {
             Files.createDirectories(directory);

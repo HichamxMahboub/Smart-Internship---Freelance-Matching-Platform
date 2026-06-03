@@ -31,9 +31,12 @@ public class Payment {
     private BigDecimal amount;
     private String currency;
     private String method;
+    @Indexed
     private PaymentStatus status;
+    @Indexed
     private Instant paidAt;
 
     @CreatedDate
+    @Indexed
     private Instant createdAt;
 }

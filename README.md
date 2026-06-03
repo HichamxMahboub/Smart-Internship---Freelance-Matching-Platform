@@ -233,10 +233,28 @@ Add screenshots before final submission:
 
 ## Team Members
 
-- Student 1: TODO
-- Student 2: TODO
-- Supervisor: TODO
+- HICHAM MAHBOUB
+- Supervisor: To be confirmed
 
 ## Academic Notes
 
 This project is designed for academic demonstration. Payment and AI features are simulated but structured as real backend modules, allowing future integration with payment gateways and AI services. Firebase Authentication is real and should be configured with a Firebase project before the final demo.
+
+## Security Hardening Implemented
+
+- Admin self-registration is blocked: `/api/auth/sync-user` accepts only `CANDIDATE` and `RECRUITER`; `ADMIN` users are created only through controlled seed/admin mechanisms.
+- Premium payment flow now creates `PENDING` payments and subscriptions; the user remains `FREE` until `/api/subscriptions/webhook/payment` or `/api/subscriptions/demo-confirm` confirms with `X-Payment-Secret`.
+- Mongo Express is protected by basic auth in Docker Compose through `MONGO_EXPRESS_USERNAME` and `MONGO_EXPRESS_PASSWORD`.
+- CV upload validates size, extension, content type, path traversal, and stores server-generated filenames.
+- Chat messages are size-limited, message history is paginated, and recruiter/candidate conversations require an existing application.
+- MongoDB indexes were added for users, offers, applications, payments, subscriptions, notifications, companies and chat collections.
+- Backend Docker image runs as a non-root user; Nginx includes basic security headers.
+- Kubernetes manifests include resources, probes, backend replicas and PVC-backed MongoDB storage.
+
+## Known Limitations for Academic Demo
+
+- Payment remains simulated, but activation is gated by a secret-confirmed webhook/demo endpoint.
+- AI depends on external provider configuration or backend fallback heuristics.
+- Mobile offline behavior is partial and depends on local client storage only.
+- Firebase client configuration is public app config and must be replaced with the project values before demo.
+- Kubernetes manifests are Minikube-friendly examples, not a full production platform baseline.

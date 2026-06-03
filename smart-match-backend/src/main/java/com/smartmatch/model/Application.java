@@ -34,8 +34,10 @@ public class Application {
     private String recruiterId;
 
     private String message;
+    @Indexed
     private ApplicationStatus status;
     private Double matchingScore;
+    @Indexed
     private Instant appliedAt;
 
     @LastModifiedDate

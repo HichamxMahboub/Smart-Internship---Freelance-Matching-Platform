@@ -7,6 +7,10 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb://localhost:27017/smart_match}
+  servlet:
+    multipart:
+      max-file-size: ${APP_MAX_FILE_SIZE:5MB}
+      max-request-size: ${APP_MAX_REQUEST_SIZE:5MB}
 
 firebase:
   service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
@@ -29,7 +33,7 @@ smartmatch:
 
 app:
   payment:
-    webhook-secret: ${APP_PAYMENT_WEBHOOK_SECRET:${PAYMENT_WEBHOOK_SECRET:dev-payment-secret}}
+    webhook-secret: ${APP_PAYMENT_WEBHOOK_SECRET:${PAYMENT_WEBHOOK_SECRET:}}
   seed:
     enabled: ${APP_SEED_ENABLED:false}
 

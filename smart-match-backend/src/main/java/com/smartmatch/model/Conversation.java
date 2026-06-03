@@ -29,9 +29,11 @@ public class Conversation {
     @Indexed
     private String recruiterId;
 
+    @Indexed
     private String offerId;
 
     private String lastMessage;
+    @Indexed
     private Instant lastMessageAt;
 
     @Builder.Default
