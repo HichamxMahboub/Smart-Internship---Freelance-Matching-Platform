@@ -52,6 +52,10 @@
       <span class="users-stats__value">{{ candidateStats().premium }}</span>
       <span class="users-stats__label">Premium</span>
     </div>
+    <div class="users-stats__card">
+      <span class="users-stats__value">{{ candidateStats().withCv }}</span>
+      <span class="users-stats__label">With CV</span>
+    </div>
   } @else {
     <div class="users-stats__card">
       <span class="users-stats__value">{{ recruiterStats().total }}</span>
@@ -68,38 +72,12 @@
   }
 </div>
 
-<section class="split-view split-view--users">
-  <div class="users-roster-pane">
-  @if (activeRole() === 'CANDIDATE') {
-    <app-user-role-roster
-      role="CANDIDATE"
-      [users]="filteredCandidates()"
-      [selectedId]="selected()?.id"
-      (userSelected)="selectUser($event)"
-      (statusToggle)="setStatus($event)" />
-  } @else {
-    <app-user-role-roster
-      role="RECRUITER"
-      [users]="filteredRecruiters()"
-      [selectedId]="selected()?.id"
-      (userSelected)="selectUser($event)"
-      (statusToggle)="setStatus($event)" />
-  }
-  </div>
-
-  <aside class="users-detail-slot">
-    @if (selected(); as user) {
-      <app-user-detail-panel
-        [user]="user"
-        [rosterRole]="user.role === 'RECRUITER' ? 'RECRUITER' : 'CANDIDATE'"
-        (closed)="clearSelection()"
-        (statusToggle)="setStatus($event)" />
-    } @else {
-      <div class="users-detail-placeholder">
-        <mat-icon>{{ activeRole() === 'CANDIDATE' ? 'school' : 'business_center' }}</mat-icon>
-        <h2>Select a {{ activeRole() === 'CANDIDATE' ? 'candidate' : 'recruiter' }}</h2>
-        <p>Click a card to review plan, verification, and account status.</p>
-      </div>
-    }
-  </aside>
-</section>
+<app-user-role-roster
+  [role]="activeRole()"
+  [users]="activeRole() === 'CANDIDATE' ? filteredCandidates() : filteredRecruiters()"
+  [selectedId]="selected()?.id"
+  [selectedUser]="selected()"
+  (userSelected)="selectUser($event)"
+  (statusToggle)="setStatus($event)"
+  (verificationSynced)="onVerificationSynced($event)"
+  (panelClosed)="clearSelection()" />

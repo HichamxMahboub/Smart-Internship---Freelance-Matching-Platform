@@ -8,13 +8,22 @@
       <h2 class="roster__title">{{ role() === 'CANDIDATE' ? 'Candidates' : 'Recruiters' }}</h2>
       <p class="roster__subtitle">
         @if (role() === 'CANDIDATE') {
-          Browse job seekers, subscription tier, and account access.
+          Click a candidate to expand AI summary and profile data.
         } @else {
           Manage recruiter accounts linked to company profiles.
         }
       </p>
     </div>
   </header>
+
+  @if (users().length) {
+    <div class="roster__legend" aria-hidden="true">
+      <span>Profile</span>
+      <span>Signals</span>
+      <span>Status</span>
+      <span>Actions</span>
+    </div>
+  }
 
   @if (!users().length) {
     <div class="roster__empty">
@@ -24,47 +33,106 @@
   } @else {
     <div class="roster__grid">
       @for (user of users(); track user.id) {
-        <button
-          type="button"
-          class="user-card"
-          [class.user-card--selected]="isSelected(user)"
-          (click)="select(user)">
-          <div class="user-card__top">
-            <div class="user-card__avatar" aria-hidden="true">{{ initials(user.fullName) }}</div>
-            <div class="user-card__meta">
-              <span class="user-card__name">{{ user.fullName }}</span>
-              <span class="user-card__email">{{ user.email }}</span>
-            </div>
-            <mat-chip class="status-chip user-card__status" [class]="user.active ? 'chip-active' : 'chip-disabled'">
-              {{ user.active ? 'Active' : 'Disabled' }}
-            </mat-chip>
-          </div>
+        <div class="roster__row">
+          <button
+            type="button"
+            class="user-card"
+            [class.user-card--selected]="isSelected(user)"
+            [class.user-card--candidate]="role() === 'CANDIDATE'"
+            [class.user-card--recruiter]="role() === 'RECRUITER'"
+            (click)="select(user)">
 
-          <div class="user-card__facts">
-            <div class="user-card__fact">
-              <mat-icon>workspace_premium</mat-icon>
-              <span>{{ user.plan }} plan</span>
+            <div class="user-card__top">
+              @if (user.photoUrl) {
+                <img class="user-card__photo" [src]="user.photoUrl" [alt]="user.fullName" />
+              } @else {
+                <div class="user-card__avatar" aria-hidden="true">{{ initials(user.fullName) }}</div>
+              }
+              <div class="user-card__meta">
+                <span class="user-card__name">{{ user.fullName }}</span>
+                <span class="user-card__email">{{ user.email }}</span>
+                @if (user.headline) {
+                  <span class="user-card__headline">{{ user.headline }}</span>
+                }
+              </div>
             </div>
-            <div class="user-card__fact">
-              <mat-icon>{{ user.emailVerified ? 'verified' : 'mark_email_unread' }}</mat-icon>
-              <span>{{ user.emailVerified ? 'Email verified' : 'Email pending' }}</span>
-            </div>
-          </div>
 
-          <div class="user-card__actions">
-            <span class="user-card__hint">View profile</span>
-            <button
-              type="button"
-              mat-stroked-button
-              class="user-card__toggle"
-              [class.btn-danger]="user.active"
-              [class.btn-success]="!user.active"
-              (click)="toggleStatus($event, user)">
-              <mat-icon>{{ user.active ? 'block' : 'check_circle' }}</mat-icon>
-              {{ user.active ? 'Deactivate' : 'Activate' }}
-            </button>
-          </div>
-        </button>
+            <div class="user-card__stats">
+              @if (role() === 'CANDIDATE') {
+                <div class="user-card__stat" [class.user-card__stat--ok]="user.cvUrl" [class.user-card__stat--warn]="!user.cvUrl">
+                  <mat-icon>description</mat-icon>
+                  <span>{{ user.cvUrl ? 'CV' : 'No CV' }}</span>
+                </div>
+                <div class="user-card__stat">
+                  <mat-icon>bolt</mat-icon>
+                  <span>{{ user.skillCount ?? 0 }} skills</span>
+                </div>
+                <div class="user-card__stat">
+                  <mat-icon>work_outline</mat-icon>
+                  <span>{{ user.experienceCount ?? 0 }} exp</span>
+                </div>
+                <div class="user-card__stat">
+                  <mat-icon>school</mat-icon>
+                  <span>{{ user.educationCount ?? 0 }} edu</span>
+                </div>
+                <div class="user-card__stat">
+                  <mat-icon>auto_awesome</mat-icon>
+                  <span>{{ user.aiResultCount ?? 0 }} AI</span>
+                </div>
+                @if (user.location) {
+                  <div class="user-card__stat">
+                    <mat-icon>place</mat-icon>
+                    <span>{{ user.location }}</span>
+                  </div>
+                }
+              } @else {
+                @if (user.companyName) {
+                  <div class="user-card__stat">
+                    <mat-icon>apartment</mat-icon>
+                    <span>{{ user.companyName }}</span>
+                  </div>
+                }
+              }
+            </div>
+
+            <div class="user-card__facts">
+              <mat-chip class="status-chip" [class]="user.active ? 'chip-active' : 'chip-disabled'">
+                {{ user.active ? 'Active' : 'Disabled' }}
+              </mat-chip>
+              <mat-chip class="status-chip" [class]="user.plan === 'PREMIUM' ? 'chip-pending' : 'chip-default'">
+                {{ user.plan }}
+              </mat-chip>
+              <mat-chip class="status-chip" [class]="user.emailVerified ? 'chip-active' : 'chip-disabled'">
+                {{ user.emailVerified ? 'Verified' : 'Pending' }}
+              </mat-chip>
+            </div>
+
+            <div class="user-card__right">
+              <button
+                type="button"
+                mat-stroked-button
+                class="user-card__toggle"
+                [class.btn-danger]="user.active"
+                [class.btn-success]="!user.active"
+                (click)="toggleStatus($event, user)">
+                <mat-icon>{{ user.active ? 'block' : 'check_circle' }}</mat-icon>
+                {{ user.active ? 'Deactivate' : 'Activate' }}
+              </button>
+              <mat-icon class="user-card__chevron" [class.user-card__chevron--open]="isSelected(user)">expand_more</mat-icon>
+            </div>
+          </button>
+
+          @if (isSelected(user) && selectedUser(); as detailUser) {
+            <div class="roster__panel">
+              <app-user-detail-panel
+                [user]="detailUser"
+                [rosterRole]="role()"
+                (closed)="panelClosed.emit()"
+                (statusToggle)="statusToggle.emit(user)"
+                (verificationSynced)="verificationSynced.emit($event)" />
+            </div>
+          }
+        </div>
       }
     </div>
   }

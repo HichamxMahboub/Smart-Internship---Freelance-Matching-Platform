@@ -83,9 +83,21 @@
 
 .users-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
+}
+
+.users-stats__card--accent {
+  background: rgba(31, 59, 224, 0.12);
+  border-color: rgba(31, 59, 224, 0.25);
+}
+
+.users-stats__value small {
+  font-size: 14px;
+  font-weight: 800;
+  margin-left: 2px;
+  opacity: 0.7;
 }
 
 .users-stats__card {
@@ -98,12 +110,12 @@
 
 .users-stats--candidate .users-stats__card:first-child {
   border-color: rgba(16, 181, 166, 0.35);
-  background: linear-gradient(180deg, var(--brand-teal-soft) 0%, var(--surface) 100%);
+  background: var(--brand-teal-soft);
 }
 
 .users-stats--recruiter .users-stats__card:first-child {
   border-color: rgba(31, 59, 224, 0.25);
-  background: linear-gradient(180deg, var(--brand-primary-soft) 0%, var(--surface) 100%);
+  background: var(--brand-primary-soft);
 }
 
 .users-stats__value {
@@ -142,7 +154,7 @@
   text-align: center;
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-muted) 100%);
+  background: var(--surface);
 
   mat-icon {
     width: 40px;
