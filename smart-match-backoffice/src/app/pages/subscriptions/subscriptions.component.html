@@ -1,2 +1,152 @@
-<header class="page-header"><h1>Subscriptions</h1><p>Premium plans and subscription lifecycle.</p></header>
-<mat-card><table mat-table [dataSource]="subscriptions()"><ng-container matColumnDef="userId"><th mat-header-cell *matHeaderCellDef>User</th><td mat-cell *matCellDef="let item">{{ item.userId }}</td></ng-container><ng-container matColumnDef="plan"><th mat-header-cell *matHeaderCellDef>Plan</th><td mat-cell *matCellDef="let item">{{ item.plan }}</td></ng-container><ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let item"><mat-chip>{{ item.status }}</mat-chip></td></ng-container><ng-container matColumnDef="active"><th mat-header-cell *matHeaderCellDef>Active</th><td mat-cell *matCellDef="let item">{{ item.active ? 'Yes' : 'No' }}</td></ng-container><ng-container matColumnDef="expirationDate"><th mat-header-cell *matHeaderCellDef>Expires</th><td mat-cell *matCellDef="let item">{{ item.expirationDate | date:'mediumDate' }}</td></ng-container><tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr></table></mat-card>
+<section class="page-hero-compact">
+  <div>
+    <span class="eyebrow">Revenue</span>
+    <h1>Subscriptions</h1>
+    <p>Premium revenue, subscriber roster, and billing health at a glance.</p>
+  </div>
+</section>
+
+@if (revenue(); as rev) {
+  <section class="revenue-stats" aria-label="Revenue summary">
+    <article class="revenue-stat revenue-stat--primary">
+      <mat-icon>payments</mat-icon>
+      <div>
+        <span class="revenue-stat__label">Total revenue</span>
+        <strong class="revenue-stat__value">{{ formatMoney(rev.totalRevenue, rev.currency) }}</strong>
+        <span class="revenue-stat__hint">{{ rev.totalPayments }} successful payments</span>
+      </div>
+    </article>
+    <article class="revenue-stat">
+      <mat-icon>calendar_month</mat-icon>
+      <div>
+        <span class="revenue-stat__label">This month</span>
+        <strong class="revenue-stat__value">{{ formatMoney(rev.revenueThisMonth, rev.currency) }}</strong>
+        <span class="revenue-stat__hint">Paid in current calendar month</span>
+      </div>
+    </article>
+    <article class="revenue-stat">
+      <mat-icon>trending_up</mat-icon>
+      <div>
+        <span class="revenue-stat__label">Est. MRR</span>
+        <strong class="revenue-stat__value">{{ formatMoney(rev.estimatedMrr, rev.currency) }}</strong>
+        <span class="revenue-stat__hint">{{ rev.activeSubscriptions }} active subscriptions</span>
+      </div>
+    </article>
+    <article class="revenue-stat">
+      <mat-icon>workspace_premium</mat-icon>
+      <div>
+        <span class="revenue-stat__label">Premium users</span>
+        <strong class="revenue-stat__value">{{ rev.premiumUsers }}</strong>
+        <span class="revenue-stat__hint">Accounts on PREMIUM plan</span>
+      </div>
+    </article>
+  </section>
+
+  <mat-card class="revenue-chart-card">
+    <div class="revenue-chart-card__header">
+      <div>
+        <h2 class="revenue-chart-card__title">Revenue trend</h2>
+        <p class="revenue-chart-card__subtitle">Last 6 months · {{ rev.currency }}</p>
+      </div>
+    </div>
+    <div class="revenue-chart" role="img" [attr.aria-label]="'Revenue chart for last six months'">
+      @for (point of rev.byMonth; track point.month) {
+        <div class="revenue-chart__column">
+          <span class="revenue-chart__amount">{{ formatMoney(point.amount, rev.currency) }}</span>
+          <div class="revenue-chart__bar-track">
+            <div
+              class="revenue-chart__bar"
+              [style.height]="barHeight(point)"
+              [class.revenue-chart__bar--empty]="point.amount === 0">
+            </div>
+          </div>
+          <span class="revenue-chart__label">{{ point.label }}</span>
+          <span class="revenue-chart__count">{{ point.paymentCount }} pmt</span>
+        </div>
+      }
+    </div>
+  </mat-card>
+}
+
+<mat-card class="table-card subscriptions-table-card">
+  <div class="subscriptions-table-card__header">
+    <h2 class="subscriptions-table-card__title">Subscribers</h2>
+    <span class="subscriptions-table-card__count">{{ subscriptions().length }} records</span>
+  </div>
+
+  @if (loading()) {
+    <p class="table-empty">Loading subscriptions…</p>
+  } @else {
+    <table mat-table [dataSource]="subscriptions()" class="subscriptions-table">
+      <ng-container matColumnDef="user">
+        <th mat-header-cell *matHeaderCellDef>Subscriber</th>
+        <td mat-cell *matCellDef="let item">
+          <div class="sub-user">
+            <div class="sub-user__avatar" aria-hidden="true">{{ initials(item.userFullName) }}</div>
+            <div class="sub-user__info">
+              <span class="cell-primary">{{ item.userFullName }}</span>
+              <span class="sub-user__email">{{ item.userEmail }}</span>
+              @if (item.userRole) {
+                <span class="sub-user__role" [class]="roleClass(item.userRole)">{{ item.userRole }}</span>
+              }
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="plan">
+        <th mat-header-cell *matHeaderCellDef>Plan</th>
+        <td mat-cell *matCellDef="let item">
+          <mat-chip class="status-chip" [class]="item.plan === 'PREMIUM' ? 'chip-pending' : 'chip-default'">
+            {{ item.plan }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let item">
+          <div class="sub-status-cell">
+            <mat-chip class="status-chip" [class]="statusClass(item.status)">{{ item.status }}</mat-chip>
+            <mat-chip class="status-chip" [class]="item.active ? 'chip-active' : 'chip-disabled'">
+              {{ item.active ? 'Active' : 'Inactive' }}
+            </mat-chip>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="billing">
+        <th mat-header-cell *matHeaderCellDef>Last payment</th>
+        <td mat-cell *matCellDef="let item">
+          @if (item.lastPaymentAmount != null) {
+            <span class="sub-billing__amount">
+              {{ formatMoney(item.lastPaymentAmount, item.lastPaymentCurrency || revenue()?.currency) }}
+            </span>
+            <span class="sub-billing__date">{{ item.lastPaymentAt | date:'mediumDate' }}</span>
+          } @else {
+            <span class="sub-billing__muted">No payment recorded</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="period">
+        <th mat-header-cell *matHeaderCellDef>Period</th>
+        <td mat-cell *matCellDef="let item">
+          <span class="sub-period__range">
+            {{ item.startDate | date:'mediumDate' }} → {{ item.expirationDate | date:'mediumDate' }}
+          </span>
+          <span class="sub-period__hint" [class.sub-period__hint--warn]="daysUntilExpiry(item.expirationDate) === 'Expired'">
+            {{ daysUntilExpiry(item.expirationDate) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    @if (!subscriptions().length) {
+      <p class="table-empty">No subscriptions yet.</p>
+    }
+  }
+</mat-card>
