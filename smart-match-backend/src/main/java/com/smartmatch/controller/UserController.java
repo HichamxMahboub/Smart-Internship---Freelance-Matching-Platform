@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +37,11 @@ public class UserController {
     @PutMapping("/me/fcm-token")
     public ResponseEntity<UserResponse> updateFcmToken(@Valid @RequestBody FcmTokenRequest request) {
         return ResponseEntity.ok(userService.updateFcmToken(request));
+    }
+
+    @PostMapping("/me/refresh-verification")
+    public ResponseEntity<UserResponse> refreshVerification() {
+        return ResponseEntity.ok(userService.refreshCurrentVerification());
     }
 
     @GetMapping("/{id}")

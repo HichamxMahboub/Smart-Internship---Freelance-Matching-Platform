@@ -1,7 +1,10 @@
 package com.smartmatch.controller;
 
+import com.smartmatch.dto.admin.AdminUserDetailResponse;
+import com.smartmatch.dto.admin.AdminUserOverviewResponse;
 import com.smartmatch.dto.user.UserResponse;
 import com.smartmatch.dto.user.UserStatusUpdateRequest;
+import com.smartmatch.service.AdminUserDetailService;
 import com.smartmatch.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -14,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,6 +32,7 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
     private final UserService userService;
+    private final AdminUserDetailService adminUserDetailService;
 
     @GetMapping
     public ResponseEntity<List<UserResponse>> getAllUsers() {
@@ -40,9 +45,24 @@ public class AdminUserController {
         return ResponseEntity.ok(userService.getUsersPage(page, size));
     }
 
+    @GetMapping("/overview")
+    public ResponseEntity<List<AdminUserOverviewResponse>> getOverview() {
+        return ResponseEntity.ok(adminUserDetailService.getOverview());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AdminUserDetailResponse> getUserDetail(@PathVariable String id) {
+        return ResponseEntity.ok(adminUserDetailService.getDetail(id));
+    }
+
     @PatchMapping("/{id}/status")
     public ResponseEntity<UserResponse> updateUserStatus(@PathVariable String id,
                                                          @Valid @RequestBody UserStatusUpdateRequest request) {
         return ResponseEntity.ok(userService.updateUserStatus(id, request));
+    }
+
+    @PostMapping("/{id}/sync-verification")
+    public ResponseEntity<UserResponse> syncVerification(@PathVariable String id) {
+        return ResponseEntity.ok(userService.syncVerificationFromFirebase(id));
     }
 }

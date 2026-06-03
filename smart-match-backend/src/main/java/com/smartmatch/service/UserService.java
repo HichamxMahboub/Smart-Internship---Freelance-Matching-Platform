@@ -4,6 +4,9 @@ import com.smartmatch.dto.user.FcmTokenRequest;
 import com.smartmatch.dto.user.UserResponse;
 import com.smartmatch.dto.user.UserStatusUpdateRequest;
 import com.smartmatch.dto.user.UserUpdateRequest;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.UserRecord;
 import com.smartmatch.exception.NotFoundException;
 import com.smartmatch.model.User;
 import com.smartmatch.repository.UserRepository;
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final FirebaseAuth firebaseAuth;
 
     public UserResponse getCurrentUser() {
         return toResponse(SecurityUtils.currentUser());
@@ -68,6 +72,33 @@ public class UserService {
         return userRepository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+    }
+
+    /** Pull the latest emailVerified flag from Firebase by uid (or by email if uid is missing). */
+    public UserResponse syncVerificationFromFirebase(String id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+        try {
+            UserRecord record = null;
+            if (user.getFirebaseUid() != null && !user.getFirebaseUid().startsWith("seed-")) {
+                record = firebaseAuth.getUser(user.getFirebaseUid());
+            } else if (user.getEmail() != null) {
+                record = firebaseAuth.getUserByEmail(user.getEmail());
+                user.setFirebaseUid(record.getUid());
+            }
+            if (record != null) {
+                user.setEmailVerified(record.isEmailVerified());
+                user = userRepository.save(user);
+            }
+        } catch (FirebaseAuthException ignored) {
+            // Firebase user may not exist yet — leave platform state unchanged.
+        }
+        return toResponse(user);
+    }
+
+    public UserResponse refreshCurrentVerification() {
+        User current = SecurityUtils.currentUser();
+        return syncVerificationFromFirebase(current.getId());
     }
 
     public UserResponse updateUserStatus(String id, UserStatusUpdateRequest request) {

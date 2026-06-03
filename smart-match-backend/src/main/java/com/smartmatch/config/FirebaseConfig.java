@@ -30,6 +30,16 @@ public class FirebaseConfig {
         return new FirebaseAdminTokenVerifier(firebaseAuth);
     }
 
+    /** Exposes FirebaseAuth so server-side flows (email verification sync) can use it. */
+    @Bean
+    public FirebaseAuth firebaseAuth(FirebaseProperties properties) throws IOException {
+        FirebaseAuth firebaseAuth = initializeFirebaseAuth(properties);
+        if (firebaseAuth == null) {
+            throw new IllegalStateException("Firebase service account not configured (set FIREBASE_SERVICE_ACCOUNT_PATH or FIREBASE_SERVICE_ACCOUNT_JSON).");
+        }
+        return firebaseAuth;
+    }
+
     private FirebaseAuth initializeFirebaseAuth(FirebaseProperties properties) throws IOException {
         if (!StringUtils.hasText(properties.serviceAccountPath()) && !StringUtils.hasText(properties.serviceAccountJson())) {
             return null;

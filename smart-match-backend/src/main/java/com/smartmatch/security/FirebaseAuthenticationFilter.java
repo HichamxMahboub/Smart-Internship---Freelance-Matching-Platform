@@ -57,7 +57,7 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
     private Optional<User> resolveUser(FirebaseToken firebaseToken) {
         Optional<User> byUid = userRepository.findByFirebaseUid(firebaseToken.getUid());
         if (byUid.isPresent()) {
-            return byUid;
+            return byUid.map(user -> syncVerifiedStatus(user, firebaseToken));
         }
         if (!StringUtils.hasText(firebaseToken.getEmail())) {
             return Optional.empty();
@@ -65,8 +65,17 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
         return userRepository.findByEmail(firebaseToken.getEmail())
                 .map(user -> {
                     user.setFirebaseUid(firebaseToken.getUid());
-                    user.setEmailVerified(Boolean.TRUE.equals(firebaseToken.isEmailVerified()));
-                    return userRepository.save(user);
+                    return syncVerifiedStatus(user, firebaseToken);
                 });
+    }
+
+    /** Keep the platform's emailVerified flag in sync with Firebase on every request. */
+    private User syncVerifiedStatus(User user, FirebaseToken firebaseToken) {
+        boolean fresh = Boolean.TRUE.equals(firebaseToken.isEmailVerified());
+        if (user.isEmailVerified() != fresh || user.getFirebaseUid() == null) {
+            user.setEmailVerified(fresh);
+            return userRepository.save(user);
+        }
+        return user;
     }
 }
