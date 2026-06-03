@@ -8,5 +8,34 @@ import { favoriteService } from '../../services/favoriteService';
 import { Favorite } from '../../types';
 import { colors } from '../../theme/colors';
 
-export function FavoritesScreen() { const navigation = useNavigation<any>(); const [items, setItems] = useState<Favorite[]>([]); const [refreshing, setRefreshing] = useState(false); const load = async () => { setRefreshing(true); try { setItems(await favoriteService.list()); } finally { setRefreshing(false); } }; const remove = async (offerId: string) => { try { await favoriteService.remove(offerId); load(); } catch { Alert.alert('Error', 'Could not remove favorite.'); } }; useFocusEffect(useCallback(() => { load(); }, [])); return <FlatList style={styles.container} contentContainerStyle={styles.list} data={items} keyExtractor={(item) => item.id} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={load} />} ListEmptyComponent={<EmptyState title="No favorites" />} renderItem={({ item }) => <View style={styles.item}>{item.offer ? <OfferCard offer={item.offer} onPress={() => navigation.navigate('OfferDetails', { offerId: item.offerId, offer: item.offer })} /> : null}<AppButton title="Remove" variant="secondary" onPress={() => remove(item.offerId)} /></View>} />; }
-const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.background }, list: { padding: 16, gap: 12 }, item: { gap: 8 } });
+export function FavoritesScreen() {
+  const navigation = useNavigation<any>();
+  const [items, setItems] = useState<Favorite[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const load = async () => { setRefreshing(true); try { setItems(await favoriteService.list()); } finally { setRefreshing(false); } };
+  const remove = async (offerId: string) => { try { await favoriteService.remove(offerId); load(); } catch { Alert.alert('Error', 'Could not remove favorite.'); } };
+  useFocusEffect(useCallback(() => { load(); }, []));
+  return (
+    <FlatList
+      style={styles.container}
+      contentContainerStyle={styles.list}
+      data={items}
+      keyExtractor={(item) => item.id}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={load} tintColor={colors.primary} />}
+      ListEmptyComponent={<EmptyState icon="bookmark" title="No saved offers" message="Save roles you like, then compare them from this shortlist." actionLabel="Browse offers" onAction={() => navigation.navigate('Offers')} />}
+      renderItem={({ item }) => (
+        <View style={styles.item}>
+          {item.offer ? <OfferCard offer={item.offer} onPress={() => navigation.navigate('OfferDetails', { offerId: item.offerId, offer: item.offer })} /> : null}
+          <AppButton title="Remove from saved" icon="close" variant="ghost" size="sm" onPress={() => remove(item.offerId)} />
+        </View>
+      )}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  list: { padding: 18, gap: 14, paddingBottom: 28 },
+  item: { gap: 6 }
+});
