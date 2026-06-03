@@ -20,6 +20,7 @@ import java.util.UUID;
 public class FileStorageService {
     private static final long MAX_CV_BYTES = 5 * 1024 * 1024;
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".pdf", ".doc", ".docx");
+    private final CloudinaryStorageService cloudinaryStorageService;
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "application/pdf",
             "application/msword",
@@ -30,6 +31,9 @@ public class FileStorageService {
     private String cvUploadDir;
 
     public String storeCv(MultipartFile file, String userId) {
+        if (cloudinaryStorageService.isEnabled()) {
+            return cloudinaryStorageService.uploadResume(file, userId).url();
+        }
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("CV file is required");
         }
