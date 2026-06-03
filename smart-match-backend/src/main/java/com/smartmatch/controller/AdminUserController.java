@@ -1,0 +1,36 @@
+package com.smartmatch.controller;
+
+import com.smartmatch.dto.user.UserResponse;
+import com.smartmatch.dto.user.UserStatusUpdateRequest;
+import com.smartmatch.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin/users")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminUserController {
+    private final UserService userService;
+
+    @GetMapping
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<UserResponse> updateUserStatus(@PathVariable String id,
+                                                         @Valid @RequestBody UserStatusUpdateRequest request) {
+        return ResponseEntity.ok(userService.updateUserStatus(id, request));
+    }
+}

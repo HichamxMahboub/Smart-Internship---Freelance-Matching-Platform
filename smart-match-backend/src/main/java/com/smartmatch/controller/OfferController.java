@@ -51,33 +51,33 @@ public class OfferController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('RECRUITER')")
+    @PreAuthorize("hasAnyRole('RECRUITER', 'ADMIN')")
     public ResponseEntity<OfferResponse> createOffer(@Valid @RequestBody OfferRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(offerService.createOffer(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('RECRUITER')")
+    @PreAuthorize("hasAnyRole('RECRUITER', 'ADMIN')")
     public ResponseEntity<OfferResponse> updateOffer(@PathVariable String id,
                                                      @Valid @RequestBody OfferRequest request) {
         return ResponseEntity.ok(offerService.updateOffer(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('RECRUITER')")
+    @PreAuthorize("hasAnyRole('RECRUITER', 'ADMIN')")
     public ResponseEntity<Void> deleteOffer(@PathVariable String id) {
         offerService.archiveOfferByDelete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/publish")
-    @PreAuthorize("hasRole('RECRUITER')")
+    @PreAuthorize("hasAnyRole('RECRUITER', 'ADMIN')")
     public ResponseEntity<OfferResponse> publishOffer(@PathVariable String id) {
         return ResponseEntity.ok(offerService.publishOffer(id));
     }
 
     @PatchMapping("/{id}/archive")
-    @PreAuthorize("hasRole('RECRUITER')")
+    @PreAuthorize("hasAnyRole('RECRUITER', 'ADMIN')")
     public ResponseEntity<OfferResponse> archiveOffer(@PathVariable String id) {
         return ResponseEntity.ok(offerService.archiveOffer(id));
     }

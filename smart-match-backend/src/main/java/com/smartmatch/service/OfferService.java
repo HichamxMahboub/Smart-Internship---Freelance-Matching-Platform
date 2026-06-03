@@ -45,8 +45,10 @@ public class OfferService {
         Query query = new Query().with(pageable);
         List<Criteria> criteria = new ArrayList<>();
 
-        if (isCurrentUserAdmin() && filter.status() != null) {
-            criteria.add(Criteria.where("status").is(filter.status()));
+        if (isCurrentUserAdmin()) {
+            if (filter.status() != null) {
+                criteria.add(Criteria.where("status").is(filter.status()));
+            }
         } else {
             criteria.add(Criteria.where("status").is(OfferStatus.PUBLISHED));
         }
@@ -105,7 +107,7 @@ public class OfferService {
     }
 
     public OfferResponse updateOffer(String id, OfferRequest request) {
-        Offer offer = getOwnedOffer(id);
+        Offer offer = getManagedOffer(id);
         offer.setTitle(request.title());
         offer.setDescription(request.description());
         offer.setType(request.type());
@@ -116,18 +118,20 @@ public class OfferService {
     }
 
     public void archiveOfferByDelete(String id) {
-        Offer offer = getOwnedOffer(id);
+        Offer offer = getManagedOffer(id);
         offer.setStatus(OfferStatus.ARCHIVED);
         offer.setArchiveAt(Instant.now());
         offerRepository.save(offer);
     }
 
     public OfferResponse publishOffer(String id) {
-        Offer offer = getOwnedOffer(id);
-        Company company = companyRepository.findById(offer.getCompanyId())
-                .orElseThrow(() -> new NotFoundException("Company not found for offer"));
-        if (company.getValidationStatus() != ValidationStatus.APPROVED) {
-            throw new ForbiddenException("Only approved companies can publish offers");
+        Offer offer = getManagedOffer(id);
+        if (!isCurrentUserAdmin()) {
+            Company company = companyRepository.findById(offer.getCompanyId())
+                    .orElseThrow(() -> new NotFoundException("Company not found for offer"));
+            if (company.getValidationStatus() != ValidationStatus.APPROVED) {
+                throw new ForbiddenException("Only approved companies can publish offers");
+            }
         }
         offer.setStatus(OfferStatus.PUBLISHED);
         offer.setPublishedAt(Instant.now());
@@ -135,7 +139,7 @@ public class OfferService {
     }
 
     public OfferResponse archiveOffer(String id) {
-        Offer offer = getOwnedOffer(id);
+        Offer offer = getManagedOffer(id);
         offer.setStatus(OfferStatus.ARCHIVED);
         offer.setArchiveAt(Instant.now());
         return toResponse(offerRepository.save(offer));
@@ -159,10 +163,13 @@ public class OfferService {
         );
     }
 
-    private Offer getOwnedOffer(String id) {
-        User recruiter = SecurityUtils.currentUser();
+    private Offer getManagedOffer(String id) {
         Offer offer = offerRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Offer not found with id: " + id));
+        if (isCurrentUserAdmin()) {
+            return offer;
+        }
+        User recruiter = SecurityUtils.currentUser();
         Company company = companyRepository.findById(offer.getCompanyId())
                 .orElseThrow(() -> new NotFoundException("Company not found for offer"));
         if (!company.getRecruiterId().equals(recruiter.getId())) {
