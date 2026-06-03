@@ -10,6 +10,7 @@ import { OffersComponent } from './pages/offers/offers.component';
 import { ApplicationsComponent } from './pages/applications/applications.component';
 import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
 import { NotificationsComponent } from './pages/notifications/notifications.component';
+import { MessagesComponent } from './pages/messages/messages.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 
 export const routes: Routes = [
@@ -27,6 +28,7 @@ export const routes: Routes = [
       { path: 'applications', component: ApplicationsComponent, canActivate: [roleGuard], data: { roles: ['ADMIN', 'RECRUITER'] } },
       { path: 'subscriptions', component: SubscriptionsComponent, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
       { path: 'notifications', component: NotificationsComponent, canActivate: [roleGuard], data: { roles: ['ADMIN', 'RECRUITER'] } },
+      { path: 'messages', component: MessagesComponent, canActivate: [roleGuard], data: { roles: ['ADMIN', 'RECRUITER'] } },
       { path: 'profile', component: ProfileComponent, canActivate: [roleGuard], data: { roles: ['RECRUITER'] } }
     ]
   },
