@@ -12,10 +12,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import com.smartmatch.model.User;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +34,7 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
             String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 FirebaseToken firebaseToken = authTokenService.verifyAuthorizationHeader(authorizationHeader);
-                userRepository.findByFirebaseUid(firebaseToken.getUid())
+                resolveUser(firebaseToken)
                         .filter(user -> user.isActive())
                         .ifPresent(user -> {
                             SecurityUserPrincipal principal = new SecurityUserPrincipal(user);
@@ -45,5 +48,25 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.clearContext();
             handlerExceptionResolver.resolveException(request, response, null, exception);
         }
+    }
+
+    /**
+     * Resolves the platform user for a Firebase token. Seed/demo users may have a placeholder
+     * firebaseUid until they sign in with the matching email — then the real UID is stored.
+     */
+    private Optional<User> resolveUser(FirebaseToken firebaseToken) {
+        Optional<User> byUid = userRepository.findByFirebaseUid(firebaseToken.getUid());
+        if (byUid.isPresent()) {
+            return byUid;
+        }
+        if (!StringUtils.hasText(firebaseToken.getEmail())) {
+            return Optional.empty();
+        }
+        return userRepository.findByEmail(firebaseToken.getEmail())
+                .map(user -> {
+                    user.setFirebaseUid(firebaseToken.getUid());
+                    user.setEmailVerified(Boolean.TRUE.equals(firebaseToken.isEmailVerified()));
+                    return userRepository.save(user);
+                });
     }
 }
