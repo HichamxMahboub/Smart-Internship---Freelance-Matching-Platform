@@ -11,7 +11,9 @@ import com.smartmatch.model.Message;
 import com.smartmatch.model.Offer;
 import com.smartmatch.model.User;
 import com.smartmatch.model.enums.Role;
+import com.smartmatch.model.CandidateProfile;
 import com.smartmatch.repository.ApplicationRepository;
+import com.smartmatch.repository.CandidateProfileRepository;
 import com.smartmatch.repository.CompanyRepository;
 import com.smartmatch.repository.ConversationRepository;
 import com.smartmatch.repository.MessageRepository;
@@ -38,6 +40,7 @@ public class ChatService {
     private final OfferRepository offerRepository;
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
+    private final CandidateProfileRepository candidateProfileRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final FcmService fcmService;
 
@@ -168,6 +171,32 @@ public class ChatService {
         int unread = conversation.getCandidateId().equals(viewerId)
                 ? conversation.getCandidateUnread()
                 : conversation.getRecruiterUnread();
+
+        Offer offer = StringUtils.hasText(conversation.getOfferId())
+                ? offerRepository.findById(conversation.getOfferId()).orElse(null)
+                : null;
+        String offerTitle = offer != null && StringUtils.hasText(offer.getTitle()) ? offer.getTitle() : null;
+
+        Company company = offer != null && StringUtils.hasText(offer.getCompanyId())
+                ? companyRepository.findById(offer.getCompanyId()).orElse(null)
+                : null;
+        String companyName = company != null && StringUtils.hasText(company.getName()) ? company.getName() : null;
+        String companyLogo = company != null ? company.getLogoUrl() : null;
+
+        User candidateUser = userRepository.findById(conversation.getCandidateId()).orElse(null);
+        String candidateName = candidateUser != null && StringUtils.hasText(candidateUser.getFullName())
+                ? candidateUser.getFullName()
+                : "Candidate";
+        String candidateAvatar = candidateProfileRepository.findByUserId(conversation.getCandidateId())
+                .map(CandidateProfile::getPhotoUrl)
+                .orElse(null);
+
+        boolean viewerIsCandidate = conversation.getCandidateId().equals(viewerId);
+        String displayName = viewerIsCandidate
+                ? (companyName != null ? companyName : "Company")
+                : candidateName;
+        String displayAvatarUrl = viewerIsCandidate ? companyLogo : candidateAvatar;
+
         return new ConversationResponse(
                 conversation.getId(),
                 conversation.getCandidateId(),
@@ -176,7 +205,11 @@ public class ChatService {
                 conversation.getLastMessage(),
                 conversation.getLastMessageAt(),
                 unread,
-                conversation.getCreatedAt());
+                conversation.getCreatedAt(),
+                displayName,
+                displayAvatarUrl,
+                offerTitle,
+                companyName);
     }
 
     private MessageResponse toResponse(Message message) {
