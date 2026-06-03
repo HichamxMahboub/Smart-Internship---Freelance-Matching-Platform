@@ -25,9 +25,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -43,6 +46,8 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        removeDuplicateUsersByEmail();
+
         User admin = seedUser("seed-admin-uid", "Admin User", "admin@smartmatch.local", Role.ADMIN, Plan.PREMIUM, true);
         User candidate = seedUser("seed-candidate-uid", "Candidate User", "candidate@smartmatch.local", Role.CANDIDATE, Plan.PREMIUM, true);
         User recruiter = seedUser("seed-recruiter-uid", "Recruiter User", "recruiter@smartmatch.local", Role.RECRUITER, Plan.FREE, true);
@@ -101,8 +106,13 @@ public class DataSeeder implements CommandLineRunner {
         admin.getId();
     }
 
+    /**
+     * After Firebase login, seed placeholder UIDs are replaced with real Firebase UIDs.
+     * Lookup by email first so restarts do not create a second account for the same address.
+     */
     private User seedUser(String firebaseUid, String fullName, String email, Role role, Plan plan, boolean emailVerified) {
-        return userRepository.findByFirebaseUid(firebaseUid)
+        return userRepository.findByEmail(email)
+                .or(() -> userRepository.findByFirebaseUid(firebaseUid))
                 .orElseGet(() -> userRepository.save(User.builder()
                         .firebaseUid(firebaseUid)
                         .fullName(fullName)
@@ -112,6 +122,30 @@ public class DataSeeder implements CommandLineRunner {
                         .active(true)
                         .emailVerified(emailVerified)
                         .build()));
+    }
+
+    private void removeDuplicateUsersByEmail() {
+        var grouped = userRepository.findAll().stream()
+                .filter(user -> StringUtils.hasText(user.getEmail()))
+                .collect(Collectors.groupingBy(user -> user.getEmail().trim().toLowerCase()));
+
+        grouped.values().stream()
+                .filter(users -> users.size() > 1)
+                .forEach(users -> {
+                    User keeper = users.stream()
+                            .max(Comparator
+                                    .comparing(this::hasRealFirebaseUid)
+                                    .thenComparing(User::isActive)
+                                    .thenComparing(user -> user.getUpdatedAt() != null ? user.getUpdatedAt() : Instant.EPOCH))
+                            .orElse(users.get(0));
+                    users.stream()
+                            .filter(user -> !user.getId().equals(keeper.getId()))
+                            .forEach(user -> userRepository.deleteById(user.getId()));
+                });
+    }
+
+    private boolean hasRealFirebaseUid(User user) {
+        return StringUtils.hasText(user.getFirebaseUid()) && !user.getFirebaseUid().startsWith("seed-");
     }
 
     private Offer seedOffer(String companyId, String title, String description, OfferType type, String location, String duration, List<String> skills, OfferStatus status) {

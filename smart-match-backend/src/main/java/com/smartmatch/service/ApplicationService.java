@@ -9,7 +9,6 @@ import com.smartmatch.exception.ForbiddenException;
 import com.smartmatch.exception.NotFoundException;
 import com.smartmatch.model.Application;
 import com.smartmatch.model.Company;
-import com.smartmatch.model.Notification;
 import com.smartmatch.model.Offer;
 import com.smartmatch.model.User;
 import com.smartmatch.model.enums.ApplicationStatus;
@@ -18,7 +17,6 @@ import com.smartmatch.model.enums.OfferStatus;
 import com.smartmatch.model.enums.Role;
 import com.smartmatch.repository.ApplicationRepository;
 import com.smartmatch.repository.CompanyRepository;
-import com.smartmatch.repository.NotificationRepository;
 import com.smartmatch.repository.OfferRepository;
 import com.smartmatch.security.SecurityUserPrincipal;
 import com.smartmatch.util.SecurityUtils;
@@ -43,7 +41,7 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final OfferRepository offerRepository;
     private final CompanyRepository companyRepository;
-    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
 
     public ApplicationResponse apply(ApplicationRequest request) {
         User candidate = SecurityUtils.currentUser();
@@ -73,13 +71,11 @@ public class ApplicationService {
                 .build();
         Application savedApplication = applicationRepository.save(application);
 
-        notificationRepository.save(Notification.builder()
-                .userId(company.getRecruiterId())
-                .title("New application received")
-                .message(candidate.getFullName() + " applied to " + offer.getTitle() + ".")
-                .type(NotificationType.APPLICATION)
-                .read(false)
-                .build());
+        notificationService.create(
+                company.getRecruiterId(),
+                "New application received",
+                candidate.getFullName() + " applied to " + offer.getTitle() + ".",
+                NotificationType.APPLICATION);
 
         return toResponse(savedApplication);
     }
@@ -135,13 +131,11 @@ public class ApplicationService {
         application.setStatus(request.status());
         Application savedApplication = applicationRepository.save(application);
 
-        notificationRepository.save(Notification.builder()
-                .userId(savedApplication.getCandidateId())
-                .title("Application status updated")
-                .message("Your application for " + offer.getTitle() + " is now " + savedApplication.getStatus().name() + ".")
-                .type(NotificationType.APPLICATION)
-                .read(false)
-                .build());
+        notificationService.create(
+                savedApplication.getCandidateId(),
+                "Application status updated",
+                "Your application for " + offer.getTitle() + " is now " + savedApplication.getStatus().name() + ".",
+                NotificationType.APPLICATION);
 
         return toResponse(savedApplication);
     }

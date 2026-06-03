@@ -8,7 +8,6 @@ import com.smartmatch.dto.subscription.UpgradeSubscriptionRequest;
 import com.smartmatch.exception.ConflictException;
 import com.smartmatch.exception.ForbiddenException;
 import com.smartmatch.exception.NotFoundException;
-import com.smartmatch.model.Notification;
 import com.smartmatch.model.Payment;
 import com.smartmatch.model.Subscription;
 import com.smartmatch.model.User;
@@ -16,7 +15,6 @@ import com.smartmatch.model.enums.NotificationType;
 import com.smartmatch.model.enums.PaymentStatus;
 import com.smartmatch.model.enums.Plan;
 import com.smartmatch.model.enums.SubscriptionStatus;
-import com.smartmatch.repository.NotificationRepository;
 import com.smartmatch.repository.PaymentRepository;
 import com.smartmatch.repository.SubscriptionRepository;
 import com.smartmatch.repository.UserRepository;
@@ -36,7 +34,7 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
-    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
     private final PaymentService paymentService;
 
     @Value("${app.payment.webhook-secret:dev-payment-secret}")
@@ -78,13 +76,11 @@ public class SubscriptionService {
         user.setPlan(Plan.PREMIUM);
         userRepository.save(user);
 
-        notificationRepository.save(Notification.builder()
-                .userId(user.getId())
-                .title("Premium subscription active")
-                .message("Your PREMIUM subscription is active for 30 days.")
-                .type(NotificationType.SUBSCRIPTION)
-                .read(false)
-                .build());
+        notificationService.create(
+                user.getId(),
+                "Premium subscription active",
+                "Your PREMIUM subscription is active for 30 days.",
+                NotificationType.SUBSCRIPTION);
 
         return new SubscriptionUpgradeResponse(toResponse(subscription), paymentService.toResponse(payment));
     }

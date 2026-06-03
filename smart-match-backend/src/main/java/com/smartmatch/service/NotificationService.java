@@ -5,9 +5,12 @@ import com.smartmatch.exception.ForbiddenException;
 import com.smartmatch.exception.NotFoundException;
 import com.smartmatch.model.Notification;
 import com.smartmatch.model.User;
+import com.smartmatch.model.enums.NotificationType;
 import com.smartmatch.repository.NotificationRepository;
+import com.smartmatch.repository.UserRepository;
 import com.smartmatch.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +19,28 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationService {
     private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final FcmService fcmService;
+
+    /**
+     * Persists a notification, pushes it live over STOMP to the recipient's
+     * {@code /user/queue/notifications} destination, and sends an FCM push as fallback.
+     */
+    public NotificationResponse create(String userId, String title, String message, NotificationType type) {
+        Notification notification = notificationRepository.save(Notification.builder()
+                .userId(userId)
+                .title(title)
+                .message(message)
+                .type(type)
+                .read(false)
+                .build());
+        NotificationResponse response = toResponse(notification);
+        messagingTemplate.convertAndSendToUser(userId, "/queue/notifications", response);
+        userRepository.findById(userId)
+                .ifPresent(user -> fcmService.sendToToken(user.getFcmToken(), title, message));
+        return response;
+    }
 
     public List<NotificationResponse> getCurrentUserNotifications() {
         User user = SecurityUtils.currentUser();

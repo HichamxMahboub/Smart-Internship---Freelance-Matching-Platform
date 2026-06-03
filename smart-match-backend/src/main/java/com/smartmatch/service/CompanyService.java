@@ -9,14 +9,12 @@ import com.smartmatch.exception.ForbiddenException;
 import com.smartmatch.exception.NotFoundException;
 import com.smartmatch.model.AdminLog;
 import com.smartmatch.model.Company;
-import com.smartmatch.model.Notification;
 import com.smartmatch.model.RecruiterProfile;
 import com.smartmatch.model.User;
 import com.smartmatch.model.enums.NotificationType;
 import com.smartmatch.model.enums.ValidationStatus;
 import com.smartmatch.repository.AdminLogRepository;
 import com.smartmatch.repository.CompanyRepository;
-import com.smartmatch.repository.NotificationRepository;
 import com.smartmatch.repository.RecruiterProfileRepository;
 import com.smartmatch.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +28,7 @@ public class CompanyService {
     private final CompanyRepository companyRepository;
     private final RecruiterProfileRepository recruiterProfileRepository;
     private final AdminLogRepository adminLogRepository;
-    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
 
     public CompanyResponse createCompany(CompanyRequest request) {
         User recruiter = SecurityUtils.currentUser();
@@ -109,13 +107,11 @@ public class CompanyService {
                 .description(resolveDescription(request, savedCompany))
                 .build());
 
-        notificationRepository.save(Notification.builder()
-                .userId(savedCompany.getRecruiterId())
-                .title("Company validation updated")
-                .message("Your company " + savedCompany.getName() + " has been " + savedCompany.getValidationStatus().name().toLowerCase() + ".")
-                .type(NotificationType.ADMIN)
-                .read(false)
-                .build());
+        notificationService.create(
+                savedCompany.getRecruiterId(),
+                "Company validation updated",
+                "Your company " + savedCompany.getName() + " has been " + savedCompany.getValidationStatus().name().toLowerCase() + ".",
+                NotificationType.ADMIN);
 
         return toResponse(savedCompany);
     }
