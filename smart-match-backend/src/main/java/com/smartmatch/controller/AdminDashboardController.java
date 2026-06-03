@@ -2,7 +2,8 @@ package com.smartmatch.controller;
 
 import com.smartmatch.dto.admin.AdminDashboardResponse;
 import com.smartmatch.dto.admin.AdminLogResponse;
-import com.smartmatch.dto.subscription.SubscriptionResponse;
+import com.smartmatch.dto.admin.AdminNotificationsOverviewResponse;
+import com.smartmatch.dto.admin.AdminSubscriptionsOverviewResponse;
 import com.smartmatch.service.AdminDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +27,13 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/subscriptions")
-    public ResponseEntity<List<SubscriptionResponse>> getSubscriptions() {
-        return ResponseEntity.ok(adminDashboardService.getAllSubscriptions());
+    public ResponseEntity<AdminSubscriptionsOverviewResponse> getSubscriptions() {
+        return ResponseEntity.ok(adminDashboardService.getSubscriptionsOverview());
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<AdminNotificationsOverviewResponse> getNotifications() {
+        return ResponseEntity.ok(adminDashboardService.getNotificationsOverview());
     }
 
     @GetMapping("/logs")
