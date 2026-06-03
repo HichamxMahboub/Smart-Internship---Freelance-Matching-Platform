@@ -27,8 +27,7 @@
 .company-detail__hero {
   position: relative;
   padding: 20px 20px 18px;
-  background:
-    linear-gradient(135deg, rgba(31, 59, 224, 0.96) 0%, rgba(22, 44, 176, 0.92) 55%, rgba(16, 181, 166, 0.35) 100%);
+  background: var(--brand-primary);
   color: #fff;
 }
 

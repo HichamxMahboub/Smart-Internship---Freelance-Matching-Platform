@@ -238,9 +238,7 @@ a {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-xl);
-  background:
-    radial-gradient(circle at 92% 8%, rgba(31, 59, 224, 0.55), transparent 30%),
-    linear-gradient(135deg, var(--ink) 0%, var(--ink-soft) 54%, var(--brand-primary) 115%);
+  background: var(--ink);
   box-shadow: var(--shadow-strong);
   color: #fff;
   animation: fadeIn var(--transition-base);
@@ -253,7 +251,7 @@ a {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: transparent;
     animation: shimmer 3s infinite;
   }
 }
@@ -340,7 +338,7 @@ a {
 
 .table-card .mat-mdc-header-row {
   height: 48px;
-  background: linear-gradient(180deg, #f7f9fd 0%, var(--surface-muted) 100%);
+  background: #f7f9fd;
 }
 
 .table-card .mat-mdc-header-cell {
@@ -438,7 +436,7 @@ a {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background: transparent;
     transition: left 0.5s;
   }
   
@@ -459,12 +457,12 @@ a {
 /* Primary action buttons (Approve, Publish, Accept, etc.) */
 .table-card .table-actions .mat-mdc-button[color='primary'],
 .table-card .table-actions .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   color: #fff;
   border: 1px solid rgba(102, 126, 234, 0.3);
   
   &:hover:not([disabled]) {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: #764ba2;
     border-color: rgba(102, 126, 234, 0.6);
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
   }
@@ -473,12 +471,12 @@ a {
 /* Warning/Danger buttons (Delete, Reject, Block, etc.) */
 .table-card .table-actions .mat-mdc-button[color='warn'],
 .table-card .table-actions .btn-danger {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  background: #ff6b6b;
   color: #fff;
   border: 1px solid rgba(255, 107, 107, 0.3);
   
   &:hover:not([disabled]) {
-    background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
+    background: #ee5a6f;
     border-color: rgba(255, 107, 107, 0.6);
     box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
   }
@@ -486,12 +484,12 @@ a {
 
 /* Success buttons (Approve) */
 .table-card .table-actions .btn-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #10b981;
   color: #fff;
   border: 1px solid rgba(16, 185, 129, 0.3);
   
   &:hover:not([disabled]) {
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    background: #059669;
     border-color: rgba(16, 185, 129, 0.6);
     box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
   }
@@ -500,12 +498,12 @@ a {
 /* Secondary/Default buttons (Edit, Details, View, etc.) */
 .table-card .table-actions .mat-mdc-button:not([color='primary']):not([color='warn']):not(.btn-primary):not(.btn-danger):not(.btn-success),
 .table-card .table-actions .btn-secondary {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: #f8f9fa;
   color: var(--text-soft);
   border: 1px solid var(--border-strong);
   
   &:hover:not([disabled]) {
-    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    background: #e9ecef;
     border-color: var(--text-muted);
     color: var(--ink);
     box-shadow: 0 6px 16px rgba(11, 20, 48, 0.12);
@@ -514,12 +512,12 @@ a {
 
 /* Info buttons (Archive, Publish non-primary) */
 .table-card .table-actions .btn-info {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: #3b82f6;
   color: #fff;
   border: 1px solid rgba(59, 130, 246, 0.3);
   
   &:hover:not([disabled]) {
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    background: #2563eb;
     border-color: rgba(59, 130, 246, 0.6);
     box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
   }
@@ -527,12 +525,12 @@ a {
 
 /* Warning buttons (Archive, Moderate) */
 .table-card .table-actions .btn-warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: #f59e0b;
   color: #fff;
   border: 1px solid rgba(245, 158, 11, 0.3);
   
   &:hover:not([disabled]) {
-    background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+    background: #d97706;
     border-color: rgba(245, 158, 11, 0.6);
     box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
   }
@@ -549,12 +547,12 @@ a {
 .mat-mdc-unelevated-button.mat-primary,
 .mat-mdc-flat-button.mat-primary,
 button[mat-flat-button][color="primary"] {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: #667eea !important;
   color: #fff !important;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
   
   &:hover:not([disabled]) {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+    background: #764ba2 !important;
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
   }
 }

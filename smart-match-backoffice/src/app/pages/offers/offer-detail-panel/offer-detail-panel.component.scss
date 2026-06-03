@@ -28,7 +28,7 @@
   position: relative;
   padding: 20px;
   color: #fff;
-  background: linear-gradient(135deg, var(--brand-primary-dark) 0%, var(--brand-primary) 50%, rgba(16, 181, 166, 0.4) 100%);
+  background: var(--brand-primary-dark);
 }
 
 .offer-detail__close {
@@ -120,22 +120,22 @@
 }
 
 .offer-detail__status-strip--published {
-  background: linear-gradient(90deg, #dff8f3 0%, #f0fdf9 100%);
+  background: #dff8f3;
   color: #087f73;
 }
 
 .offer-detail__status-strip--archived {
-  background: linear-gradient(90deg, #f1f5f9 0%, #f8fafc 100%);
+  background: #f1f5f9;
   color: #475569;
 }
 
 .offer-detail__status-strip--blocked {
-  background: linear-gradient(90deg, #fee2e2 0%, #fef2f2 100%);
+  background: #fee2e2;
   color: #b91c1c;
 }
 
 .offer-detail__status-strip--draft {
-  background: linear-gradient(90deg, #e8edff 0%, #f5f7ff 100%);
+  background: #e8edff;
   color: #1e3be0;
 }
 

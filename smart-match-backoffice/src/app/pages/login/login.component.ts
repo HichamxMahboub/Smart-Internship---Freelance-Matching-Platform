@@ -104,7 +104,7 @@ import { MaterialModule } from '../../shared/material/material.module';
       place-items: center;
       padding: 24px;
       overflow: hidden;
-      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      background: #0f0c29;
     }
 
     .login-background {
@@ -125,7 +125,7 @@ import { MaterialModule } from '../../shared/material/material.module';
     .orb-1 {
       width: 500px;
       height: 500px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #667eea;
       top: -250px;
       right: -100px;
       animation-delay: 0s;
@@ -134,7 +134,7 @@ import { MaterialModule } from '../../shared/material/material.module';
     .orb-2 {
       width: 400px;
       height: 400px;
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      background: #f093fb;
       bottom: -200px;
       left: -150px;
       animation-delay: 5s;
@@ -143,7 +143,7 @@ import { MaterialModule } from '../../shared/material/material.module';
     .orb-3 {
       width: 350px;
       height: 350px;
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      background: #4facfe;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -169,8 +169,8 @@ import { MaterialModule } from '../../shared/material/material.module';
       position: absolute;
       inset: 0;
       background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        rgba(255, 255, 255, 0.03),
+        rgba(255, 255, 255, 0.03);
       background-size: 50px 50px;
       opacity: 0.4;
     }
@@ -233,7 +233,7 @@ import { MaterialModule } from '../../shared/material/material.module';
       position: absolute;
       inset: -2px;
       border-radius: 28px;
-      background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+      background: #667eea;
       opacity: 0.6;
       filter: blur(10px);
       z-index: -1;
@@ -263,7 +263,7 @@ import { MaterialModule } from '../../shared/material/material.module';
       font-size: 42px;
       font-weight: 950;
       letter-spacing: -0.04em;
-      background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%);
+      background: #fff;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -307,7 +307,7 @@ import { MaterialModule } from '../../shared/material/material.module';
     .card-glow {
       position: absolute;
       inset: -100px;
-      background: radial-gradient(circle at 50% 0%, rgba(102, 126, 234, 0.3), transparent 50%);
+      background: rgba(102, 126, 234, 0.3);
       pointer-events: none;
       z-index: -1;
     }
@@ -374,7 +374,7 @@ import { MaterialModule } from '../../shared/material/material.module';
       font-size: 16px !important;
       font-weight: 800 !important;
       border-radius: 14px !important;
-      background: linear-gradient(135deg, var(--brand-primary) 0%, #5b4dff 100%) !important;
+      background: var(--brand-primary) !important;
       box-shadow: 
         0 12px 28px rgba(31, 59, 224, 0.35),
         inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;

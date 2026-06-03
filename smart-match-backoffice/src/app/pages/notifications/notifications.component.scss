@@ -31,7 +31,7 @@
 
 .notif-stat--primary {
   border-color: rgba(31, 59, 224, 0.2);
-  background: linear-gradient(135deg, #f5f7ff 0%, #fff 100%);
+  background: #f5f7ff;
 }
 
 .notif-stat__label {
@@ -149,7 +149,7 @@
 
 .notif-card--unread {
   border-left: 4px solid var(--brand-primary);
-  background: linear-gradient(90deg, rgba(31, 59, 224, 0.06) 0%, var(--surface) 40%);
+  background: rgba(31, 59, 224, 0.06);
 }
 
 .notif-card--mine.notif-card--unread {
@@ -262,7 +262,7 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--brand-primary) 0%, #10b5a6 100%);
+  background: var(--brand-primary);
   color: #fff;
   font-size: 12px;
   font-weight: 800;

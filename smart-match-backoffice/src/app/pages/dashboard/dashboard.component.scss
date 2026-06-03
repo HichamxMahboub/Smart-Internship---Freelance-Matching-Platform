@@ -14,9 +14,7 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-xl);
-  background:
-    radial-gradient(circle at 92% 8%, rgba(31, 59, 224, 0.55), transparent 30%),
-    linear-gradient(135deg, var(--ink) 0%, var(--ink-soft) 54%, var(--brand-primary) 115%);
+  background: var(--ink);
   box-shadow: var(--shadow-strong);
   color: #fff;
   animation: fadeInScale 0.5s ease-out;
@@ -149,7 +147,7 @@
 .pulse-line i {
   flex: 1;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--brand-teal), var(--brand-primary));
+  background: var(--brand-teal);
   animation: wave 1.35s ease-in-out infinite;
 }
 

@@ -23,7 +23,7 @@ import { MaterialModule } from '../../../shared/material/material.module';
       text-align: center;
       border: 1px dashed var(--border-strong);
       border-radius: var(--radius-xl);
-      background: linear-gradient(180deg, var(--surface) 0%, var(--surface-muted) 100%);
+      background: var(--surface);
     }
     .placeholder__icon {
       display: grid;
