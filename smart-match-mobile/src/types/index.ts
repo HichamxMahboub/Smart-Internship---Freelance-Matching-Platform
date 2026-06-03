@@ -17,6 +17,30 @@ export interface Favorite { id: string; userId: string; offerId: string; offer?:
 export interface Subscription { id?: string; userId: string; plan: Plan; active: boolean; startDate?: string; expirationDate?: string; status?: SubscriptionStatus; createdAt?: string; updatedAt?: string; }
 export interface Notification { id: string; userId: string; title: string; message: string; type: NotificationType; read: boolean; createdAt?: string; }
 export interface RecruiterProfile { id?: string; userId?: string; companyId?: string; position?: string; phone?: string; createdAt?: string; updatedAt?: string; }
-export interface CandidateProfile { id?: string; userId?: string; educationLevel?: string; fieldOfStudy?: string; location?: string; cvUrl?: string; skills: string[]; languages: string[]; preferences: string[]; }
+export interface Project { id?: string; title: string; description?: string; link?: string; imageUrl?: string; }
+export interface Experience { id?: string; role: string; org: string; start?: string; end?: string; current?: boolean; description?: string; }
+export interface Education { id?: string; school: string; degree?: string; field?: string; start?: string; end?: string; }
+export interface SocialLinks { github?: string; linkedin?: string; website?: string; other?: string; }
+export interface CandidateProfile {
+  id?: string;
+  userId?: string;
+  photoUrl?: string;
+  headline?: string;
+  bio?: string;
+  educationLevel?: string;
+  fieldOfStudy?: string;
+  location?: string;
+  cvUrl?: string;
+  skills: string[];
+  languages: string[];
+  preferences: string[];
+  projects?: Project[];
+  experiences?: Experience[];
+  educations?: Education[];
+  socials?: SocialLinks;
+}
+export interface OfferMatch { score: number; matched: string[]; missing: string[]; }
 export interface AIResult { id: string; userId: string; offerId?: string; applicationId?: string; type: AIResultType; score?: number; extractedSkills: string[]; recommendation?: string; details?: string; createdAt?: string; }
+export interface Conversation { id: string; candidateId: string; recruiterId: string; offerId?: string; lastMessage?: string; lastMessageAt?: string; unread: number; createdAt?: string; }
+export interface Message { id: string; conversationId: string; senderId: string; content: string; read: boolean; createdAt?: string; }
 export interface PageResponse<T> { content: T[]; totalElements: number; totalPages: number; number: number; size: number; }
