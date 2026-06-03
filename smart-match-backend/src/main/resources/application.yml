@@ -23,6 +23,12 @@ springdoc:
 smartmatch:
   upload:
     cv-dir: ${APP_CV_UPLOAD_DIR:/uploads/cv}
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+    api-key: ${CLOUDINARY_API_KEY:}
+    api-secret: ${CLOUDINARY_API_SECRET:}
+    image-folder: ${CLOUDINARY_IMAGE_FOLDER:interlance/images}
+    resume-folder: ${CLOUDINARY_RESUME_FOLDER:interlance/resumes}
   ai:
     api-key: ${OPENROUTER_API_KEY:}
     model: ${OPENROUTER_MODEL:openrouter/free}
