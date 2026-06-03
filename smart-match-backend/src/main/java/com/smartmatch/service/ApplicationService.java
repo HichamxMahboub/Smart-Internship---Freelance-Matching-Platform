@@ -1,5 +1,6 @@
 package com.smartmatch.service;
 
+import com.smartmatch.dto.application.ApplicationOverviewResponse;
 import com.smartmatch.dto.application.ApplicationRequest;
 import com.smartmatch.dto.application.ApplicationResponse;
 import com.smartmatch.dto.application.ApplicationStatusUpdateRequest;
@@ -18,6 +19,7 @@ import com.smartmatch.model.enums.Role;
 import com.smartmatch.repository.ApplicationRepository;
 import com.smartmatch.repository.CompanyRepository;
 import com.smartmatch.repository.OfferRepository;
+import com.smartmatch.repository.UserRepository;
 import com.smartmatch.security.SecurityUserPrincipal;
 import com.smartmatch.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,7 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final OfferRepository offerRepository;
     private final CompanyRepository companyRepository;
+    private final UserRepository userRepository;
     private final NotificationService notificationService;
 
     public ApplicationResponse apply(ApplicationRequest request) {
@@ -102,6 +105,61 @@ public class ApplicationService {
                 .toList();
     }
 
+    public List<ApplicationResponse> getAllApplications() {
+        return applicationRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(Application::getAppliedAt,
+                        java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())))
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<ApplicationOverviewResponse> getAllApplicationsOverview() {
+        java.util.Map<String, Offer> offerCache = new java.util.HashMap<>();
+        java.util.Map<String, Company> companyCache = new java.util.HashMap<>();
+        java.util.Map<String, User> userCache = new java.util.HashMap<>();
+        return applicationRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(Application::getAppliedAt,
+                        java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())))
+                .map(app -> toOverview(app, offerCache, companyCache, userCache))
+                .toList();
+    }
+
+    private ApplicationOverviewResponse toOverview(Application application,
+                                                   java.util.Map<String, Offer> offerCache,
+                                                   java.util.Map<String, Company> companyCache,
+                                                   java.util.Map<String, User> userCache) {
+        Offer offer = offerCache.computeIfAbsent(application.getOfferId(),
+                id -> offerRepository.findById(id).orElse(null));
+        Company company = null;
+        if (offer != null && offer.getCompanyId() != null) {
+            company = companyCache.computeIfAbsent(offer.getCompanyId(),
+                    id -> companyRepository.findById(id).orElse(null));
+        }
+        User candidate = userCache.computeIfAbsent(application.getCandidateId(),
+                id -> userRepository.findById(id).orElse(null));
+        User recruiter = application.getRecruiterId() == null ? null
+                : userCache.computeIfAbsent(application.getRecruiterId(),
+                        id -> userRepository.findById(id).orElse(null));
+        return new ApplicationOverviewResponse(
+                application.getId(),
+                application.getOfferId(),
+                offer != null ? offer.getTitle() : null,
+                application.getCandidateId(),
+                candidate != null ? candidate.getFullName() : null,
+                candidate != null ? candidate.getEmail() : null,
+                application.getRecruiterId(),
+                recruiter != null ? recruiter.getFullName() : null,
+                company != null ? company.getName() : null,
+                application.getMessage(),
+                application.getStatus(),
+                application.getMatchingScore(),
+                application.getAppliedAt(),
+                application.getReviewedAt(),
+                application.getDecidedAt(),
+                application.getUpdatedAt()
+        );
+    }
+
     public ApplicationResponse getApplicationById(String id) {
         User currentUser = SecurityUtils.currentUser();
         Application application = applicationRepository.findById(id)
@@ -128,7 +186,21 @@ public class ApplicationService {
             throw new ForbiddenException("You can only update applications for your own company");
         }
 
+        ApplicationStatus prev = application.getStatus();
         application.setStatus(request.status());
+        Instant now = Instant.now();
+        if (prev == ApplicationStatus.PENDING && request.status() != ApplicationStatus.PENDING && application.getReviewedAt() == null) {
+            application.setReviewedAt(now);
+        }
+        if (request.status() == ApplicationStatus.INTERVIEW && application.getReviewedAt() == null) {
+            application.setReviewedAt(now);
+        }
+        if (request.status() == ApplicationStatus.ACCEPTED || request.status() == ApplicationStatus.REJECTED) {
+            if (application.getReviewedAt() == null) {
+                application.setReviewedAt(now);
+            }
+            application.setDecidedAt(now);
+        }
         Application savedApplication = applicationRepository.save(application);
 
         notificationService.create(
@@ -171,6 +243,8 @@ public class ApplicationService {
                 application.getStatus(),
                 application.getMatchingScore(),
                 application.getAppliedAt(),
+                application.getReviewedAt(),
+                application.getDecidedAt(),
                 application.getUpdatedAt()
         );
     }

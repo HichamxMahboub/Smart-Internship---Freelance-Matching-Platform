@@ -1,5 +1,6 @@
 package com.smartmatch.controller;
 
+import com.smartmatch.dto.application.ApplicationOverviewResponse;
 import com.smartmatch.dto.application.ApplicationRequest;
 import com.smartmatch.dto.application.ApplicationResponse;
 import com.smartmatch.dto.application.ApplicationStatusUpdateRequest;
@@ -41,6 +42,18 @@ public class ApplicationController {
     @PreAuthorize("hasRole('RECRUITER')")
     public ResponseEntity<List<ApplicationResponse>> getRecruiterApplications() {
         return ResponseEntity.ok(applicationService.getCurrentRecruiterApplications());
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ApplicationResponse>> getAllApplications() {
+        return ResponseEntity.ok(applicationService.getAllApplications());
+    }
+
+    @GetMapping("/admin/overview")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ApplicationOverviewResponse>> getAllApplicationsOverview() {
+        return ResponseEntity.ok(applicationService.getAllApplicationsOverview());
     }
 
     @GetMapping("/{id}")

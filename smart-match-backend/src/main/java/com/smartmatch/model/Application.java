@@ -39,6 +39,8 @@ public class Application {
     private Double matchingScore;
     @Indexed
     private Instant appliedAt;
+    private Instant reviewedAt;
+    private Instant decidedAt;
 
     @LastModifiedDate
     private Instant updatedAt;
