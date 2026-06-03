@@ -1,6 +1,105 @@
-<header class="page-header"><h1>Users</h1><p>Manage platform accounts and access.</p></header>
-<div class="toolbar-row">
-  <mat-form-field appearance="outline"><mat-label>Search</mat-label><input matInput [(ngModel)]="search"></mat-form-field>
-  <mat-form-field appearance="outline"><mat-label>Role</mat-label><mat-select [(ngModel)]="role"><mat-option value="">All</mat-option><mat-option value="ADMIN">Admin</mat-option><mat-option value="RECRUITER">Recruiter</mat-option><mat-option value="CANDIDATE">Candidate</mat-option></mat-select></mat-form-field>
+<section class="page-hero-compact">
+  <div>
+    <span class="eyebrow">Administration</span>
+    <h1>Users</h1>
+    <p>Manage candidates and recruiters in dedicated workspaces.</p>
+  </div>
+</section>
+
+<div class="users-toolbar">
+  <div class="role-segments" role="tablist" aria-label="User role">
+    <button
+      type="button"
+      role="tab"
+      class="role-segments__btn"
+      [class.role-segments__btn--active]="activeRole() === 'CANDIDATE'"
+      [attr.aria-selected]="activeRole() === 'CANDIDATE'"
+      (click)="switchRole('CANDIDATE')">
+      <mat-icon>school</mat-icon>
+      <span>Candidates</span>
+      <span class="role-segments__count">{{ candidates().length }}</span>
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="role-segments__btn role-segments__btn--recruiter"
+      [class.role-segments__btn--active]="activeRole() === 'RECRUITER'"
+      [attr.aria-selected]="activeRole() === 'RECRUITER'"
+      (click)="switchRole('RECRUITER')">
+      <mat-icon>business_center</mat-icon>
+      <span>Recruiters</span>
+      <span class="role-segments__count">{{ recruiters().length }}</span>
+    </button>
+  </div>
+
+  <mat-form-field appearance="outline" class="users-toolbar__search">
+    <mat-label>Search</mat-label>
+    <input matInput [(ngModel)]="search" [placeholder]="activeRole() === 'CANDIDATE' ? 'Search candidates…' : 'Search recruiters…'">
+  </mat-form-field>
 </div>
-<mat-card><table mat-table [dataSource]="filteredUsers()"><ng-container matColumnDef="fullName"><th mat-header-cell *matHeaderCellDef>Name</th><td mat-cell *matCellDef="let user">{{ user.fullName }}</td></ng-container><ng-container matColumnDef="email"><th mat-header-cell *matHeaderCellDef>Email</th><td mat-cell *matCellDef="let user">{{ user.email }}</td></ng-container><ng-container matColumnDef="role"><th mat-header-cell *matHeaderCellDef>Role</th><td mat-cell *matCellDef="let user">{{ user.role }}</td></ng-container><ng-container matColumnDef="plan"><th mat-header-cell *matHeaderCellDef>Plan</th><td mat-cell *matCellDef="let user">{{ user.plan }}</td></ng-container><ng-container matColumnDef="active"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let user"><mat-chip>{{ user.active ? 'ACTIVE' : 'DISABLED' }}</mat-chip></td></ng-container><ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef></th><td mat-cell *matCellDef="let user"><button mat-button (click)="setStatus(user)">{{ user.active ? 'Deactivate' : 'Activate' }}</button></td></ng-container><tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr></table></mat-card>
+
+<div class="users-stats" [class.users-stats--candidate]="activeRole() === 'CANDIDATE'" [class.users-stats--recruiter]="activeRole() === 'RECRUITER'">
+  @if (activeRole() === 'CANDIDATE') {
+    <div class="users-stats__card">
+      <span class="users-stats__value">{{ candidateStats().total }}</span>
+      <span class="users-stats__label">Total candidates</span>
+    </div>
+    <div class="users-stats__card">
+      <span class="users-stats__value">{{ candidateStats().active }}</span>
+      <span class="users-stats__label">Active</span>
+    </div>
+    <div class="users-stats__card">
+      <span class="users-stats__value">{{ candidateStats().premium }}</span>
+      <span class="users-stats__label">Premium</span>
+    </div>
+  } @else {
+    <div class="users-stats__card">
+      <span class="users-stats__value">{{ recruiterStats().total }}</span>
+      <span class="users-stats__label">Total recruiters</span>
+    </div>
+    <div class="users-stats__card">
+      <span class="users-stats__value">{{ recruiterStats().active }}</span>
+      <span class="users-stats__label">Active</span>
+    </div>
+    <div class="users-stats__card">
+      <span class="users-stats__value">{{ recruiterStats().free }}</span>
+      <span class="users-stats__label">Free plan</span>
+    </div>
+  }
+</div>
+
+<section class="split-view split-view--users">
+  <div class="users-roster-pane">
+  @if (activeRole() === 'CANDIDATE') {
+    <app-user-role-roster
+      role="CANDIDATE"
+      [users]="filteredCandidates()"
+      [selectedId]="selected()?.id"
+      (userSelected)="selectUser($event)"
+      (statusToggle)="setStatus($event)" />
+  } @else {
+    <app-user-role-roster
+      role="RECRUITER"
+      [users]="filteredRecruiters()"
+      [selectedId]="selected()?.id"
+      (userSelected)="selectUser($event)"
+      (statusToggle)="setStatus($event)" />
+  }
+  </div>
+
+  <aside class="users-detail-slot">
+    @if (selected(); as user) {
+      <app-user-detail-panel
+        [user]="user"
+        [rosterRole]="user.role === 'RECRUITER' ? 'RECRUITER' : 'CANDIDATE'"
+        (closed)="clearSelection()"
+        (statusToggle)="setStatus($event)" />
+    } @else {
+      <div class="users-detail-placeholder">
+        <mat-icon>{{ activeRole() === 'CANDIDATE' ? 'school' : 'business_center' }}</mat-icon>
+        <h2>Select a {{ activeRole() === 'CANDIDATE' ? 'candidate' : 'recruiter' }}</h2>
+        <p>Click a card to review plan, verification, and account status.</p>
+      </div>
+    }
+  </aside>
+</section>

@@ -1,0 +1,64 @@
+<article
+  class="user-detail"
+  [class.user-detail--candidate]="rosterRole() === 'CANDIDATE'"
+  [class.user-detail--recruiter]="rosterRole() === 'RECRUITER'"
+  aria-label="User details">
+  <header class="user-detail__hero">
+    <button type="button" class="user-detail__close" mat-icon-button (click)="closed.emit()" aria-label="Close details">
+      <mat-icon>close</mat-icon>
+    </button>
+
+    <div class="user-detail__brand">
+      <div class="user-detail__avatar" aria-hidden="true">{{ initials(user().fullName) }}</div>
+      <div>
+        <span class="user-detail__eyebrow">{{ rosterRole() === 'CANDIDATE' ? 'Candidate' : 'Recruiter' }}</span>
+        <h2 class="user-detail__name">{{ user().fullName }}</h2>
+        <p class="user-detail__email">{{ user().email }}</p>
+      </div>
+    </div>
+
+    <div class="user-detail__chips">
+      <mat-chip class="status-chip chip-default">{{ user().role }}</mat-chip>
+      <mat-chip class="status-chip" [class]="user().active ? 'chip-active' : 'chip-disabled'">
+        {{ user().active ? 'ACTIVE' : 'DISABLED' }}
+      </mat-chip>
+      <mat-chip class="status-chip" [class]="user().plan === 'PREMIUM' ? 'chip-pending' : 'chip-default'">
+        {{ user().plan }}
+      </mat-chip>
+    </div>
+  </header>
+
+  <div class="user-detail__body">
+    <dl class="user-detail__facts">
+      <div class="user-detail__fact">
+        <dt><mat-icon>verified_user</mat-icon> Email</dt>
+        <dd>{{ user().emailVerified ? 'Verified' : 'Not verified' }}</dd>
+      </div>
+      <div class="user-detail__fact">
+        <dt><mat-icon>workspace_premium</mat-icon> Subscription</dt>
+        <dd>{{ user().plan }} plan</dd>
+      </div>
+      <div class="user-detail__fact">
+        <dt><mat-icon>event</mat-icon> Joined</dt>
+        <dd>{{ formatDate(user().createdAt) }}</dd>
+      </div>
+      <div class="user-detail__fact">
+        <dt><mat-icon>update</mat-icon> Last updated</dt>
+        <dd>{{ formatDate(user().updatedAt) }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <footer class="user-detail__actions">
+    <button
+      mat-flat-button
+      type="button"
+      class="user-detail__action"
+      [class.btn-danger]="user().active"
+      [class.btn-success]="!user().active"
+      (click)="statusToggle.emit(user())">
+      <mat-icon>{{ user().active ? 'block' : 'check_circle' }}</mat-icon>
+      {{ user().active ? 'Deactivate account' : 'Activate account' }}
+    </button>
+  </footer>
+</article>

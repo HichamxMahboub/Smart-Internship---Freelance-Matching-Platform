@@ -1,0 +1,149 @@
+:host {
+  display: block;
+  animation: slideInRight 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.user-detail {
+  position: sticky;
+  top: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.user-detail__hero {
+  position: relative;
+  padding: 20px;
+  color: #fff;
+}
+
+.user-detail--candidate .user-detail__hero {
+  background: linear-gradient(135deg, #0d9488 0%, var(--brand-teal) 50%, rgba(31, 59, 224, 0.35) 100%);
+}
+
+.user-detail--recruiter .user-detail__hero {
+  background: linear-gradient(135deg, var(--brand-primary-dark) 0%, var(--brand-primary) 55%, rgba(16, 181, 166, 0.35) 100%);
+}
+
+.user-detail__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.user-detail__brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding-right: 32px;
+}
+
+.user-detail__avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.user-detail__eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.user-detail__name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.user-detail__email {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+  word-break: break-word;
+}
+
+.user-detail__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.user-detail__body {
+  padding: 18px 20px;
+}
+
+.user-detail__facts {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.user-detail__fact dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    color: var(--brand-primary);
+  }
+}
+
+.user-detail--candidate .user-detail__fact dt mat-icon {
+  color: var(--brand-teal);
+}
+
+.user-detail__fact dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.user-detail__actions {
+  padding: 0 20px 20px;
+}
+
+.user-detail__action {
+  width: 100%;
+
+  mat-icon {
+    margin-right: 4px;
+  }
+}
