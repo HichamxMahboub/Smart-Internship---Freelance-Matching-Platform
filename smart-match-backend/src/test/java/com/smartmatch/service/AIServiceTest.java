@@ -10,7 +10,6 @@ import com.smartmatch.repository.AIResultRepository;
 import com.smartmatch.repository.ApplicationRepository;
 import com.smartmatch.repository.CandidateProfileRepository;
 import com.smartmatch.repository.CompanyRepository;
-import com.smartmatch.repository.NotificationRepository;
 import com.smartmatch.repository.OfferRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,9 @@ class AIServiceTest {
     @Mock
     private CompanyRepository companyRepository;
     @Mock
-    private NotificationRepository notificationRepository;
+    private NotificationService notificationService;
+    @Mock
+    private AiMatchingClient aiMatchingClient;
 
     @InjectMocks
     private AIService aiService;

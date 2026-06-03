@@ -5,7 +5,6 @@ import com.smartmatch.exception.ConflictException;
 import com.smartmatch.model.User;
 import com.smartmatch.model.enums.Plan;
 import com.smartmatch.model.enums.Role;
-import com.smartmatch.repository.NotificationRepository;
 import com.smartmatch.repository.PaymentRepository;
 import com.smartmatch.repository.SubscriptionRepository;
 import com.smartmatch.repository.UserRepository;
@@ -28,7 +27,7 @@ class SubscriptionServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private NotificationRepository notificationRepository;
+    private NotificationService notificationService;
     @Mock
     private PaymentService paymentService;
 

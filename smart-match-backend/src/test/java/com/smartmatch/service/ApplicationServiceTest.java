@@ -9,7 +9,6 @@ import com.smartmatch.model.enums.Plan;
 import com.smartmatch.model.enums.Role;
 import com.smartmatch.repository.ApplicationRepository;
 import com.smartmatch.repository.CompanyRepository;
-import com.smartmatch.repository.NotificationRepository;
 import com.smartmatch.repository.OfferRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +31,7 @@ class ApplicationServiceTest {
     @Mock
     private CompanyRepository companyRepository;
     @Mock
-    private NotificationRepository notificationRepository;
+    private NotificationService notificationService;
 
     @InjectMocks
     private ApplicationService applicationService;
