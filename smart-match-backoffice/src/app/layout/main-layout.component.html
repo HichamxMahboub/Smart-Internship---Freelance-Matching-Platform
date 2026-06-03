@@ -1,39 +1,104 @@
-<mat-sidenav-container class="shell">
-  <mat-sidenav #drawer class="sidenav" mode="side" opened>
-    <div class="brand">
-      <div class="brand-mark">SM</div>
-      <div>
-        <strong>Smart Match</strong>
-        <span>Backoffice</span>
+<mat-sidenav-container
+  class="shell"
+  autosize
+  [class.sidebar-collapsed]="sidebarCollapsed && !isMobile"
+  [class.sidebar-expanded]="!sidebarCollapsed && !isMobile"
+  [class.shell--mobile]="isMobile"
+>
+  <mat-sidenav
+    #drawer
+    class="sidenav"
+    [class.sidenav--collapsed]="sidebarCollapsed && !isMobile"
+    [class.sidenav--expanded]="!sidebarCollapsed && !isMobile"
+    [mode]="sidenavMode()"
+    [opened]="!isMobile"
+    [fixedInViewport]="isMobile"
+  >
+    <div class="sidenav-inner">
+      <div class="brand" [class.brand--collapsed]="sidebarCollapsed && !isMobile">
+        <div class="brand-mark">
+          <img src="/interlance.png" alt="Interlance" width="32" height="32">
+        </div>
+        <div class="brand-copy">
+          <strong>Interlance</strong>
+          <span>Backoffice OS</span>
+        </div>
       </div>
-    </div>
 
-    <mat-nav-list>
-      @for (item of navItems; track item.route) {
-        @if (visible(item)) {
-          <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label }}</span>
-          </a>
+      <div class="nav-label">Workspace</div>
+      <mat-nav-list class="nav-list">
+        @for (item of navItems; track item.route) {
+          @if (visible(item)) {
+            <a
+              mat-list-item
+              class="nav-item"
+              [routerLink]="item.route"
+              routerLinkActive="active-link"
+              [matTooltip]="sidebarCollapsed && !isMobile ? item.label : ''"
+              matTooltipPosition="right"
+              matTooltipShowDelay="200"
+              (click)="closeMobileNav()"
+            >
+              <span class="nav-item__icon-wrap" matListItemIcon>
+                <mat-icon>{{ item.icon }}</mat-icon>
+              </span>
+              <span class="nav-item__label" matListItemTitle>{{ item.label }}</span>
+            </a>
+          }
         }
-      }
-    </mat-nav-list>
+      </mat-nav-list>
+    </div>
   </mat-sidenav>
 
-  <mat-sidenav-content>
-    <mat-toolbar class="topbar">
-      <button mat-icon-button class="mobile-menu" (click)="drawer.toggle()" aria-label="Toggle navigation">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="spacer"></span>
-      <div class="user-block">
-        <span>{{ auth.currentUser?.fullName }}</span>
-        <small>{{ auth.currentUser?.role }}</small>
+  <mat-sidenav-content class="main-content">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <button
+          mat-icon-button
+          class="nav-toggle"
+          [class.nav-toggle--rail]="sidebarCollapsed && !isMobile"
+          (click)="toggleNav()"
+          [attr.aria-label]="isMobile ? 'Open navigation' : (sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar')"
+          [attr.aria-expanded]="isMobile ? drawer?.opened : !sidebarCollapsed"
+        >
+          <mat-icon class="nav-toggle__icon">{{ navIcon() }}</mat-icon>
+        </button>
+
+        <div class="topbar-brand">
+          <div class="topbar-mark" aria-hidden="true">
+            <mat-icon>hub</mat-icon>
+          </div>
+          <div class="topbar-title">
+            <span class="topbar-eyebrow">Interlance · Backoffice</span>
+            <span class="topbar-heading">Command center</span>
+            <small>Marketplace operations</small>
+          </div>
+        </div>
+
+        <span class="spacer"></span>
+
+        <div class="topbar-actions">
+          <div class="user-card">
+            <div class="user-avatar" aria-hidden="true">{{ userInitials() }}</div>
+            <div class="user-block">
+              <span>{{ auth.currentUser?.fullName }}</span>
+              <small>{{ auth.currentUser?.role }}</small>
+            </div>
+          </div>
+
+          <button
+            mat-icon-button
+            class="logout-btn"
+            matTooltip="Logout"
+            (click)="logout()"
+            aria-label="Logout"
+          >
+            <mat-icon>logout</mat-icon>
+          </button>
+        </div>
       </div>
-      <button mat-icon-button matTooltip="Logout" (click)="logout()" aria-label="Logout">
-        <mat-icon>logout</mat-icon>
-      </button>
-    </mat-toolbar>
+      <div class="topbar-accent" aria-hidden="true"></div>
+    </header>
 
     <main class="content">
       <router-outlet />
