@@ -4,7 +4,7 @@ import { CandidateOnboarding } from '../screens/onboarding/CandidateOnboarding';
 import { RecruiterOnboarding } from '../screens/onboarding/RecruiterOnboarding';
 import { profileService } from '../services/profileService';
 import { companyService } from '../services/companyService';
-import { isCandidateComplete, isRecruiterComplete } from '../onboarding/completeness';
+import { isCandidateComplete, isRecruiterComplete, normalizeCandidateProfile } from '../onboarding/completeness';
 import { User } from '../types';
 
 /**
@@ -24,8 +24,12 @@ export function OnboardingGate({ user, children }: { user: User; children: React
         const company = await companyService.getMine().catch(() => null);
         setComplete(isRecruiterComplete(company));
       } else {
-        const profile = await profileService.getCandidateProfile().catch(() => null);
-        setComplete(isCandidateComplete(profile));
+        try {
+          const profile = normalizeCandidateProfile(await profileService.getCandidateProfile());
+          setComplete(isCandidateComplete(profile));
+        } catch {
+          setComplete(false);
+        }
       }
     } finally {
       setChecking(false);

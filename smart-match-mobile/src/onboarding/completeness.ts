@@ -9,6 +9,23 @@ export function isCandidateComplete(p?: CandidateProfile | null): boolean {
   return Boolean(p.headline?.trim()) && (p.skills?.length ?? 0) > 0 && Boolean(p.cvUrl?.trim());
 }
 
+/** First onboarding step that still needs data (used to resume after sign-in). */
+export function candidateOnboardingStep(p?: CandidateProfile | null): number {
+  if (!p?.headline?.trim()) return 0;
+  if ((p.skills?.length ?? 0) === 0) return 2;
+  if (!p.cvUrl?.trim()) return 3;
+  return 3;
+}
+
+export function normalizeCandidateProfile(p: CandidateProfile): CandidateProfile {
+  return {
+    ...p,
+    skills: p.skills ?? [],
+    languages: p.languages ?? [],
+    preferences: p.preferences ?? []
+  };
+}
+
 /** Weighted completeness 0–100 for the profile meter (more = richer profile). */
 export function candidateCompletion(p?: CandidateProfile | null): number {
   if (!p) return 0;

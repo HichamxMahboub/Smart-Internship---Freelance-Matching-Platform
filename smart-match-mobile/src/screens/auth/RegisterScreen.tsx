@@ -21,7 +21,11 @@ export function RegisterScreen({ navigation }: NativeStackScreenProps<AuthStackP
   const [role, setRole] = useState<Role>('CANDIDATE');
   const [loading, setLoading] = useState(false);
   const submit = async () => {
-    try { setLoading(true); await register({ fullName, email: email.trim(), password, role }); }
+    try {
+      setLoading(true);
+      await register({ fullName, email: email.trim(), password, role });
+      Alert.alert('Verify your email', `We sent a confirmation link to ${email.trim()}. Open it to verify your account.`);
+    }
     catch { Alert.alert('Registration failed', 'Check Firebase config and backend availability.'); }
     finally { setLoading(false); }
   };

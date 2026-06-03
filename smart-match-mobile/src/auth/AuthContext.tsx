@@ -1,7 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, onAuthStateChanged, reload, sendEmailVerification, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { firebaseAuth } from './firebase';
 import { authService } from '../services/authService';
+import { userService } from '../services/userService';
 import { Role, User } from '../types';
 
 interface AuthContextValue {
@@ -10,6 +11,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   register: (payload: { email: string; password: string; fullName: string; role: Role }) => Promise<void>;
   refreshUser: () => Promise<void>;
+  refreshVerification: () => Promise<User | null>;
   logout: () => Promise<void>;
 }
 
@@ -43,14 +45,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser]);
 
   const login = useCallback(async (email: string, password: string) => {
-    await signInWithEmailAndPassword(firebaseAuth, email, password);
+    const credential = await signInWithEmailAndPassword(firebaseAuth, email, password);
+    try { await reload(credential.user); } catch { /* ignore network blip */ }
     await refreshUser();
   }, [refreshUser]);
 
   const register = useCallback(async ({ email, password, fullName, role }: { email: string; password: string; fullName: string; role: Role }) => {
-    await createUserWithEmailAndPassword(firebaseAuth, email, password);
+    const credential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+    try { await sendEmailVerification(credential.user); } catch { /* email send failure must not block signup */ }
     const syncedUser = await authService.syncUser({ fullName, role });
     setUser(syncedUser.user);
+  }, []);
+
+  const refreshVerification = useCallback(async () => {
+    const current = firebaseAuth.currentUser;
+    if (!current) return null;
+    try {
+      await reload(current);
+      await current.getIdToken(true);
+      const updated = await userService.refreshVerification();
+      setUser(updated);
+      return updated;
+    } catch {
+      return null;
+    }
   }, []);
 
   const logout = useCallback(async () => {
@@ -58,7 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, initializing, login, register, refreshUser, logout }), [user, initializing, login, register, refreshUser, logout]);
+  const value = useMemo(
+    () => ({ user, initializing, login, register, refreshUser, refreshVerification, logout }),
+    [user, initializing, login, register, refreshUser, refreshVerification, logout]
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
