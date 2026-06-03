@@ -5,46 +5,64 @@ import { AppButton } from '../../components/AppButton';
 import { AppInput } from '../../components/AppInput';
 import { SurfaceCard } from '../../components/SurfaceCard';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { Avatar } from '../../components/Avatar';
 import { Chip } from '../../components/Chip';
 import { Icon, IconName } from '../../components/Icon';
+import { PhotoPicker } from '../../components/PhotoPicker';
 import { useAuth } from '../../auth/AuthContext';
 import { profileService } from '../../services/profileService';
+import { companyService } from '../../services/companyService';
+import { Company, RecruiterProfile } from '../../types';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/spacing';
 
 export function RecruiterProfileScreen() {
   const { user, logout } = useAuth();
   const navigation = useNavigation<any>();
-  const [position, setPosition] = useState('');
-  const [phone, setPhone] = useState('');
+  const [profile, setProfile] = useState<RecruiterProfile>({});
+  const [company, setCompany] = useState<Company | null>(null);
   const [saving, setSaving] = useState(false);
-  useEffect(() => { profileService.getRecruiterProfile().then((p) => { setPosition(p.position ?? ''); setPhone(p.phone ?? ''); }).catch(() => undefined); }, []);
-  const save = async () => { try { setSaving(true); await profileService.updateRecruiterProfile({ position, phone }); Alert.alert('Saved', 'Recruiter profile updated.'); } catch { Alert.alert('Error', 'Could not save profile.'); } finally { setSaving(false); } };
+
+  useEffect(() => {
+    profileService.getRecruiterProfile().then(setProfile).catch(() => undefined);
+    companyService.getMine().then(setCompany).catch(() => undefined);
+  }, []);
+
+  const set = (patch: Partial<RecruiterProfile>) => setProfile((prev) => ({ ...prev, ...patch }));
+  const save = async (next: RecruiterProfile = profile, quiet = false) => {
+    setProfile(next);
+    try { setSaving(true); const saved = await profileService.updateRecruiterProfile(next); setProfile(saved); if (!quiet) Alert.alert('Saved', 'Recruiter profile updated.'); }
+    catch { Alert.alert('Error', 'Could not save profile.'); }
+    finally { setSaving(false); }
+  };
 
   return (
     <View style={styles.screen}>
       <ScreenHeader title="Profile" subtitle="Account & details" />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <SurfaceCard style={styles.identity}>
-          <Avatar name={user?.fullName} size={58} />
-          <View style={styles.identityText}>
-            <Text style={styles.name} numberOfLines={1}>{user?.fullName || 'Recruiter'}</Text>
-            <Text style={styles.email} numberOfLines={1}>{user?.email}</Text>
+          <PhotoPicker name={user?.fullName} uri={profile.photoUrl} size={84} onChange={(url) => save({ ...profile, photoUrl: url }, true)} />
+          <Text style={styles.name} numberOfLines={1}>{user?.fullName || 'Recruiter'}</Text>
+          {profile.headline ? <Text style={styles.headline} numberOfLines={2}>{profile.headline}</Text> : <Text style={styles.headlineMuted}>Add a headline (e.g. role at your company).</Text>}
+          <Text style={styles.email} numberOfLines={1}>{user?.email}</Text>
+          <View style={styles.badges}>
+            <Chip label="Recruiter" tone="brand" />
+            {company?.name ? <Chip label={company.name} tone="teal" /> : null}
           </View>
-          <Chip label="Recruiter" tone="brand" />
         </SurfaceCard>
 
         <View style={styles.menu}>
-          <MenuRow icon="building" label="Company profile" onPress={() => navigation.navigate('Company')} />
+          <MenuRow icon="building" label="Organisation profile" onPress={() => navigation.navigate('Company')} />
           <MenuRow icon="bell" label="Notifications" onPress={() => navigation.navigate('Notifications')} last />
         </View>
 
         <Text style={styles.sectionTitle}>Recruiter details</Text>
         <SurfaceCard style={styles.form}>
-          <AppInput label="Position" icon="briefcase" value={position} onChangeText={setPosition} placeholder="Talent acquisition lead" />
-          <AppInput label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="+212 …" />
-          <AppButton title="Save profile" icon="check" onPress={save} loading={saving} />
+          <AppInput label="Headline" value={profile.headline ?? ''} onChangeText={(v) => set({ headline: v })} placeholder="Head of Talent at Acme" />
+          <AppInput label="About" multiline value={profile.bio ?? ''} onChangeText={(v) => set({ bio: v })} placeholder="What you hire for and what students can expect." />
+          <AppInput label="Position" icon="briefcase" value={profile.position ?? ''} onChangeText={(v) => set({ position: v })} placeholder="Talent acquisition lead" />
+          <AppInput label="Phone" value={profile.phone ?? ''} onChangeText={(v) => set({ phone: v })} keyboardType="phone-pad" placeholder="+212 …" />
+          <AppInput label="LinkedIn" value={profile.linkedin ?? ''} onChangeText={(v) => set({ linkedin: v })} autoCapitalize="none" placeholder="linkedin.com/in/you" />
+          <AppButton title="Save profile" icon="check" onPress={() => save()} loading={saving} />
         </SurfaceCard>
 
         <AppButton title="Log out" icon="logout" variant="ghost" onPress={logout} style={styles.logout} />
@@ -66,10 +84,12 @@ function MenuRow({ icon, label, onPress, last }: { icon: IconName; label: string
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: 18, paddingTop: 4, gap: 16, paddingBottom: 28 },
-  identity: { flexDirection: 'row', alignItems: 'center', gap: 13 },
-  identityText: { flex: 1, gap: 3 },
-  name: { color: colors.text, fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
+  identity: { alignItems: 'center', gap: 7 },
+  name: { color: colors.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.3, marginTop: 4 },
+  headline: { color: colors.textSoft, fontSize: 13.5, fontWeight: '600', textAlign: 'center', lineHeight: 18 },
+  headlineMuted: { color: colors.softText, fontSize: 13, textAlign: 'center', fontStyle: 'italic' },
   email: { color: colors.muted, fontSize: 13 },
+  badges: { flexDirection: 'row', gap: 8, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' },
   menu: { backgroundColor: colors.white, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   menuDivider: { borderBottomWidth: 1, borderBottomColor: colors.divider },

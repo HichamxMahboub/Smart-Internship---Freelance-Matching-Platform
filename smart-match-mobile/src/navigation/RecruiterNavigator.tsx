@@ -20,7 +20,7 @@ import { colors } from '../theme/colors';
 export type RecruiterStackParamList = {
   RecruiterTabs: undefined;
   OfferForm: { offer?: Offer } | undefined;
-  Chat: { conversationId: string };
+  Chat: { conversationId: string; displayName?: string; displayAvatarUrl?: string; offerTitle?: string };
   Company: undefined;
   Notifications: undefined;
   CandidateDetail: { application: Application; recommendation?: CandidateRecommendation; offer?: Offer };
@@ -55,7 +55,7 @@ export function RecruiterNavigator() {
     <Stack.Navigator screenOptions={stackHeader}>
       <Stack.Screen name="RecruiterTabs" component={RecruiterTabs} options={{ headerShown: false }} />
       <Stack.Screen name="OfferForm" component={OfferFormScreen} options={{ title: 'Opportunity' }} />
-      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Conversation' }} />
+      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: '' }} />
       <Stack.Screen name="Company" component={CompanyScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notifications' }} />
       <Stack.Screen name="CandidateDetail" component={CandidateDetailScreen} options={{ headerShown: false }} />

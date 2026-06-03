@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,24 +11,37 @@ import { Icon } from '../../components/Icon';
 import { IconButton } from '../../components/IconButton';
 import { StatusBadge } from '../../components/StatusBadge';
 import { MatchRing } from '../../components/MatchRing';
+import { SkillLevelBar } from '../../components/SkillLevelBar';
 import { ProjectCard } from '../../components/ProjectCard';
 import { TimelineItem } from '../../components/TimelineItem';
 import { SocialRow } from '../../components/SocialRow';
 import { applicationService } from '../../services/applicationService';
 import { chatService } from '../../services/chatService';
+import { profileService, CandidateDetail } from '../../services/profileService';
 import { computeMatch } from '../../utils/match';
-import { ApplicationStatus } from '../../types';
+import { AIResult, ApplicationStatus, CandidateProfile } from '../../types';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/spacing';
 
 export function CandidateDetailScreen({ route, navigation }: NativeStackScreenProps<RecruiterStackParamList, 'CandidateDetail'>) {
   const insets = useSafeAreaInsets();
   const { application, recommendation, offer } = route.params;
-  const profile = recommendation?.profile;
+  const [detail, setDetail] = useState<CandidateDetail | undefined>(undefined);
+  const profile: CandidateProfile | undefined = detail?.profile ?? recommendation?.profile;
+  const aiResults: AIResult[] = detail?.aiResults ?? [];
   const [status, setStatus] = useState<ApplicationStatus>(application.status);
   const [busy, setBusy] = useState(false);
 
-  const name = recommendation?.candidateName || `Candidate #${application.candidateId.slice(0, 8)}`;
+  useEffect(() => {
+    let mounted = true;
+    profileService
+      .getCandidateDetail(application.candidateId)
+      .then((d) => { if (mounted) setDetail(d); })
+      .catch(() => undefined);
+    return () => { mounted = false; };
+  }, [application.candidateId]);
+
+  const name = detail?.user?.fullName || recommendation?.candidateName || `Candidate #${application.candidateId.slice(0, 8)}`;
   const computed = offer && profile ? computeMatch(profile.skills ?? [], offer.requiredSkills ?? []) : undefined;
   const score = Math.round(recommendation?.matchingScore ?? application.matchingScore ?? computed?.score ?? 0);
   const hasScore = (recommendation?.matchingScore ?? application.matchingScore ?? computed) != null;
@@ -93,7 +106,18 @@ export function CandidateDetailScreen({ route, navigation }: NativeStackScreenPr
           <SurfaceCard style={styles.card}><Text style={styles.section}>About</Text><Text style={styles.body}>{profile.bio}</Text></SurfaceCard>
         ) : null}
 
-        {profile?.skills?.length ? (
+        {profile?.skillLevels?.length ? (
+          <SurfaceCard style={styles.card}>
+            <Text style={styles.section}>Skill proficiency</Text>
+            <View style={{ gap: 9 }}>
+              {[...profile.skillLevels]
+                .sort((a, b) => (b.level ?? 0) - (a.level ?? 0))
+                .map((s) => (
+                  <SkillLevelBar key={s.name} name={s.name} level={s.level} matched={computed?.matched.includes(s.name)} />
+                ))}
+            </View>
+          </SurfaceCard>
+        ) : profile?.skills?.length ? (
           <SurfaceCard style={styles.card}>
             <Text style={styles.section}>Skills</Text>
             <View style={styles.chips}>{profile.skills.map((s) => <Chip key={s} label={s} tone={computed?.matched.includes(s) ? 'teal' : 'brand'} />)}</View>
@@ -118,6 +142,37 @@ export function CandidateDetailScreen({ route, navigation }: NativeStackScreenPr
           <SurfaceCard style={styles.card}>
             <Text style={styles.section}>Education</Text>
             <View>{educations.map((ed, i) => <TimelineItem key={i} icon="building" title={ed.school} subtitle={[ed.degree, ed.field].filter(Boolean).join(' · ')} period={[ed.start, ed.end].filter(Boolean).join(' – ')} last={i === educations.length - 1} />)}</View>
+          </SurfaceCard>
+        ) : null}
+
+        {aiResults.length ? (
+          <SurfaceCard style={styles.card}>
+            <Text style={styles.section}>AI resume summary</Text>
+            <View style={{ gap: 10 }}>
+              {aiResults.filter((r) => r.type === 'CV_ANALYSIS' || r.type === 'PROFILE_OPTIMIZATION').map((r) => (
+                <View key={r.id} style={styles.aiCard}>
+                  <View style={styles.aiHead}>
+                    <Text style={styles.aiType}>{r.type === 'CV_ANALYSIS' ? 'Resume analysis' : 'Profile optimization'}</Text>
+                    {r.score != null ? <Text style={styles.aiScore}>{Math.round(r.score)}%</Text> : null}
+                  </View>
+                  {r.profileType || r.seniority ? (
+                    <View style={styles.aiIdentity}>
+                      {r.profileType ? <Text style={styles.aiRole}>{r.profileType}</Text> : null}
+                      {r.seniority ? <Text style={styles.aiSeniority}>{r.seniority}</Text> : null}
+                    </View>
+                  ) : null}
+                  {r.primaryStack ? <Text style={[styles.body, { color: colors.muted, fontSize: 12.5 }]}>Stack: {r.primaryStack}</Text> : null}
+                  {r.conclusion ? <Text style={[styles.body, { fontWeight: '700' }]}>{r.conclusion}</Text> : null}
+                  {r.recommendation ? <Text style={styles.body}>{r.recommendation}</Text> : null}
+                  {r.details ? <Text style={[styles.body, { color: colors.muted, fontSize: 13 }]}>{r.details}</Text> : null}
+                  {r.extractedSkills?.length ? (
+                    <View style={styles.chips}>
+                      {r.extractedSkills.map((s) => <Chip key={s} label={s} tone="teal" />)}
+                    </View>
+                  ) : null}
+                </View>
+              ))}
+            </View>
           </SurfaceCard>
         ) : null}
 
@@ -159,5 +214,13 @@ const styles = StyleSheet.create({
   lineText: { flex: 1, color: colors.textSoft, fontSize: 13.5, lineHeight: 19 },
   actionBar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: colors.white, borderTopWidth: 1, borderTopColor: colors.border, paddingHorizontal: 16, paddingTop: 12, gap: 8 },
   statusRow: { flexDirection: 'row', gap: 8 },
-  flex: { flex: 1 }
+  flex: { flex: 1 },
+  aiCard: { backgroundColor: colors.background, borderRadius: radius.md, padding: 12, gap: 6, borderWidth: 1, borderColor: colors.border },
+  aiHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  aiType: { color: colors.muted, fontWeight: '800', fontSize: 11.5, letterSpacing: 0.5, textTransform: 'uppercase' },
+  aiScore: { color: colors.primary, fontWeight: '800', fontSize: 14 },
+  aiSource: { color: colors.muted, fontSize: 11, marginTop: 2 },
+  aiIdentity: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, paddingVertical: 4 },
+  aiRole: { fontSize: 14, fontWeight: '800', color: colors.primary, letterSpacing: -0.2 },
+  aiSeniority: { fontSize: 11, fontWeight: '800', color: colors.white, backgroundColor: colors.primary, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, textTransform: 'uppercase', letterSpacing: 0.5 }
 });
