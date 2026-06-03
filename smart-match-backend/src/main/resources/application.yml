@@ -19,6 +19,13 @@ springdoc:
 smartmatch:
   upload:
     cv-dir: ${APP_CV_UPLOAD_DIR:/uploads/cv}
+  ai:
+    api-key: ${OPENROUTER_API_KEY:}
+    model: ${OPENROUTER_MODEL:openrouter/free}
+    max-tokens: ${OPENROUTER_MAX_TOKENS:1024}
+    base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
+    referer: ${OPENROUTER_REFERER:https://interlance.app}
+    title: ${OPENROUTER_TITLE:Interlance}
 
 app:
   payment:
