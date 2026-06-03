@@ -26,6 +26,9 @@ public class CandidateProfile {
     @Indexed(unique = true)
     private String userId;
 
+    private String photoUrl;
+    private String headline;
+    private String bio;
     private String educationLevel;
     private String fieldOfStudy;
     private String location;
@@ -35,10 +38,24 @@ public class CandidateProfile {
     private List<String> skills = new ArrayList<>();
 
     @Builder.Default
+    private List<SkillLevel> skillLevels = new ArrayList<>();
+
+    @Builder.Default
     private List<String> languages = new ArrayList<>();
 
     @Builder.Default
     private List<String> preferences = new ArrayList<>();
+
+    @Builder.Default
+    private List<Project> projects = new ArrayList<>();
+
+    @Builder.Default
+    private List<Experience> experiences = new ArrayList<>();
+
+    @Builder.Default
+    private List<Education> educations = new ArrayList<>();
+
+    private SocialLinks socials;
 
     @CreatedDate
     private Instant createdAt;

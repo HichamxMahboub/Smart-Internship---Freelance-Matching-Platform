@@ -25,6 +25,10 @@ public class RecruiterProfile {
     private String userId;
 
     private String companyId;
+    private String photoUrl;
+    private String headline;
+    private String bio;
+    private String linkedin;
     private String position;
     private String phone;
 

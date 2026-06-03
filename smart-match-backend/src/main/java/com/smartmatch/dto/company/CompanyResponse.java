@@ -9,6 +9,8 @@ public record CompanyResponse(
         String recruiterId,
         String name,
         String sector,
+        String size,
+        String location,
         String description,
         String logoUrl,
         String website,

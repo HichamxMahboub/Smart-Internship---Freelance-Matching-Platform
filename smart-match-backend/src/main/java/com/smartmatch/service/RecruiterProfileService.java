@@ -41,6 +41,10 @@ public class RecruiterProfileService {
             profile.setCompanyId(request.companyId());
         }
 
+        profile.setPhotoUrl(request.photoUrl());
+        profile.setHeadline(request.headline());
+        profile.setBio(request.bio());
+        profile.setLinkedin(request.linkedin());
         profile.setPosition(request.position());
         profile.setPhone(request.phone());
 
@@ -52,6 +56,10 @@ public class RecruiterProfileService {
                 profile.getId(),
                 profile.getUserId(),
                 profile.getCompanyId(),
+                profile.getPhotoUrl(),
+                profile.getHeadline(),
+                profile.getBio(),
+                profile.getLinkedin(),
                 profile.getPosition(),
                 profile.getPhone(),
                 profile.getCreatedAt(),

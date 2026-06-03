@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 public record CompanyRequest(
         @NotBlank @Size(max = 160) String name,
         @Size(max = 120) String sector,
+        @Size(max = 60) String size,
+        @Size(max = 120) String location,
         @Size(max = 2000) String description,
         String logoUrl,
         String website

@@ -27,6 +27,8 @@ public class Company {
 
     private String name;
     private String sector;
+    private String size;
+    private String location;
     private String description;
     private String logoUrl;
     private String website;

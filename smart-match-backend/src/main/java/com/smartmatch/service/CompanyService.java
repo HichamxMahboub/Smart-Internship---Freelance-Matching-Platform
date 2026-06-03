@@ -42,6 +42,8 @@ public class CompanyService {
                 .recruiterId(recruiter.getId())
                 .name(request.name())
                 .sector(request.sector())
+                .size(request.size())
+                .location(request.location())
                 .description(request.description())
                 .logoUrl(request.logoUrl())
                 .website(request.website())
@@ -75,6 +77,8 @@ public class CompanyService {
 
         company.setName(request.name());
         company.setSector(request.sector());
+        company.setSize(request.size());
+        company.setLocation(request.location());
         company.setDescription(request.description());
         company.setLogoUrl(request.logoUrl());
         company.setWebsite(request.website());
@@ -135,6 +139,8 @@ public class CompanyService {
                 company.getRecruiterId(),
                 company.getName(),
                 company.getSector(),
+                company.getSize(),
+                company.getLocation(),
                 company.getDescription(),
                 company.getLogoUrl(),
                 company.getWebsite(),
