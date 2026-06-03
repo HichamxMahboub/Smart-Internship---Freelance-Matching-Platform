@@ -1,0 +1,83 @@
+<article class="company-detail" aria-label="Company details">
+  <header class="company-detail__hero">
+    <button type="button" class="company-detail__close" mat-icon-button (click)="closed.emit()" aria-label="Close details">
+      <mat-icon>close</mat-icon>
+    </button>
+
+    <div class="company-detail__brand">
+      @if (company().logoUrl) {
+        <img class="company-detail__logo" [src]="company().logoUrl" [alt]="company().name + ' logo'" />
+      } @else {
+        <div class="company-detail__logo company-detail__logo--fallback" aria-hidden="true">
+          {{ initials(company().name) }}
+        </div>
+      }
+      <div class="company-detail__titles">
+        <span class="company-detail__eyebrow">Company profile</span>
+        <h2 class="company-detail__name">{{ company().name }}</h2>
+        @if (company().sector) {
+          <p class="company-detail__sector">{{ company().sector }}</p>
+        }
+      </div>
+    </div>
+
+    <mat-chip class="status-chip company-detail__status" [class]="statusClass(company().validationStatus)">
+      {{ company().validationStatus }}
+    </mat-chip>
+  </header>
+
+  <div class="company-detail__body">
+    @if (company().description) {
+      <section class="company-detail__section">
+        <h3 class="company-detail__section-title">About</h3>
+        <p class="company-detail__description">{{ company().description }}</p>
+      </section>
+    }
+
+    <section class="company-detail__section">
+      <h3 class="company-detail__section-title">Details</h3>
+      <dl class="company-detail__facts">
+        <div class="company-detail__fact">
+          <dt><mat-icon>badge</mat-icon> Recruiter</dt>
+          <dd [title]="company().recruiterId">{{ shortId(company().recruiterId) }}</dd>
+        </div>
+        <div class="company-detail__fact">
+          <dt><mat-icon>language</mat-icon> Website</dt>
+          <dd>
+            @if (company().website) {
+              <a class="company-detail__link" [href]="company().website" target="_blank" rel="noopener noreferrer">
+                {{ company().website }}
+                <mat-icon>open_in_new</mat-icon>
+              </a>
+            } @else {
+              <span class="company-detail__muted">Not provided</span>
+            }
+          </dd>
+        </div>
+        <div class="company-detail__fact">
+          <dt><mat-icon>category</mat-icon> Sector</dt>
+          <dd>{{ company().sector || '—' }}</dd>
+        </div>
+        <div class="company-detail__fact">
+          <dt><mat-icon>event</mat-icon> Registered</dt>
+          <dd>{{ formatDate(company().createdAt) }}</dd>
+        </div>
+        <div class="company-detail__fact">
+          <dt><mat-icon>update</mat-icon> Last updated</dt>
+          <dd>{{ formatDate(company().updatedAt) }}</dd>
+        </div>
+      </dl>
+    </section>
+  </div>
+
+  <footer class="company-detail__actions">
+    <button mat-flat-button class="btn-success company-detail__action" type="button" (click)="approve.emit(company())">
+      <mat-icon>check_circle</mat-icon>
+      Approve
+    </button>
+    <button mat-stroked-button class="btn-danger company-detail__action" type="button" (click)="reject.emit(company())">
+      <mat-icon>cancel</mat-icon>
+      Reject
+    </button>
+  </footer>
+</article>
