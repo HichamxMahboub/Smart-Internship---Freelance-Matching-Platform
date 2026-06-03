@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { SurfaceCard } from '../../components/SurfaceCard';
 import { EmptyState } from '../../components/EmptyState';
 import { Chip } from '../../components/Chip';
+import { MatchRing } from '../../components/MatchRing';
 import { Icon, IconName } from '../../components/Icon';
 import { aiService } from '../../services/aiService';
 import { AIResult } from '../../types';
@@ -33,7 +34,7 @@ export function AIRecommendationsScreen() {
         <SurfaceCard style={styles.result}>
           {typeof result.score === 'number' ? (
             <View style={styles.scoreRow}>
-              <View style={styles.scoreCircle}><Text style={styles.scoreNum}>{Math.round(result.score)}</Text><Text style={styles.scoreUnit}>score</Text></View>
+              <MatchRing score={result.score} size={84} caption={false} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.resultTitle}>{result.recommendation || 'Analysis ready'}</Text>
                 {result.extractedSkills?.length ? (
@@ -44,6 +45,13 @@ export function AIRecommendationsScreen() {
           ) : (
             <Text style={styles.resultTitle}>{result.recommendation || 'Analysis ready'}</Text>
           )}
+          {result.profileType || result.seniority ? (
+            <View style={styles.identity}>
+              {result.profileType ? <Text style={styles.identityRole}>{result.profileType}</Text> : null}
+              {result.seniority ? <Text style={styles.identitySeniority}>{result.seniority}</Text> : null}
+            </View>
+          ) : null}
+          {result.conclusion ? <Text style={styles.conclusion}>{result.conclusion}</Text> : null}
           {result.details ? <Text style={styles.details}>{result.details}</Text> : null}
         </SurfaceCard>
       ) : (
@@ -85,5 +93,10 @@ const styles = StyleSheet.create({
   scoreUnit: { color: colors.muted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   resultTitle: { color: colors.text, fontWeight: '800', fontSize: 16, lineHeight: 22 },
   skills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
-  details: { color: colors.textSoft, lineHeight: 22, fontSize: 14 }
+  source: { color: colors.primary, fontWeight: '700', fontSize: 12.5 },
+  details: { color: colors.textSoft, lineHeight: 22, fontSize: 14 },
+  identity: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  identityRole: { color: colors.primary, fontSize: 14, fontWeight: '800', letterSpacing: -0.2 },
+  identitySeniority: { color: colors.white, backgroundColor: colors.primary, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, fontSize: 11, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
+  conclusion: { color: colors.text, fontWeight: '700', fontSize: 14, lineHeight: 21 }
 });

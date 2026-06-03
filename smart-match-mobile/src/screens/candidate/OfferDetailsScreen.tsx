@@ -4,8 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CandidateStackParamList } from '../../navigation/CandidateNavigator';
 import { AppButton } from '../../components/AppButton';
-import { AppInput } from '../../components/AppInput';
+import { ApplyOfferSheet } from '../../components/ApplyOfferSheet';
 import { LoadingView } from '../../components/LoadingView';
+import { useAuth } from '../../auth/AuthContext';
 import { StatusBadge } from '../../components/StatusBadge';
 import { SurfaceCard } from '../../components/SurfaceCard';
 import { Chip } from '../../components/Chip';
@@ -13,37 +14,35 @@ import { Avatar } from '../../components/Avatar';
 import { Icon } from '../../components/Icon';
 import { IconButton } from '../../components/IconButton';
 import { MatchRing } from '../../components/MatchRing';
-import { applicationService } from '../../services/applicationService';
 import { favoriteService } from '../../services/favoriteService';
 import { offerService } from '../../services/offerService';
 import { profileService } from '../../services/profileService';
 import { chatService } from '../../services/chatService';
+import { applicationService } from '../../services/applicationService';
 import { computeMatch } from '../../utils/match';
-import { Offer, OfferMatch } from '../../types';
+import { CandidateProfile, Offer, OfferMatch } from '../../types';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/spacing';
 
 export function OfferDetailsScreen({ route, navigation }: NativeStackScreenProps<CandidateStackParamList, 'OfferDetails'>) {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const [offer, setOffer] = useState<Offer | undefined>(route.params.offer);
-  const [message, setMessage] = useState('');
-  const [applying, setApplying] = useState(false);
   const [loading, setLoading] = useState(!route.params.offer);
-  const [skills, setSkills] = useState<string[]>([]);
+  const [profile, setProfile] = useState<CandidateProfile | undefined>(undefined);
   const [isFavorite, setIsFavorite] = useState(false);
   const [favBusy, setFavBusy] = useState(false);
+  const [applySheet, setApplySheet] = useState(false);
+  const [alreadyApplied, setAlreadyApplied] = useState(false);
 
   useEffect(() => {
     if (!offer) offerService.get(route.params.offerId).then(setOffer).catch(() => Alert.alert('Error', 'Could not load offer.')).finally(() => setLoading(false));
-    profileService.getCandidateProfile().then((p) => setSkills(p?.skills ?? [])).catch(() => undefined);
+    profileService.getCandidateProfile().then(setProfile).catch(() => undefined);
     favoriteService.list().then((f) => setIsFavorite(f.some((x) => x.offerId === route.params.offerId))).catch(() => undefined);
+    applicationService.myApplications().then((apps) => setAlreadyApplied(apps.some((a) => a.offerId === route.params.offerId))).catch(() => undefined);
   }, []);
 
-  const apply = async () => {
-    try { setApplying(true); await applicationService.apply({ offerId: route.params.offerId, message }); Alert.alert('Application sent', 'Your application was submitted.'); }
-    catch (e: any) { Alert.alert('Could not apply', e?.response?.data?.message ?? 'You may have already applied or your email is not verified.'); }
-    finally { setApplying(false); }
-  };
+  const skills = profile?.skills ?? [];
   const toggleFavorite = async () => {
     if (favBusy) return;
     setFavBusy(true);
@@ -115,14 +114,33 @@ export function OfferDetailsScreen({ route, navigation }: NativeStackScreenProps
 
         <SurfaceCard style={styles.card}>
           <Text style={styles.section}>Apply to this role</Text>
-          <AppInput label="Application message" value={message} onChangeText={setMessage} multiline placeholder="Share why you're a great fit, your availability, and motivation." />
-          <AppButton title="Apply now" icon="send" onPress={apply} loading={applying} />
+          <Text style={styles.applyHint}>
+            {alreadyApplied
+              ? 'You already applied. Track status in My applications.'
+              : 'Walk through a guided 3-step application: review your fit, write a cover note, submit.'}
+          </Text>
+          <AppButton
+            title={alreadyApplied ? 'Application sent' : 'Start application'}
+            icon={alreadyApplied ? 'check' : 'send'}
+            onPress={() => setApplySheet(true)}
+            disabled={alreadyApplied}
+          />
           <View style={styles.actions}>
             <AppButton title="Message" icon="chat" variant="secondary" onPress={messageRecruiter} style={styles.action} />
             <AppButton title={isFavorite ? 'Saved' : 'Save'} icon="bookmark" variant={isFavorite ? 'primary' : 'secondary'} onPress={toggleFavorite} style={styles.action} />
           </View>
         </SurfaceCard>
       </ScrollView>
+
+      <ApplyOfferSheet
+        visible={applySheet}
+        offer={offer}
+        profile={profile}
+        user={user}
+        match={match}
+        onClose={() => setApplySheet(false)}
+        onApplied={() => setAlreadyApplied(true)}
+      />
     </View>
   );
 }
@@ -150,5 +168,6 @@ const styles = StyleSheet.create({
   description: { color: colors.textSoft, lineHeight: 22, fontSize: 14.5 },
   skills: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   actions: { flexDirection: 'row', gap: 10 },
-  action: { flex: 1 }
+  action: { flex: 1 },
+  applyHint: { color: colors.muted, fontSize: 13, lineHeight: 19 }
 });

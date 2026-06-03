@@ -7,6 +7,7 @@ import { SurfaceCard } from '../../components/SurfaceCard';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { Icon } from '../../components/Icon';
 import { ProgressBar } from '../../components/ProgressBar';
+import { ApplicationTimeline } from '../../components/ApplicationTimeline';
 import { applicationService } from '../../services/applicationService';
 import { matchColors } from '../../utils/match';
 import { Application } from '../../types';
@@ -46,6 +47,12 @@ export function ApplicationsScreen() {
                   <ProgressBar value={score} color={matchColors(score).fg} height={7} />
                 </View>
               ) : null}
+              <ApplicationTimeline
+                status={item.status}
+                appliedAt={item.appliedAt}
+                reviewedAt={item.reviewedAt}
+                decidedAt={item.decidedAt}
+              />
               {item.message ? <Text style={styles.message} numberOfLines={3}>{item.message}</Text> : null}
             </SurfaceCard>
           );
