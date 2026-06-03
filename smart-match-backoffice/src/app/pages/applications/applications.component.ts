@@ -1,14 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Application, ApplicationStatus } from '../../core/models/application.model';
 import { ApplicationService } from '../../core/services/application.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ChatService } from '../../core/services/chat.service';
 import { MaterialModule } from '../../shared/material/material.module';
 
 @Component({ selector: 'app-applications', standalone: true, imports: [CommonModule, MaterialModule], templateUrl: './applications.component.html', styleUrl: './applications.component.scss' })
 export class ApplicationsComponent implements OnInit {
   private readonly applicationService = inject(ApplicationService);
+  private readonly chatService = inject(ChatService);
+  private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
   readonly auth = inject(AuthService);
   readonly applications = signal<Application[]>([]);
@@ -23,4 +27,10 @@ export class ApplicationsComponent implements OnInit {
   }
   view(application: Application) { this.selected = application; }
   setStatus(application: Application, status: ApplicationStatus) { this.applicationService.updateStatus(application.id, status).subscribe({ next: () => this.load(), error: () => this.snackBar.open('Could not update status.', 'Close', { duration: 3000 }) }); }
+  message(application: Application) {
+    this.chatService.start(application.offerId, application.candidateId).subscribe({
+      next: (conversation) => this.router.navigate(['/messages'], { queryParams: { conversationId: conversation.id } }),
+      error: () => this.snackBar.open('Could not start chat.', 'Close', { duration: 3000 })
+    });
+  }
 }
