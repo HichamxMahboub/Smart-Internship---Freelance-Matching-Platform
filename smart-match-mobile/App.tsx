@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { Alert, Platform, StatusBar } from 'react-native';
-import * as Notifications from 'expo-notifications';
 import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/auth/AuthContext';
@@ -14,13 +13,14 @@ export default function App() {
   if (fontsLoaded) applyBrandFont();
 
   useEffect(() => {
-    async function requestNotificationPermission() {
+    if (Platform.OS === 'web') return;
+    void (async () => {
+      const Notifications = await import('expo-notifications');
       const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted' && Platform.OS !== 'web') {
+      if (status !== 'granted') {
         Alert.alert('Notifications disabled', 'You can enable notifications later in system settings.');
       }
-    }
-    requestNotificationPermission();
+    })();
   }, []);
 
   return (

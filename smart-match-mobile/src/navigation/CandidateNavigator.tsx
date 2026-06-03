@@ -20,7 +20,7 @@ export type CandidateStackParamList = {
   CandidateTabs: undefined;
   OfferDetails: { offerId: string; offer?: Offer };
   AIRecommendations: undefined;
-  Chat: { conversationId: string };
+  Chat: { conversationId: string; displayName?: string; displayAvatarUrl?: string; offerTitle?: string };
   Favorites: undefined;
   Premium: undefined;
   Notifications: undefined;
@@ -55,7 +55,7 @@ export function CandidateNavigator() {
       <Stack.Screen name="CandidateTabs" component={CandidateTabs} options={{ headerShown: false }} />
       <Stack.Screen name="OfferDetails" component={OfferDetailsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="AIRecommendations" component={AIRecommendationsScreen} options={{ title: 'AI insights' }} />
-      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Conversation' }} />
+      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: '' }} />
       <Stack.Screen name="Favorites" component={FavoritesScreen} options={{ title: 'Saved offers' }} />
       <Stack.Screen name="Premium" component={PremiumScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notifications' }} />

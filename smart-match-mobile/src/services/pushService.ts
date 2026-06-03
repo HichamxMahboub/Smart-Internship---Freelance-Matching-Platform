@@ -1,4 +1,3 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { userService } from './userService';
 
@@ -10,6 +9,7 @@ import { userService } from './userService';
 export async function registerPushToken() {
   if (Platform.OS === 'web') return;
   try {
+    const Notifications = await import('expo-notifications');
     const { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') return;
     const token = await Notifications.getDevicePushTokenAsync();
