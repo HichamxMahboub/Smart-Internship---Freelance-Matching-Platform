@@ -14,7 +14,8 @@ export class OfferService {
   create(payload: OfferPayload) { return this.api.post<Offer>('/offers', payload); }
   update(id: string, payload: OfferPayload) { return this.api.put<Offer>(`/offers/${id}`, payload); }
   delete(id: string) { return this.api.delete<void>(`/offers/${id}`); }
+  deleteAsAdmin(id: string) { return this.api.delete<void>(`/admin/offers/${id}`); }
   publish(id: string) { return this.api.patch<Offer>(`/offers/${id}/publish`); }
   archive(id: string) { return this.api.patch<Offer>(`/offers/${id}/archive`); }
-  moderate(id: string, status: OfferStatus, description = '') { return this.api.patch<Offer>(`/admin/offers/${id}/moderate`, { status, description }); }
+  moderate(id: string, status: OfferStatus) { return this.api.patch<Offer>(`/admin/offers/${id}/moderate`, { status }); }
 }

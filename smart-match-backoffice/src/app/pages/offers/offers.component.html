@@ -1,5 +1,138 @@
-<header class="page-header"><h1>Offers</h1><p>Create, publish, archive and moderate opportunities.</p></header>
-<div class="toolbar-row"><mat-form-field appearance="outline"><mat-label>Status</mat-label><mat-select [(ngModel)]="status" (selectionChange)="load()"><mat-option value="">Published</mat-option><mat-option value="DRAFT">Draft</mat-option><mat-option value="PUBLISHED">Published</mat-option><mat-option value="ARCHIVED">Archived</mat-option><mat-option value="BLOCKED">Blocked</mat-option></mat-select></mat-form-field><mat-form-field appearance="outline"><mat-label>Type</mat-label><mat-select [(ngModel)]="type" (selectionChange)="load()"><mat-option value="">All</mat-option><mat-option value="INTERNSHIP">Internship</mat-option><mat-option value="FREELANCE">Freelance</mat-option></mat-select></mat-form-field><mat-form-field appearance="outline"><mat-label>Location</mat-label><input matInput [(ngModel)]="location" (keyup.enter)="load()"></mat-form-field><button mat-flat-button color="primary" (click)="load()">Filter</button></div>
-<section class="grid"><mat-card><table mat-table [dataSource]="offers()"><ng-container matColumnDef="title"><th mat-header-cell *matHeaderCellDef>Title</th><td mat-cell *matCellDef="let offer">{{ offer.title }}</td></ng-container><ng-container matColumnDef="type"><th mat-header-cell *matHeaderCellDef>Type</th><td mat-cell *matCellDef="let offer">{{ offer.type }}</td></ng-container><ng-container matColumnDef="location"><th mat-header-cell *matHeaderCellDef>Location</th><td mat-cell *matCellDef="let offer">{{ offer.location }}</td></ng-container><ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let offer"><mat-chip>{{ offer.status }}</mat-chip></td></ng-container><ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef></th><td mat-cell *matCellDef="let offer"><button mat-button (click)="edit(offer)">Edit</button><button mat-button color="primary" (click)="publish(offer)">Publish</button><button mat-button (click)="archive(offer)">Archive</button><button mat-button color="warn" (click)="remove(offer)">Delete</button>@if (auth.currentUser?.role === 'ADMIN') { <button mat-button color="warn" (click)="moderate(offer, 'BLOCKED')">Block</button> }</td></ng-container><tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr></table></mat-card>
-@if (auth.currentUser?.role === 'RECRUITER') { <mat-card><mat-card-title>{{ selected ? 'Edit offer' : 'Create offer' }}</mat-card-title><form [formGroup]="form" (ngSubmit)="save()"><mat-form-field appearance="outline"><mat-label>Title</mat-label><input matInput formControlName="title"></mat-form-field><mat-form-field appearance="outline"><mat-label>Description</mat-label><textarea matInput rows="4" formControlName="description"></textarea></mat-form-field><mat-form-field appearance="outline"><mat-label>Type</mat-label><mat-select formControlName="type"><mat-option value="INTERNSHIP">Internship</mat-option><mat-option value="FREELANCE">Freelance</mat-option></mat-select></mat-form-field><mat-form-field appearance="outline"><mat-label>Location</mat-label><input matInput formControlName="location"></mat-form-field><mat-form-field appearance="outline"><mat-label>Duration</mat-label><input matInput formControlName="duration"></mat-form-field><mat-form-field appearance="outline"><mat-label>Skills, separated by comma</mat-label><input matInput formControlName="requiredSkills"></mat-form-field><div class="actions"><button mat-flat-button color="primary" type="submit">Save</button><button mat-button type="button" (click)="reset()">Clear</button></div></form></mat-card> }
+<section class="page-hero-compact">
+  <div>
+    <span class="eyebrow">Opportunities</span>
+    <h1>Offers</h1>
+    <p>Select an offer to see its status, then publish, archive, or edit from the detail panel.</p>
+  </div>
 </section>
+
+<div class="page-toolbar-panel">
+  <mat-form-field appearance="outline">
+    <mat-label>Status</mat-label>
+    <mat-select [(ngModel)]="status" (selectionChange)="load()">
+      <mat-option value="">All statuses</mat-option>
+      <mat-option value="DRAFT">Draft</mat-option>
+      <mat-option value="PUBLISHED">Published</mat-option>
+      <mat-option value="ARCHIVED">Archived</mat-option>
+      <mat-option value="BLOCKED">Blocked</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Type</mat-label>
+    <mat-select [(ngModel)]="type" (selectionChange)="load()">
+      <mat-option value="">All</mat-option>
+      <mat-option value="INTERNSHIP">Internship</mat-option>
+      <mat-option value="FREELANCE">Freelance</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Location</mat-label>
+    <input matInput [(ngModel)]="location" (keyup.enter)="load()">
+  </mat-form-field>
+  <button mat-flat-button color="primary" (click)="load()">
+    <mat-icon>filter_list</mat-icon>
+    Filter
+  </button>
+</div>
+
+<section class="split-view split-view--offers">
+  <mat-card class="table-card">
+    <table mat-table [dataSource]="offers()" class="offer-list-table">
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Offer</th>
+        <td mat-cell *matCellDef="let offer">
+          <div class="offer-list-item">
+            <div class="offer-list-item__text">
+              <div class="offer-list-item__title-row">
+                <span class="cell-primary">{{ offer.title }}</span>
+                <span class="offer-list-status" [class]="statusListClass(offer.status)">{{ offer.status }}</span>
+              </div>
+              <span class="offer-list-item__hint">
+                {{ isDetailSelected(offer) ? 'Details open' : 'Click to view details' }}
+              </span>
+            </div>
+            <mat-icon class="offer-list-item__chevron" [class.offer-list-item__chevron--open]="isDetailSelected(offer)">
+              {{ isDetailSelected(offer) ? 'expand_less' : 'chevron_right' }}
+            </mat-icon>
+          </div>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        class="offer-row"
+        [class.offer-row--selected]="isDetailSelected(row)"
+        (click)="selectOffer(row)">
+      </tr>
+    </table>
+    @if (!offers().length) {
+      <p class="table-empty">No offers match this filter.</p>
+    }
+  </mat-card>
+
+  <aside class="offer-detail-slot">
+    @if (detailSelected(); as offer) {
+      <app-offer-detail-panel
+        [offer]="offer"
+        [isAdmin]="auth.currentUser?.role === 'ADMIN'"
+        [isRecruiter]="auth.currentUser?.role === 'RECRUITER'"
+        [canManage]="canManageOffers()"
+        [editMode]="isEditing(offer)"
+        (closed)="clearDetail()"
+        (edit)="edit($event)"
+        (publish)="publish($event)"
+        (archive)="archive($event)"
+        (remove)="remove($event)"
+        (block)="moderate($event, 'BLOCKED')"
+        (restorePublished)="moderate($event, 'PUBLISHED')">
+        <form offerEditForm class="offer-inline-form" [formGroup]="form" (ngSubmit)="save()">
+          <h3 class="offer-inline-form__title">Edit offer</h3>
+          <mat-form-field appearance="outline"><mat-label>Title</mat-label><input matInput formControlName="title"></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Description</mat-label><textarea matInput rows="4" formControlName="description"></textarea></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Type</mat-label><mat-select formControlName="type"><mat-option value="INTERNSHIP">Internship</mat-option><mat-option value="FREELANCE">Freelance</mat-option></mat-select></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Location</mat-label><input matInput formControlName="location"></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Duration</mat-label><input matInput formControlName="duration"></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Skills, separated by comma</mat-label><input matInput formControlName="requiredSkills"></mat-form-field>
+          <div class="offer-inline-form__actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+              <mat-icon>save</mat-icon>
+              Save changes
+            </button>
+            <button mat-button type="button" (click)="cancelEdit()">
+              <mat-icon>close</mat-icon>
+              Cancel
+            </button>
+          </div>
+        </form>
+      </app-offer-detail-panel>
+    } @else {
+      <app-offer-detail-placeholder />
+    }
+  </aside>
+</section>
+
+@if (auth.currentUser?.role === 'RECRUITER' && !editingOfferId()) {
+  <mat-card class="form-card offers-form-card">
+    <mat-card-title>Create offer</mat-card-title>
+    <p class="offers-form-card__hint">New offers start as draft. Open an offer and use Publish when ready.</p>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <mat-form-field appearance="outline"><mat-label>Title</mat-label><input matInput formControlName="title"></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Description</mat-label><textarea matInput rows="4" formControlName="description"></textarea></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Type</mat-label><mat-select formControlName="type"><mat-option value="INTERNSHIP">Internship</mat-option><mat-option value="FREELANCE">Freelance</mat-option></mat-select></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Location</mat-label><input matInput formControlName="location"></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Duration</mat-label><input matInput formControlName="duration"></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Skills, separated by comma</mat-label><input matInput formControlName="requiredSkills"></mat-form-field>
+      <div class="actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || !!editingOfferId()">
+          <mat-icon>add</mat-icon>
+          Create draft
+        </button>
+        <button mat-button type="button" (click)="resetForm()">
+          <mat-icon>clear</mat-icon>
+          Clear
+        </button>
+      </div>
+    </form>
+  </mat-card>
+}

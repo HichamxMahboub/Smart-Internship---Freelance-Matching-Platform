@@ -1,0 +1,159 @@
+<article class="offer-detail" aria-label="Offer details">
+  <header class="offer-detail__hero">
+    <button type="button" class="offer-detail__close" mat-icon-button (click)="closed.emit()" aria-label="Close details">
+      <mat-icon>close</mat-icon>
+    </button>
+
+    <div class="offer-detail__brand">
+      <div class="offer-detail__icon" aria-hidden="true">
+        <mat-icon>{{ offer().type === 'FREELANCE' ? 'laptop_mac' : 'school' }}</mat-icon>
+      </div>
+      <div class="offer-detail__titles">
+        <span class="offer-detail__eyebrow">Opportunity</span>
+        <h2 class="offer-detail__name">{{ offer().title }}</h2>
+        <p class="offer-detail__meta">{{ offer().type }} · {{ offer().location || 'Location TBD' }}</p>
+      </div>
+    </div>
+
+    <div class="offer-detail__chips">
+      <span class="offer-detail__chip offer-detail__chip--type">{{ offer().type }}</span>
+    </div>
+  </header>
+
+  <div class="offer-detail__status-strip" [class]="'offer-detail__status-strip--' + statusMeta().tone" role="status">
+    <mat-icon class="offer-detail__status-icon">{{ statusMeta().icon }}</mat-icon>
+    <div class="offer-detail__status-copy">
+      <strong>{{ statusMeta().label }}</strong>
+      <p>{{ statusMeta().message }}</p>
+      @if (offer().status === 'PUBLISHED' && offer().publishedAt) {
+        <span class="offer-detail__status-date">Since {{ formatDate(offer().publishedAt) }}</span>
+      }
+      @if (offer().status === 'ARCHIVED' && offer().archiveAt) {
+        <span class="offer-detail__status-date">Archived {{ formatDate(offer().archiveAt) }}</span>
+      }
+    </div>
+  </div>
+
+  @if (editMode()) {
+    <div class="offer-detail__edit-slot">
+      <ng-content select="[offerEditForm]" />
+    </div>
+  } @else {
+    <div class="offer-detail__body">
+      <section class="offer-detail__section">
+        <h3 class="offer-detail__section-title">Description</h3>
+        <p class="offer-detail__description">{{ offer().description }}</p>
+      </section>
+
+      @if (offer().requiredSkills.length) {
+        <section class="offer-detail__section">
+          <h3 class="offer-detail__section-title">Required skills</h3>
+          <div class="offer-detail__skills">
+            @for (skill of offer().requiredSkills; track skill) {
+              <span class="offer-detail__skill">{{ skill }}</span>
+            }
+          </div>
+        </section>
+      }
+
+      <section class="offer-detail__section">
+        <h3 class="offer-detail__section-title">Details</h3>
+        <dl class="offer-detail__facts">
+          <div class="offer-detail__fact">
+            <dt><mat-icon>place</mat-icon> Location</dt>
+            <dd>{{ offer().location || '—' }}</dd>
+          </div>
+          <div class="offer-detail__fact">
+            <dt><mat-icon>schedule</mat-icon> Duration</dt>
+            <dd>{{ offer().duration || '—' }}</dd>
+          </div>
+          <div class="offer-detail__fact">
+            <dt><mat-icon>business</mat-icon> Company</dt>
+            <dd [title]="offer().companyId">{{ shortId(offer().companyId) }}</dd>
+          </div>
+          <div class="offer-detail__fact">
+            <dt><mat-icon>event</mat-icon> Published</dt>
+            <dd>{{ formatDate(offer().publishedAt) }}</dd>
+          </div>
+          <div class="offer-detail__fact">
+            <dt><mat-icon>inventory_2</mat-icon> Archived</dt>
+            <dd>{{ formatDate(offer().archiveAt) }}</dd>
+          </div>
+          <div class="offer-detail__fact">
+            <dt><mat-icon>update</mat-icon> Last updated</dt>
+            <dd>{{ formatDate(offer().updatedAt) }}</dd>
+          </div>
+        </dl>
+      </section>
+    </div>
+
+    @if (canManage()) {
+      <footer class="offer-detail__actions">
+        <button
+          mat-stroked-button
+          type="button"
+          class="offer-detail__action"
+          (click)="edit.emit(offer())">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+
+        <button
+          mat-flat-button
+          type="button"
+          class="btn-primary offer-detail__action"
+          [disabled]="!canPublish()"
+          [matTooltip]="canPublish() ? 'Make this offer visible to candidates' : 'Already published and live'"
+          (click)="publish.emit(offer())">
+          <mat-icon>{{ offer().status === 'PUBLISHED' ? 'check_circle' : 'publish' }}</mat-icon>
+          {{ offer().status === 'PUBLISHED' ? 'Published' : 'Publish' }}
+        </button>
+
+        <button
+          mat-stroked-button
+          type="button"
+          class="offer-detail__action"
+          [disabled]="!canArchive()"
+          [matTooltip]="canArchive() ? 'Hide from candidates' : 'Only live offers can be archived'"
+          (click)="archive.emit(offer())">
+          <mat-icon>archive</mat-icon>
+          {{ offer().status === 'ARCHIVED' ? 'Archived' : 'Archive' }}
+        </button>
+
+        <button
+          mat-stroked-button
+          type="button"
+          class="btn-danger offer-detail__action"
+          matTooltip="Permanently remove this offer"
+          (click)="remove.emit(offer())">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+
+        @if (isAdmin()) {
+          @if (canRestore()) {
+            <button
+              mat-flat-button
+              type="button"
+              class="btn-success offer-detail__action"
+              matTooltip="Restore visibility as published"
+              (click)="restorePublished.emit(offer())">
+              <mat-icon>restore</mat-icon>
+              Restore
+            </button>
+          }
+          <button
+            mat-stroked-button
+            type="button"
+            class="btn-danger offer-detail__action"
+            [disabled]="!canBlock()"
+            [matTooltip]="canBlock() ? 'Block this offer from the marketplace' : 'Already blocked'"
+            (click)="block.emit(offer())">
+            <mat-icon>block</mat-icon>
+            Block
+          </button>
+        }
+      </footer>
+    }
+  }
+</article>
