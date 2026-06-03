@@ -36,6 +36,8 @@ class AIServiceTest {
     private NotificationService notificationService;
     @Mock
     private AiMatchingClient aiMatchingClient;
+    @Mock
+    private ResumeParserService resumeParserService;
 
     @InjectMocks
     private AIService aiService;

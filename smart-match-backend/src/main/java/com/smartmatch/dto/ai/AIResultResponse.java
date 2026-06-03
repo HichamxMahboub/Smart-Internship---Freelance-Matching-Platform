@@ -1,5 +1,6 @@
 package com.smartmatch.dto.ai;
 
+import com.smartmatch.model.SkillLevel;
 import com.smartmatch.model.enums.AIResultType;
 
 import java.time.Instant;
@@ -13,7 +14,12 @@ public record AIResultResponse(
         AIResultType type,
         Double score,
         List<String> extractedSkills,
+        List<SkillLevel> skillLevels,
+        String profileType,
+        String primaryStack,
+        String seniority,
         String recommendation,
+        String conclusion,
         String details,
         Instant createdAt
 ) {

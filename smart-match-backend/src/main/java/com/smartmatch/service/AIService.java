@@ -28,9 +28,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @Service
@@ -46,6 +48,7 @@ public class AIService {
     private final CompanyRepository companyRepository;
     private final NotificationService notificationService;
     private final AiMatchingClient aiMatchingClient;
+    private final ResumeParserService resumeParserService;
 
     public AIResultResponse createJob(AIJobRequest request) {
         User user = requirePremiumOrAdmin();
@@ -108,34 +111,82 @@ public class AIService {
 
     private AIResult createCvAnalysis(User user, AIJobRequest request) {
         CandidateProfile profile = getCandidateProfile(user.getId());
+        CandidateContext context = buildCandidateContext(profile);
         if (aiMatchingClient.isEnabled()) {
-            AiMatchingClient.CvAnalysis analysis = aiMatchingClient.analyzeCv(profileText(profile));
+            AiMatchingClient.CvAnalysis analysis = aiMatchingClient.analyzeCv(context.text(), context.resumeParsed());
+            List<String> skills = mergeSkills(profile.getSkills(), analysis.extractedSkills());
+            List<com.smartmatch.model.SkillLevel> levels = toSkillLevels(analysis.skillLevels());
+
+            // Mirror skill levels onto the candidate profile so recruiter views can show them.
+            if (!levels.isEmpty()) {
+                profile.setSkillLevels(mergeSkillLevels(profile.getSkillLevels(), levels));
+                profile.setSkills(skills);
+                candidateProfileRepository.save(profile);
+            }
+
             return AIResult.builder()
                     .userId(user.getId())
                     .offerId(request.offerId())
                     .applicationId(request.applicationId())
                     .type(AIResultType.CV_ANALYSIS)
                     .score(analysis.score())
-                    .extractedSkills(analysis.extractedSkills().isEmpty() ? safeList(profile.getSkills()) : analysis.extractedSkills())
+                    .extractedSkills(skills)
+                    .skillLevels(levels)
+                    .profileType(analysis.profileType())
+                    .primaryStack(analysis.primaryStack())
+                    .seniority(analysis.seniority())
                     .recommendation(analysis.recommendation())
+                    .conclusion(analysis.conclusion())
                     .details(analysis.details())
+                    .analysisSource(context.resumeParsed()
+                            ? "Smart Match AI · resume + profile"
+                            : "Smart Match AI · profile only")
                     .build();
         }
-        double score = profile.getSkills() == null || profile.getSkills().isEmpty() ? 25.0 : Math.min(95.0, 45.0 + profile.getSkills().size() * 8.0);
+        List<String> skills = mergeSkills(profile.getSkills(), extractSkillsFromResumeText(context.resumeText()));
+        double score = skills.isEmpty() ? 25.0 : Math.min(95.0, 45.0 + skills.size() * 8.0);
+        String heuristicType = inferHeuristicProfileType(skills);
         return AIResult.builder()
                 .userId(user.getId())
                 .offerId(request.offerId())
                 .applicationId(request.applicationId())
                 .type(AIResultType.CV_ANALYSIS)
                 .score(score)
-                .extractedSkills(safeList(profile.getSkills()))
-                .recommendation("Your CV highlights " + safeList(profile.getSkills()).size() + " skills. Add measurable projects and recent experience to improve recruiter confidence.")
-                .details("Heuristic CV analysis based on candidate profile skills (AI disabled).")
+                .extractedSkills(skills)
+                .profileType(heuristicType)
+                .primaryStack(skills.stream().limit(4).reduce((a, b) -> a + ", " + b).orElse(""))
+                .seniority(skills.size() >= 8 ? "Mid" : skills.size() >= 4 ? "Junior" : "Student")
+                .recommendation(context.resumeParsed()
+                        ? "Profile and uploaded CV scanned. Connect the AI engine for deeper analysis."
+                        : "Analysis used profile fields only. Upload a PDF or DOCX resume for richer signals.")
+                .conclusion(heuristicType + " candidate; matched " + skills.size() + " skills from profile and resume.")
+                .details(context.resumeParsed()
+                        ? "Resume text extracted; skills matched from CV and profile."
+                        : "Profile fields only — no resume text available.")
+                .analysisSource("Smart Match heuristic")
                 .build();
+    }
+
+    private String inferHeuristicProfileType(List<String> skills) {
+        if (skills == null || skills.isEmpty()) return "Candidate";
+        java.util.Set<String> set = new java.util.HashSet<>();
+        for (String s : skills) set.add(s.toLowerCase(Locale.ROOT));
+        if (set.contains("react") || set.contains("next.js") || set.contains("vue") || set.contains("angular"))
+            return "Frontend Engineer";
+        if (set.contains("react native") || set.contains("flutter") || set.contains("swift") || set.contains("kotlin"))
+            return "Mobile Engineer";
+        if (set.contains("spring boot") || set.contains("django") || set.contains("flask") || set.contains("node.js") || set.contains("nestjs"))
+            return "Backend Engineer";
+        if (set.contains("pandas") || set.contains("numpy") || set.contains("scikit-learn") || set.contains("tensorflow") || set.contains("pytorch"))
+            return "Data / ML Engineer";
+        if (set.contains("figma") || set.contains("adobe xd")) return "UI/UX Designer";
+        if (set.contains("docker") || set.contains("kubernetes") || set.contains("terraform")) return "DevOps Engineer";
+        return "Software Engineer";
     }
 
     private AIResult createOfferRecommendation(User user, AIJobRequest request) {
         CandidateProfile profile = getCandidateProfile(user.getId());
+        CandidateContext context = buildCandidateContext(profile);
         List<Offer> publishedOffers = offerRepository.findByStatus(OfferStatus.PUBLISHED);
 
         if (aiMatchingClient.isEnabled() && !publishedOffers.isEmpty()) {
@@ -148,7 +199,7 @@ public class AIService {
             StringBuilder details = new StringBuilder();
             double bestScore = 0.0;
             for (Offer offer : shortlist) {
-                AiMatchingClient.MatchResult match = aiMatchingClient.scoreMatch(profileText(profile), offerText(offer));
+                AiMatchingClient.MatchResult match = aiMatchingClient.scoreMatch(context.text(), offerText(offer));
                 bestScore = Math.max(bestScore, match.score());
                 details.append(offer.getTitle()).append(" = ").append(match.score()).append("% ")
                         .append(match.reasons()).append("; ");
@@ -158,8 +209,9 @@ public class AIService {
                     .type(AIResultType.OFFER_RECOMMENDATION)
                     .score(bestScore)
                     .extractedSkills(safeList(profile.getSkills()))
-                    .recommendation("Offers ranked by AI semantic fit between your profile and each role.")
+                    .recommendation("Offers ranked by AI semantic fit between your profile, CV, and each role.")
                     .details(details.toString().trim())
+                    .analysisSource("Smart Match AI" + (context.resumeParsed() ? " · resume" : ""))
                     .build();
         }
 
@@ -179,6 +231,7 @@ public class AIService {
                 .extractedSkills(safeList(profile.getSkills()))
                 .recommendation("Best published offers are ranked by overlap between your skills and required skills.")
                 .details(details)
+                .analysisSource("Smart Match heuristic")
                 .build();
     }
 
@@ -204,13 +257,15 @@ public class AIService {
                         ? "Candidates ranked by AI semantic fit with the offer requirements."
                         : "Candidates are ranked by skill overlap with the offer requirements.")
                 .details("Recommended candidates: " + recommendations.size())
+                .analysisSource(aiMatchingClient.isEnabled() ? "Smart Match AI" : "Smart Match heuristic")
                 .build();
     }
 
     private AIResult createProfileOptimization(User user, AIJobRequest request) {
         CandidateProfile profile = candidateProfileRepository.findByUserId(user.getId()).orElse(null);
         if (aiMatchingClient.isEnabled() && profile != null) {
-            AiMatchingClient.ProfileSuggestions suggestions = aiMatchingClient.optimizeProfile(profileText(profile));
+            CandidateContext context = buildCandidateContext(profile);
+            AiMatchingClient.ProfileSuggestions suggestions = aiMatchingClient.optimizeProfile(context.text());
             return AIResult.builder()
                     .userId(user.getId())
                     .offerId(request.offerId())
@@ -220,6 +275,7 @@ public class AIService {
                     .extractedSkills(safeList(profile.getSkills()))
                     .recommendation(suggestions.recommendation())
                     .details(suggestions.details())
+                    .analysisSource("Smart Match AI" + (context.resumeParsed() ? " · resume" : ""))
                     .build();
         }
         StringBuilder suggestions = new StringBuilder();
@@ -241,6 +297,7 @@ public class AIService {
                 .extractedSkills(profile == null ? List.of() : safeList(profile.getSkills()))
                 .recommendation(suggestions.toString().trim())
                 .details("Heuristic profile optimization based on missing candidate profile fields (AI disabled).")
+                .analysisSource("Smart Match heuristic")
                 .build();
     }
 
@@ -248,7 +305,7 @@ public class AIService {
         CandidateProfile profile = candidateProfileRepository.findByUserId(application.getCandidateId()).orElse(null);
         double score;
         if (aiMatchingClient.isEnabled() && profile != null) {
-            score = aiMatchingClient.scoreMatch(profileText(profile), offerText(offer)).score();
+            score = aiMatchingClient.scoreMatch(buildCandidateContext(profile).text(), offerText(offer)).score();
         } else {
             score = calculateMatchingScore(profile == null ? List.of() : profile.getSkills(), offer.getRequiredSkills());
         }
@@ -263,6 +320,8 @@ public class AIService {
                 application.getStatus(),
                 application.getMatchingScore(),
                 application.getAppliedAt(),
+                application.getReviewedAt(),
+                application.getDecidedAt(),
                 application.getUpdatedAt()
         );
         return new CandidateRecommendationResponse(response, score);
@@ -281,14 +340,102 @@ public class AIService {
                 .orElseThrow(() -> new NotFoundException("Candidate profile not found for current user"));
     }
 
+    private record CandidateContext(String text, boolean resumeParsed, java.util.Optional<String> resumeText) {
+    }
+
+    private CandidateContext buildCandidateContext(CandidateProfile profile) {
+        java.util.Optional<String> resumeText = resumeParserService.extractTextFromCvUrl(profile.getCvUrl());
+        StringBuilder text = new StringBuilder(profileText(profile));
+        if (resumeText.isPresent()) {
+            text.append("\n\n--- RESUME FILE TEXT (parsed from upload) ---\n");
+            text.append(resumeParserService.truncate(resumeText.get()));
+        } else if (StringUtils.hasText(profile.getCvUrl())) {
+            text.append("\n\nNote: CV URL is set but text could not be extracted (unsupported format or fetch error).");
+        }
+        return new CandidateContext(text.toString(), resumeText.isPresent(), resumeText);
+    }
+
     private String profileText(CandidateProfile profile) {
-        return "Education: " + nullSafe(profile.getEducationLevel())
+        return "Headline: " + nullSafe(profile.getHeadline())
+                + "\nBio: " + nullSafe(profile.getBio())
+                + "\nEducation: " + nullSafe(profile.getEducationLevel())
                 + "\nField of study: " + nullSafe(profile.getFieldOfStudy())
                 + "\nLocation: " + nullSafe(profile.getLocation())
                 + "\nSkills: " + String.join(", ", safeList(profile.getSkills()))
                 + "\nLanguages: " + String.join(", ", safeList(profile.getLanguages()))
                 + "\nPreferences: " + String.join(", ", safeList(profile.getPreferences()))
-                + "\nHas CV: " + StringUtils.hasText(profile.getCvUrl());
+                + "\nCV URL: " + nullSafe(profile.getCvUrl());
+    }
+
+    private List<com.smartmatch.model.SkillLevel> toSkillLevels(List<AiMatchingClient.SkillScore> scores) {
+        if (scores == null) return List.of();
+        return scores.stream()
+                .filter(s -> s.name() != null && !s.name().isBlank())
+                .map(s -> com.smartmatch.model.SkillLevel.builder().name(s.name().trim()).level(s.level()).build())
+                .toList();
+    }
+
+    private List<com.smartmatch.model.SkillLevel> mergeSkillLevels(
+            List<com.smartmatch.model.SkillLevel> existing,
+            List<com.smartmatch.model.SkillLevel> fresh) {
+        java.util.LinkedHashMap<String, com.smartmatch.model.SkillLevel> merged = new java.util.LinkedHashMap<>();
+        if (existing != null) {
+            for (com.smartmatch.model.SkillLevel level : existing) {
+                if (level.getName() != null) merged.put(level.getName().toLowerCase(Locale.ROOT), level);
+            }
+        }
+        if (fresh != null) {
+            for (com.smartmatch.model.SkillLevel level : fresh) {
+                if (level.getName() != null) merged.put(level.getName().toLowerCase(Locale.ROOT), level);
+            }
+        }
+        return List.copyOf(merged.values());
+    }
+
+    private List<String> mergeSkills(List<String> profileSkills, List<String> extra) {
+        java.util.LinkedHashSet<String> merged = new java.util.LinkedHashSet<>();
+        safeList(profileSkills).stream().filter(StringUtils::hasText).map(String::trim).forEach(merged::add);
+        safeList(extra).stream().filter(StringUtils::hasText).map(String::trim).forEach(merged::add);
+        return List.copyOf(merged);
+    }
+
+    private static final List<String> RESUME_SKILL_HINTS = List.of(
+            "react", "react native", "angular", "vue", "javascript", "typescript", "node", "node.js",
+            "java", "spring", "spring boot", "python", "django", "flask", "c#", ".net",
+            "sql", "postgresql", "mysql", "mongodb", "docker", "kubernetes", "aws", "azure", "gcp",
+            "figma", "git", "html", "css", "tailwind", "next.js", "express", "graphql", "rest api"
+    );
+
+    private List<String> extractSkillsFromResumeText(java.util.Optional<String> resumeText) {
+        if (resumeText.isEmpty()) {
+            return List.of();
+        }
+        String lower = resumeText.get().toLowerCase(Locale.ROOT);
+        List<String> found = new ArrayList<>();
+        for (String hint : RESUME_SKILL_HINTS) {
+            if (lower.contains(hint)) {
+                found.add(formatSkillHint(hint));
+            }
+        }
+        return found;
+    }
+
+    private String formatSkillHint(String hint) {
+        if (hint.length() <= 3) {
+            return hint.toUpperCase(Locale.ROOT);
+        }
+        String[] parts = hint.split("[\\s./]+");
+        StringBuilder formatted = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) {
+                continue;
+            }
+            if (!formatted.isEmpty()) {
+                formatted.append(' ');
+            }
+            formatted.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return formatted.toString();
     }
 
     private String offerText(Offer offer) {
@@ -315,7 +462,7 @@ public class AIService {
         return value == null ? "" : value;
     }
 
-    private List<String> safeList(List<String> values) {
+    private <T> List<T> safeList(List<T> values) {
         return values == null ? List.of() : values;
     }
 
@@ -328,7 +475,12 @@ public class AIService {
                 result.getType(),
                 result.getScore(),
                 safeList(result.getExtractedSkills()),
+                safeList(result.getSkillLevels()),
+                result.getProfileType(),
+                result.getPrimaryStack(),
+                result.getSeniority(),
                 result.getRecommendation(),
+                result.getConclusion(),
                 result.getDetails(),
                 result.getCreatedAt()
         );
