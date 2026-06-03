@@ -7,6 +7,10 @@ export interface Conversation {
   lastMessageAt?: string;
   unread: number;
   createdAt?: string;
+  displayName?: string;
+  displayAvatarUrl?: string;
+  offerTitle?: string;
+  companyName?: string;
 }
 
 export interface Message {

@@ -85,4 +85,14 @@ export class MessagesComponent implements OnInit, OnDestroy {
   mine(message: Message) {
     return message.senderId === this.auth.currentUser?.id;
   }
+
+  avatarInitials(name?: string) {
+    if (!name?.trim()) return '?';
+    return name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('');
+  }
 }

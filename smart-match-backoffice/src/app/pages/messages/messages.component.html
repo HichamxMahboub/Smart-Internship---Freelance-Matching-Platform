@@ -11,9 +11,17 @@
     <h3>Conversations</h3>
     <mat-nav-list>
       @for (conversation of conversations(); track conversation.id) {
-        <a mat-list-item [class.active]="active?.id === conversation.id" (click)="open(conversation)">
-          <span matListItemTitle>Conversation</span>
-          <span matListItemLine>{{ conversation.lastMessage || 'No messages yet' }}</span>
+        <a mat-list-item class="conversation-row" [class.active]="active?.id === conversation.id" (click)="open(conversation)">
+          @if (conversation.displayAvatarUrl) {
+            <img matListItemAvatar [src]="conversation.displayAvatarUrl" [alt]="conversation.displayName || 'Avatar'" />
+          } @else {
+            <span matListItemAvatar class="avatar-fallback">{{ avatarInitials(conversation.displayName) }}</span>
+          }
+          <span matListItemTitle>{{ conversation.displayName || 'Conversation' }}</span>
+          @if (conversation.offerTitle) {
+            <span matListItemLine class="offer-line">{{ conversation.offerTitle }}</span>
+          }
+          <span matListItemLine class="preview-line">{{ conversation.lastMessage || 'No messages yet' }}</span>
           @if (conversation.unread > 0) {
             <span matListItemMeta class="badge">{{ conversation.unread }}</span>
           }
@@ -27,6 +35,19 @@
 
   <mat-card class="thread">
     @if (active) {
+      <div class="thread-header">
+        @if (active.displayAvatarUrl) {
+          <img class="thread-avatar" [src]="active.displayAvatarUrl" [alt]="active.displayName || 'Avatar'" />
+        } @else {
+          <span class="thread-avatar avatar-fallback">{{ avatarInitials(active.displayName) }}</span>
+        }
+        <div>
+          <h3>{{ active.displayName || 'Conversation' }}</h3>
+          @if (active.offerTitle) {
+            <p>{{ active.offerTitle }}</p>
+          }
+        </div>
+      </div>
       <div class="bubbles">
         @for (message of messages(); track message.id) {
           <div class="bubble" [class.mine]="mine(message)">
