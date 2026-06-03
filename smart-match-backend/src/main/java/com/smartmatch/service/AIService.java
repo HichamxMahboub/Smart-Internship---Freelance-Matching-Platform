@@ -11,7 +11,6 @@ import com.smartmatch.model.AIResult;
 import com.smartmatch.model.Application;
 import com.smartmatch.model.CandidateProfile;
 import com.smartmatch.model.Company;
-import com.smartmatch.model.Notification;
 import com.smartmatch.model.Offer;
 import com.smartmatch.model.User;
 import com.smartmatch.model.enums.AIResultType;
@@ -23,7 +22,6 @@ import com.smartmatch.repository.AIResultRepository;
 import com.smartmatch.repository.ApplicationRepository;
 import com.smartmatch.repository.CandidateProfileRepository;
 import com.smartmatch.repository.CompanyRepository;
-import com.smartmatch.repository.NotificationRepository;
 import com.smartmatch.repository.OfferRepository;
 import com.smartmatch.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +36,16 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class AIService {
+    /** Max offers/candidates scored with live LLM calls per job to keep latency and cost bounded. */
+    private static final int AI_SCORE_LIMIT = 5;
+
     private final AIResultRepository aiResultRepository;
     private final CandidateProfileRepository candidateProfileRepository;
     private final OfferRepository offerRepository;
     private final ApplicationRepository applicationRepository;
     private final CompanyRepository companyRepository;
-    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
+    private final AiMatchingClient aiMatchingClient;
 
     public AIResultResponse createJob(AIJobRequest request) {
         User user = requirePremiumOrAdmin();
@@ -55,13 +57,11 @@ public class AIService {
         };
 
         AIResult savedResult = aiResultRepository.save(result);
-        notificationRepository.save(Notification.builder()
-                .userId(user.getId())
-                .title("AI result ready")
-                .message("Your " + request.type().name() + " result is ready.")
-                .type(NotificationType.AI)
-                .read(false)
-                .build());
+        notificationService.create(
+                user.getId(),
+                "AI result ready",
+                "Your " + request.type().name() + " result is ready.",
+                NotificationType.AI);
         return toResponse(savedResult);
     }
 
@@ -73,23 +73,6 @@ public class AIService {
             throw new ForbiddenException("You can only view your own AI results");
         }
         return toResponse(result);
-    }
-
-    public List<CandidateRecommendationResponse> getCandidateRecommendations(String offerId) {
-        User user = requirePremiumOrAdmin();
-        Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new NotFoundException("Offer not found with id: " + offerId));
-        if (user.getRole() == Role.RECRUITER) {
-            Company company = companyRepository.findById(offer.getCompanyId())
-                    .orElseThrow(() -> new NotFoundException("Company not found for offer"));
-            if (!company.getRecruiterId().equals(user.getId())) {
-                throw new ForbiddenException("You can only request recommendations for your own offers");
-            }
-        }
-
-        return applicationRepository.findByOfferIdAndCandidateId(offerId, "__never__").stream()
-                .map(application -> toCandidateRecommendation(application, offer))
-                .toList();
     }
 
     public List<CandidateRecommendationResponse> getCandidateRecommendationsForOffer(String offerId) {
@@ -109,6 +92,7 @@ public class AIService {
                 .toList();
     }
 
+    /** Heuristic skill-overlap score used as the offline fallback when the LLM is disabled. */
     public double calculateMatchingScore(List<String> candidateSkills, List<String> requiredSkills) {
         if (requiredSkills == null || requiredSkills.isEmpty()) {
             return 100.0;
@@ -124,6 +108,19 @@ public class AIService {
 
     private AIResult createCvAnalysis(User user, AIJobRequest request) {
         CandidateProfile profile = getCandidateProfile(user.getId());
+        if (aiMatchingClient.isEnabled()) {
+            AiMatchingClient.CvAnalysis analysis = aiMatchingClient.analyzeCv(profileText(profile));
+            return AIResult.builder()
+                    .userId(user.getId())
+                    .offerId(request.offerId())
+                    .applicationId(request.applicationId())
+                    .type(AIResultType.CV_ANALYSIS)
+                    .score(analysis.score())
+                    .extractedSkills(analysis.extractedSkills().isEmpty() ? safeList(profile.getSkills()) : analysis.extractedSkills())
+                    .recommendation(analysis.recommendation())
+                    .details(analysis.details())
+                    .build();
+        }
         double score = profile.getSkills() == null || profile.getSkills().isEmpty() ? 25.0 : Math.min(95.0, 45.0 + profile.getSkills().size() * 8.0);
         return AIResult.builder()
                 .userId(user.getId())
@@ -133,13 +130,39 @@ public class AIService {
                 .score(score)
                 .extractedSkills(safeList(profile.getSkills()))
                 .recommendation("Your CV highlights " + safeList(profile.getSkills()).size() + " skills. Add measurable projects and recent experience to improve recruiter confidence.")
-                .details("Simulated CV analysis based on candidate profile skills.")
+                .details("Heuristic CV analysis based on candidate profile skills (AI disabled).")
                 .build();
     }
 
     private AIResult createOfferRecommendation(User user, AIJobRequest request) {
         CandidateProfile profile = getCandidateProfile(user.getId());
         List<Offer> publishedOffers = offerRepository.findByStatus(OfferStatus.PUBLISHED);
+
+        if (aiMatchingClient.isEnabled() && !publishedOffers.isEmpty()) {
+            // Shortlist heuristically, then score the top offers semantically with the LLM.
+            List<Offer> shortlist = publishedOffers.stream()
+                    .sorted(Comparator.comparingDouble(
+                            (Offer offer) -> calculateMatchingScore(profile.getSkills(), offer.getRequiredSkills())).reversed())
+                    .limit(AI_SCORE_LIMIT)
+                    .toList();
+            StringBuilder details = new StringBuilder();
+            double bestScore = 0.0;
+            for (Offer offer : shortlist) {
+                AiMatchingClient.MatchResult match = aiMatchingClient.scoreMatch(profileText(profile), offerText(offer));
+                bestScore = Math.max(bestScore, match.score());
+                details.append(offer.getTitle()).append(" = ").append(match.score()).append("% ")
+                        .append(match.reasons()).append("; ");
+            }
+            return AIResult.builder()
+                    .userId(user.getId())
+                    .type(AIResultType.OFFER_RECOMMENDATION)
+                    .score(bestScore)
+                    .extractedSkills(safeList(profile.getSkills()))
+                    .recommendation("Offers ranked by AI semantic fit between your profile and each role.")
+                    .details(details.toString().trim())
+                    .build();
+        }
+
         String details = publishedOffers.stream()
                 .map(offer -> offer.getTitle() + " = " + calculateMatchingScore(profile.getSkills(), offer.getRequiredSkills()) + "%")
                 .limit(10)
@@ -177,13 +200,28 @@ public class AIService {
                 .applicationId(request.applicationId())
                 .type(AIResultType.CANDIDATE_RECOMMENDATION)
                 .score(bestScore)
-                .recommendation("Candidates are ranked by skill overlap with the offer requirements.")
+                .recommendation(aiMatchingClient.isEnabled()
+                        ? "Candidates ranked by AI semantic fit with the offer requirements."
+                        : "Candidates are ranked by skill overlap with the offer requirements.")
                 .details("Recommended candidates: " + recommendations.size())
                 .build();
     }
 
     private AIResult createProfileOptimization(User user, AIJobRequest request) {
         CandidateProfile profile = candidateProfileRepository.findByUserId(user.getId()).orElse(null);
+        if (aiMatchingClient.isEnabled() && profile != null) {
+            AiMatchingClient.ProfileSuggestions suggestions = aiMatchingClient.optimizeProfile(profileText(profile));
+            return AIResult.builder()
+                    .userId(user.getId())
+                    .offerId(request.offerId())
+                    .applicationId(request.applicationId())
+                    .type(AIResultType.PROFILE_OPTIMIZATION)
+                    .score(suggestions.score())
+                    .extractedSkills(safeList(profile.getSkills()))
+                    .recommendation(suggestions.recommendation())
+                    .details(suggestions.details())
+                    .build();
+        }
         StringBuilder suggestions = new StringBuilder();
         int missing = 0;
         if (profile == null || !StringUtils.hasText(profile.getEducationLevel())) { suggestions.append("Add your education level. "); missing++; }
@@ -202,13 +240,18 @@ public class AIService {
                 .score(Math.max(10.0, 100.0 - missing * 15.0))
                 .extractedSkills(profile == null ? List.of() : safeList(profile.getSkills()))
                 .recommendation(suggestions.toString().trim())
-                .details("Simulated profile optimization based on missing candidate profile fields.")
+                .details("Heuristic profile optimization based on missing candidate profile fields (AI disabled).")
                 .build();
     }
 
     private CandidateRecommendationResponse toCandidateRecommendation(Application application, Offer offer) {
         CandidateProfile profile = candidateProfileRepository.findByUserId(application.getCandidateId()).orElse(null);
-        double score = calculateMatchingScore(profile == null ? List.of() : profile.getSkills(), offer.getRequiredSkills());
+        double score;
+        if (aiMatchingClient.isEnabled() && profile != null) {
+            score = aiMatchingClient.scoreMatch(profileText(profile), offerText(offer)).score();
+        } else {
+            score = calculateMatchingScore(profile == null ? List.of() : profile.getSkills(), offer.getRequiredSkills());
+        }
         application.setMatchingScore(score);
         applicationRepository.save(application);
         ApplicationResponse response = new ApplicationResponse(
@@ -238,6 +281,25 @@ public class AIService {
                 .orElseThrow(() -> new NotFoundException("Candidate profile not found for current user"));
     }
 
+    private String profileText(CandidateProfile profile) {
+        return "Education: " + nullSafe(profile.getEducationLevel())
+                + "\nField of study: " + nullSafe(profile.getFieldOfStudy())
+                + "\nLocation: " + nullSafe(profile.getLocation())
+                + "\nSkills: " + String.join(", ", safeList(profile.getSkills()))
+                + "\nLanguages: " + String.join(", ", safeList(profile.getLanguages()))
+                + "\nPreferences: " + String.join(", ", safeList(profile.getPreferences()))
+                + "\nHas CV: " + StringUtils.hasText(profile.getCvUrl());
+    }
+
+    private String offerText(Offer offer) {
+        return "Title: " + nullSafe(offer.getTitle())
+                + "\nType: " + (offer.getType() == null ? "" : offer.getType().name())
+                + "\nLocation: " + nullSafe(offer.getLocation())
+                + "\nDuration: " + nullSafe(offer.getDuration())
+                + "\nRequired skills: " + String.join(", ", safeList(offer.getRequiredSkills()))
+                + "\nDescription: " + nullSafe(offer.getDescription());
+    }
+
     private Set<String> normalize(List<String> values) {
         Set<String> normalized = new HashSet<>();
         if (values != null) {
@@ -247,6 +309,10 @@ public class AIService {
                     .forEach(normalized::add);
         }
         return normalized;
+    }
+
+    private String nullSafe(String value) {
+        return value == null ? "" : value;
     }
 
     private List<String> safeList(List<String> values) {
