@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from '../../components/AppButton';
 import { AppInput } from '../../components/AppInput';
+import { TagPicker } from '../../components/TagPicker';
+import { OptionPicker } from '../../components/OptionPicker';
+import {
+  SKILL_OPTIONS, LANGUAGE_OPTIONS, PREFERENCE_OPTIONS,
+  FIELD_OF_STUDY_OPTIONS, EDUCATION_LEVEL_OPTIONS
+} from '../../constants/profileOptions';
+import { LoadingView } from '../../components/LoadingView';
 import { ProgressBar } from '../../components/ProgressBar';
 import { PhotoPicker } from '../../components/PhotoPicker';
+import { ResumeUploader } from '../../components/ResumeUploader';
+import { CvAutofillCard } from '../../components/CvAutofillCard';
 import { Icon } from '../../components/Icon';
 import { useAuth } from '../../auth/AuthContext';
+import { candidateOnboardingStep, normalizeCandidateProfile } from '../../onboarding/completeness';
 import { profileService } from '../../services/profileService';
 import { CandidateProfile } from '../../types';
 import { colors } from '../../theme/colors';
@@ -17,12 +27,33 @@ const STEPS = ['You', 'Studies', 'Skills', 'CV'];
 export function CandidateOnboarding({ onDone }: { onDone: () => void }) {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [p, setP] = useState<CandidateProfile>({ skills: [], languages: [], preferences: [] });
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const profile = normalizeCandidateProfile(await profileService.getCandidateProfile());
+        if (cancelled) return;
+        setP(profile);
+        setStep(candidateOnboardingStep(profile));
+      } catch {
+        if (!cancelled) {
+          Alert.alert('Could not load profile', 'Check your connection. You can still continue setup.');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const set = (patch: Partial<CandidateProfile>) => setP((prev) => ({ ...prev, ...patch }));
-  const setList = (key: 'skills' | 'languages' | 'preferences', v: string) => set({ [key]: v.split(',').map((i) => i.trim()).filter(Boolean) } as Partial<CandidateProfile>);
+  const setTags = (key: 'skills' | 'languages' | 'preferences', list: string[]) =>
+    set({ [key]: list } as Partial<CandidateProfile>);
 
   const canNext = () => {
     if (step === 0) return Boolean(p.headline?.trim());
@@ -31,10 +62,15 @@ export function CandidateOnboarding({ onDone }: { onDone: () => void }) {
     return true;
   };
 
+  const persist = async () => {
+    const saved = await profileService.updateCandidateProfile(p);
+    setP(normalizeCandidateProfile(saved));
+  };
+
   const finish = async () => {
     try {
       setSaving(true);
-      await profileService.updateCandidateProfile(p);
+      await persist();
       onDone();
     } catch {
       Alert.alert('Almost there', 'Could not save your profile. Check your connection and try again.');
@@ -43,8 +79,23 @@ export function CandidateOnboarding({ onDone }: { onDone: () => void }) {
     }
   };
 
-  const next = () => (step < STEPS.length - 1 ? setStep(step + 1) : finish());
+  const next = async () => {
+    if (!canNext()) return;
+    try {
+      setSaving(true);
+      await persist();
+      if (step < STEPS.length - 1) setStep(step + 1);
+      else onDone();
+    } catch {
+      Alert.alert('Save failed', 'Your progress was not saved. Check your connection and try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const back = () => setStep(Math.max(0, step - 1));
+
+  if (loading) return <LoadingView label="Loading your profile…" />;
 
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -58,7 +109,18 @@ export function CandidateOnboarding({ onDone }: { onDone: () => void }) {
         {step === 0 ? (
           <View style={styles.block}>
             <Text style={styles.title}>Welcome, {user?.fullName?.split(' ')[0] || 'there'} 👋</Text>
-            <Text style={styles.sub}>Recruiters see this first. Add a photo and a one-line headline.</Text>
+            <Text style={styles.sub}>Fastest path: upload your CV and we fill the rest. Or enter everything manually below.</Text>
+            <CvAutofillCard
+              overwrite
+              onAutofilled={(profile) => {
+                set({
+                  ...profile,
+                  skills: profile.skills ?? [],
+                  languages: profile.languages ?? [],
+                  preferences: profile.preferences ?? []
+                });
+              }}
+            />
             <View style={styles.photoWrap}><PhotoPicker name={user?.fullName} uri={p.photoUrl} onChange={(url) => set({ photoUrl: url })} /></View>
             <AppInput label="Headline" value={p.headline ?? ''} onChangeText={(v) => set({ headline: v })} placeholder="CS student · React & Node developer" />
             <AppInput label="Short bio" multiline value={p.bio ?? ''} onChangeText={(v) => set({ bio: v })} placeholder="What you build, what you're looking for…" />
@@ -69,8 +131,8 @@ export function CandidateOnboarding({ onDone }: { onDone: () => void }) {
           <View style={styles.block}>
             <Text style={styles.title}>Your studies</Text>
             <Text style={styles.sub}>Helps us match internships to your level and field.</Text>
-            <AppInput label="Education level" value={p.educationLevel ?? ''} onChangeText={(v) => set({ educationLevel: v })} placeholder="Master's, Bachelor's…" />
-            <AppInput label="Field of study" value={p.fieldOfStudy ?? ''} onChangeText={(v) => set({ fieldOfStudy: v })} placeholder="Computer science" />
+            <OptionPicker label="Education level" options={EDUCATION_LEVEL_OPTIONS} value={p.educationLevel} onChange={(v) => set({ educationLevel: v })} placeholder="Pick your level" />
+            <OptionPicker label="Field of study" options={FIELD_OF_STUDY_OPTIONS} value={p.fieldOfStudy} onChange={(v) => set({ fieldOfStudy: v })} placeholder="Pick a field" />
             <AppInput label="Location" icon="location" value={p.location ?? ''} onChangeText={(v) => set({ location: v })} placeholder="Casablanca (remote-friendly)" />
           </View>
         ) : null}
@@ -78,22 +140,18 @@ export function CandidateOnboarding({ onDone }: { onDone: () => void }) {
         {step === 2 ? (
           <View style={styles.block}>
             <Text style={styles.title}>Skills & languages</Text>
-            <Text style={styles.sub}>Skills drive your match score. Separate with commas.</Text>
-            <AppInput label="Skills" value={p.skills.join(', ')} onChangeText={(v) => setList('skills', v)} placeholder="React, Java, Figma" helper="At least one to continue." />
-            <AppInput label="Languages" value={p.languages.join(', ')} onChangeText={(v) => setList('languages', v)} placeholder="English, French" />
-            <AppInput label="Preferences" value={p.preferences.join(', ')} onChangeText={(v) => setList('preferences', v)} placeholder="Remote, internship, part-time" />
+            <Text style={styles.sub}>Skills drive your match score. Tap to pick from list.</Text>
+            <TagPicker label="Skills" options={SKILL_OPTIONS} values={p.skills} onChange={(list) => setTags('skills', list)} placeholder="Pick skills" helper="At least one to continue. Tap a chip to remove." />
+            <TagPicker label="Languages" options={LANGUAGE_OPTIONS} values={p.languages} onChange={(list) => setTags('languages', list)} placeholder="Pick languages" />
+            <TagPicker label="Preferences" options={PREFERENCE_OPTIONS} values={p.preferences} onChange={(list) => setTags('preferences', list)} placeholder="Pick preferences" />
           </View>
         ) : null}
 
         {step === 3 ? (
           <View style={styles.block}>
             <Text style={styles.title}>Add your CV</Text>
-            <Text style={styles.sub}>Paste a link to your CV (Drive, Dropbox…). In-app file upload arrives with the next build, parsed automatically in the cloud.</Text>
-            <View style={styles.cvCard}>
-              <View style={styles.cvIcon}><Icon name="document" size={22} color={colors.primary} bg={colors.primaryLight} /></View>
-              <Text style={styles.cvHint}>{p.cvUrl ? 'CV link added' : 'No CV yet'}</Text>
-            </View>
-            <AppInput label="CV link" value={p.cvUrl ?? ''} onChangeText={(v) => set({ cvUrl: v })} placeholder="https://…" autoCapitalize="none" helper="Required — recruiters rank candidates with a CV higher." />
+            <Text style={styles.sub}>Upload a PDF or Word file. It is stored securely on Cloudinary in the resumes folder.</Text>
+            <ResumeUploader cvUrl={p.cvUrl} onUploaded={(url) => set({ cvUrl: url })} />
           </View>
         ) : null}
       </ScrollView>
@@ -103,7 +161,7 @@ export function CandidateOnboarding({ onDone }: { onDone: () => void }) {
         <AppButton
           title={step === STEPS.length - 1 ? 'Finish setup' : 'Continue'}
           icon={step === STEPS.length - 1 ? 'check' : 'chevron-right'}
-          onPress={next}
+          onPress={step === STEPS.length - 1 ? finish : next}
           loading={saving}
           disabled={!canNext()}
           style={styles.cta}

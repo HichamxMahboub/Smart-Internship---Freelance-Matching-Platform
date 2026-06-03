@@ -4,17 +4,27 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from '../../components/AppButton';
 import { AppInput } from '../../components/AppInput';
+import { TagPicker } from '../../components/TagPicker';
+import { OptionPicker } from '../../components/OptionPicker';
+import {
+  SKILL_OPTIONS, LANGUAGE_OPTIONS, PREFERENCE_OPTIONS,
+  FIELD_OF_STUDY_OPTIONS, EDUCATION_LEVEL_OPTIONS, DEGREE_OPTIONS, SCHOOL_OPTIONS
+} from '../../constants/profileOptions';
 import { SurfaceCard } from '../../components/SurfaceCard';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { Chip } from '../../components/Chip';
 import { Icon, IconName } from '../../components/Icon';
 import { PhotoPicker } from '../../components/PhotoPicker';
+import { ResumeUploader } from '../../components/ResumeUploader';
+import { CvAutofillCard } from '../../components/CvAutofillCard';
 import { ProgressBar } from '../../components/ProgressBar';
 import { ProjectCard } from '../../components/ProjectCard';
 import { TimelineItem } from '../../components/TimelineItem';
 import { SocialRow } from '../../components/SocialRow';
 import { useAuth } from '../../auth/AuthContext';
 import { profileService } from '../../services/profileService';
+import { userService } from '../../services/userService';
+import { joinFullName, splitFullName } from '../../utils/fullName';
 import { candidateCompletion } from '../../onboarding/completeness';
 import { CandidateProfile, Education, Experience, Project } from '../../types';
 import { colors } from '../../theme/colors';
@@ -23,7 +33,7 @@ import { radius, shadow } from '../../theme/spacing';
 const empty: CandidateProfile = { skills: [], languages: [], preferences: [] };
 
 export function CandidateProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<CandidateProfile>(empty);
@@ -87,14 +97,14 @@ export function CandidateProfileScreen() {
 
         {/* CV */}
         <Section title="CV / Resume">
-          <Pressable style={styles.cvCard} onPress={() => profile.cvUrl && Linking.openURL(profile.cvUrl).catch(() => undefined)}>
-            <View style={styles.cvIcon}><Icon name="document" size={20} color={colors.primary} bg={colors.primaryLight} /></View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cvTitle}>{profile.cvUrl ? 'CV attached' : 'No CV yet'}</Text>
-              <Text style={styles.cvSub} numberOfLines={1}>{profile.cvUrl ? profile.cvUrl.replace(/^https?:\/\//, '') : 'Add a link in Edit details'}</Text>
-            </View>
-            {profile.cvUrl ? <Icon name="chevron-right" size={16} color={colors.softText} /> : null}
-          </Pressable>
+          <CvAutofillCard
+            compact
+            onAutofilled={(updated) => setProfile({ ...empty, ...updated })}
+          />
+          <ResumeUploader cvUrl={profile.cvUrl} onUploaded={(url) => persist({ ...profile, cvUrl: url }, true)} />
+          {profile.cvUrl ? (
+            <AppButton title="Open CV" variant="ghost" size="sm" onPress={() => Linking.openURL(profile.cvUrl!).catch(() => undefined)} />
+          ) : null}
         </Section>
 
         {/* Portfolio */}
@@ -132,9 +142,26 @@ export function CandidateProfileScreen() {
       <DetailsModal
         visible={editDetails}
         profile={profile}
+        fullName={user?.fullName}
         saving={saving}
         onClose={() => setEditDetails(false)}
-        onSave={(next) => { setEditDetails(false); persist(next); }}
+        onSave={async (next, fullName) => {
+          try {
+            setSaving(true);
+            if (fullName && fullName !== user?.fullName) {
+              await userService.updateMe({ fullName });
+              await refreshUser();
+            }
+            await profileService.updateCandidateProfile(next);
+            setProfile({ ...empty, ...next });
+            setEditDetails(false);
+            Alert.alert('Saved', 'Your profile is updated.');
+          } catch {
+            Alert.alert('Error', 'Could not save profile.');
+          } finally {
+            setSaving(false);
+          }
+        }}
       />
       <ProjectModal
         state={projModal}
@@ -209,21 +236,56 @@ function Sheet({ visible, title, onClose, children, footer }: { visible: boolean
   );
 }
 
-function DetailsModal({ visible, profile, saving, onClose, onSave }: { visible: boolean; profile: CandidateProfile; saving: boolean; onClose: () => void; onSave: (p: CandidateProfile) => void }) {
+function DetailsModal({
+  visible,
+  profile,
+  fullName,
+  saving,
+  onClose,
+  onSave
+}: {
+  visible: boolean;
+  profile: CandidateProfile;
+  fullName?: string;
+  saving: boolean;
+  onClose: () => void;
+  onSave: (p: CandidateProfile, fullName: string) => void | Promise<void>;
+}) {
   const [draft, setDraft] = useState(profile);
-  useEffect(() => { if (visible) setDraft(profile); }, [visible]);
-  const setList = (key: 'skills' | 'languages' | 'preferences', v: string) => setDraft({ ...draft, [key]: v.split(',').map((i) => i.trim()).filter(Boolean) });
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  useEffect(() => {
+    if (!visible) return;
+    setDraft(profile);
+    const split = splitFullName(fullName);
+    setFirstName(split.firstName);
+    setLastName(split.lastName);
+  }, [visible, profile, fullName]);
+  const setTags = (key: 'skills' | 'languages' | 'preferences', list: string[]) => setDraft({ ...draft, [key]: list });
   const setSocial = (key: keyof NonNullable<CandidateProfile['socials']>, v: string) => setDraft({ ...draft, socials: { ...draft.socials, [key]: v } });
+  const save = () => {
+    const name = joinFullName(firstName, lastName);
+    if (!name) {
+      Alert.alert('Name required', 'Enter at least your first name.');
+      return;
+    }
+    void onSave(draft, name);
+  };
   return (
-    <Sheet visible={visible} title="Edit details" onClose={onClose} footer={<AppButton title="Save details" icon="check" onPress={() => onSave(draft)} loading={saving} />}>
+    <Sheet visible={visible} title="Edit details" onClose={onClose} footer={<AppButton title="Save details" icon="check" onPress={save} loading={saving} />}>
+      <Text style={styles.sheetGroup}>Your name</Text>
+      <View style={styles.twoCol}>
+        <AppInput label="First name" value={firstName} onChangeText={setFirstName} placeholder="Latif" style={{ flex: 1 }} />
+        <AppInput label="Last name" value={lastName} onChangeText={setLastName} placeholder="Abderrahmane" style={{ flex: 1 }} />
+      </View>
       <AppInput label="Headline" value={draft.headline ?? ''} onChangeText={(v) => setDraft({ ...draft, headline: v })} placeholder="CS student · React developer" />
       <AppInput label="Bio" multiline value={draft.bio ?? ''} onChangeText={(v) => setDraft({ ...draft, bio: v })} placeholder="What you build and what you're looking for." />
-      <AppInput label="Education level" value={draft.educationLevel ?? ''} onChangeText={(v) => setDraft({ ...draft, educationLevel: v })} placeholder="Master's, Bachelor's…" />
-      <AppInput label="Field of study" value={draft.fieldOfStudy ?? ''} onChangeText={(v) => setDraft({ ...draft, fieldOfStudy: v })} placeholder="Computer science" />
+      <OptionPicker label="Education level" options={EDUCATION_LEVEL_OPTIONS} value={draft.educationLevel} onChange={(v) => setDraft({ ...draft, educationLevel: v })} placeholder="Pick your level" />
+      <OptionPicker label="Field of study" options={FIELD_OF_STUDY_OPTIONS} value={draft.fieldOfStudy} onChange={(v) => setDraft({ ...draft, fieldOfStudy: v })} placeholder="Pick a field" />
       <AppInput label="Location" icon="location" value={draft.location ?? ''} onChangeText={(v) => setDraft({ ...draft, location: v })} placeholder="Casablanca" />
-      <AppInput label="Skills" value={draft.skills.join(', ')} onChangeText={(v) => setList('skills', v)} helper="Separate with commas." placeholder="React, Java, Figma" />
-      <AppInput label="Languages" value={draft.languages.join(', ')} onChangeText={(v) => setList('languages', v)} placeholder="English, French" />
-      <AppInput label="Preferences" value={draft.preferences.join(', ')} onChangeText={(v) => setList('preferences', v)} placeholder="Remote, internship" />
+      <TagPicker label="Skills" options={SKILL_OPTIONS} values={draft.skills} onChange={(list) => setTags('skills', list)} placeholder="Pick skills" helper="Search and tap to add. Tap a chip to remove." />
+      <TagPicker label="Languages" options={LANGUAGE_OPTIONS} values={draft.languages} onChange={(list) => setTags('languages', list)} placeholder="Pick languages" />
+      <TagPicker label="Preferences" options={PREFERENCE_OPTIONS} values={draft.preferences} onChange={(list) => setTags('preferences', list)} placeholder="Pick preferences" />
       <AppInput label="CV link" value={draft.cvUrl ?? ''} onChangeText={(v) => setDraft({ ...draft, cvUrl: v })} autoCapitalize="none" placeholder="https://…" />
       <Text style={styles.sheetGroup}>Social links</Text>
       <AppInput label="GitHub" value={draft.socials?.github ?? ''} onChangeText={(v) => setSocial('github', v)} autoCapitalize="none" placeholder="github.com/you" />
@@ -284,9 +346,9 @@ function EducationModal({ state, items, saving, onClose, onSave }: { state: { op
   return (
     <Sheet visible={state.open} title={editing ? 'Edit education' : 'Add education'} onClose={onClose}
       footer={<View style={styles.footerRow}>{editing ? <AppButton title="Delete" variant="danger" size="sm" onPress={remove} style={{ flex: 0, paddingHorizontal: 18 }} /> : null}<AppButton title="Save" icon="check" onPress={save} loading={saving} style={{ flex: 1 }} /></View>}>
-      <AppInput label="School" value={d.school} onChangeText={(v) => setD({ ...d, school: v })} placeholder="ENSA" />
-      <AppInput label="Degree" value={d.degree ?? ''} onChangeText={(v) => setD({ ...d, degree: v })} placeholder="Engineering" />
-      <AppInput label="Field" value={d.field ?? ''} onChangeText={(v) => setD({ ...d, field: v })} placeholder="Software" />
+      <OptionPicker label="School" options={SCHOOL_OPTIONS} value={d.school} onChange={(v) => setD({ ...d, school: v })} placeholder="Pick a school" />
+      <OptionPicker label="Degree" options={DEGREE_OPTIONS} value={d.degree} onChange={(v) => setD({ ...d, degree: v })} placeholder="Pick a degree" />
+      <OptionPicker label="Field" options={FIELD_OF_STUDY_OPTIONS} value={d.field} onChange={(v) => setD({ ...d, field: v })} placeholder="Pick a field" />
       <View style={styles.twoCol}>
         <AppInput label="Start" value={d.start ?? ''} onChangeText={(v) => setD({ ...d, start: v })} placeholder="2021" style={{ flex: 1 }} />
         <AppInput label="End" value={d.end ?? ''} onChangeText={(v) => setD({ ...d, end: v })} placeholder="2025" />
