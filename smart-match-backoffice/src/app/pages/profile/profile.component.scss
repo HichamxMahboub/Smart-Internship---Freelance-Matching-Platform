@@ -1,1 +1,73 @@
-.page-header { margin-bottom:16px; } .page-header h1 { margin:0 0 4px; } .page-header p { margin:0; color:#667085; }.profile-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; } mat-card { border-radius:8px; padding:16px; } form { display:grid; gap:12px; margin-top:16px; }
+:host {
+	display: block;
+	animation: fadeIn var(--transition-base);
+}
+
+.profile-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 16px;
+}
+
+.form-card {
+	padding: 18px;
+	border-radius: var(--radius-lg);
+	border: 1px solid var(--border);
+	box-shadow: var(--shadow-soft);
+	background: var(--surface);
+	animation: fadeInScale 0.4s ease-out;
+	animation-fill-mode: both;
+	transition: all var(--transition-fast);
+	
+	@for $i from 1 through 4 {
+		&:nth-child(#{$i}) {
+			animation-delay: #{$i * 0.1}s;
+		}
+	}
+	
+	&:hover {
+		transform: translateY(-4px);
+		box-shadow: var(--shadow-strong);
+	}
+}
+
+mat-card-title {
+	font-weight: 900;
+}
+
+mat-chip {
+	margin-top: 10px;
+	transition: all var(--transition-fast);
+	
+	&:hover {
+		transform: scale(1.05);
+	}
+}
+
+form {
+	display: grid;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fadeInScale {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
