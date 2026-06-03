@@ -1,2 +1,169 @@
-<header class="page-header"><div><h1>Notifications</h1><p>Operational messages from applications, companies, subscriptions and AI.</p></div><button mat-flat-button color="primary" (click)="markAll()">Mark all read</button></header>
-<section class="notification-list">@for (item of notifications(); track item.id) { <mat-card [class.unread]="!item.read"><mat-card-header><mat-icon mat-card-avatar>{{ item.read ? 'drafts' : 'mark_email_unread' }}</mat-icon><mat-card-title>{{ item.title }}</mat-card-title><mat-card-subtitle>{{ item.type }} · {{ item.createdAt | date:'short' }}</mat-card-subtitle></mat-card-header><mat-card-content>{{ item.message }}</mat-card-content><mat-card-actions align="end"><button mat-button [disabled]="item.read" (click)="markRead(item)">Mark read</button></mat-card-actions></mat-card> }</section>
+<section class="page-hero-compact">
+  <div>
+    <span class="eyebrow">Communication</span>
+    <h1>Notifications</h1>
+    <p>Platform-wide activity feed — who was notified, what changed, and what still needs attention.</p>
+  </div>
+  <div class="page-hero-actions">
+    <button
+      mat-flat-button
+      color="primary"
+      [disabled]="!hasMineUnread()"
+      (click)="markAllMineRead()">
+      <mat-icon>done_all</mat-icon>
+      Mark my inbox read
+    </button>
+  </div>
+</section>
+
+@if (summary(); as stats) {
+  <section class="notif-stats" aria-label="Notification summary">
+    <article class="notif-stat notif-stat--primary">
+      <mat-icon>notifications</mat-icon>
+      <div>
+        <span class="notif-stat__label">Total</span>
+        <strong class="notif-stat__value">{{ stats.total }}</strong>
+        <span class="notif-stat__hint">{{ stats.unread }} unread across platform</span>
+      </div>
+    </article>
+    <article class="notif-stat">
+      <mat-icon>mark_email_unread</mat-icon>
+      <div>
+        <span class="notif-stat__label">Your inbox</span>
+        <strong class="notif-stat__value">{{ stats.mineUnread }}</strong>
+        <span class="notif-stat__hint">Unread addressed to you</span>
+      </div>
+    </article>
+    <article class="notif-stat">
+      <mat-icon>assignment</mat-icon>
+      <div>
+        <span class="notif-stat__label">Applications</span>
+        <strong class="notif-stat__value">{{ stats.applicationCount }}</strong>
+      </div>
+    </article>
+    <article class="notif-stat">
+      <mat-icon>workspace_premium</mat-icon>
+      <div>
+        <span class="notif-stat__label">Subscriptions</span>
+        <strong class="notif-stat__value">{{ stats.subscriptionCount }}</strong>
+      </div>
+    </article>
+    <article class="notif-stat">
+      <mat-icon>auto_awesome</mat-icon>
+      <div>
+        <span class="notif-stat__label">AI</span>
+        <strong class="notif-stat__value">{{ stats.aiCount }}</strong>
+      </div>
+    </article>
+    <article class="notif-stat">
+      <mat-icon>admin_panel_settings</mat-icon>
+      <div>
+        <span class="notif-stat__label">Admin</span>
+        <strong class="notif-stat__value">{{ stats.adminCount }}</strong>
+      </div>
+    </article>
+  </section>
+}
+
+<div class="notif-toolbar">
+  <div class="notif-filters" role="tablist" aria-label="Filter by type">
+    <button type="button" class="notif-filters__btn" [class.notif-filters__btn--active]="typeFilter === 'ALL'" (click)="setTypeFilter('ALL')">All</button>
+    <button type="button" class="notif-filters__btn" [class.notif-filters__btn--active]="typeFilter === 'APPLICATION'" (click)="setTypeFilter('APPLICATION')">Applications</button>
+    <button type="button" class="notif-filters__btn" [class.notif-filters__btn--active]="typeFilter === 'OFFER'" (click)="setTypeFilter('OFFER')">Offers</button>
+    <button type="button" class="notif-filters__btn" [class.notif-filters__btn--active]="typeFilter === 'SUBSCRIPTION'" (click)="setTypeFilter('SUBSCRIPTION')">Subscriptions</button>
+    <button type="button" class="notif-filters__btn" [class.notif-filters__btn--active]="typeFilter === 'AI'" (click)="setTypeFilter('AI')">AI</button>
+    <button type="button" class="notif-filters__btn" [class.notif-filters__btn--active]="typeFilter === 'ADMIN'" (click)="setTypeFilter('ADMIN')">Admin</button>
+  </div>
+
+  <div class="notif-toolbar__row">
+    <mat-form-field appearance="outline" class="notif-toolbar__search">
+      <mat-label>Search</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [(ngModel)]="search" placeholder="Title, message, recipient…">
+    </mat-form-field>
+
+    <div class="notif-read-filters" aria-label="Read filter">
+      <button type="button" class="notif-filters__btn" [class.notif-filters__btn--active]="readFilter === 'ALL'" (click)="setReadFilter('ALL')">All</button>
+      <button type="button" class="notif-filters__btn" [class.notif-filters__btn--active]="readFilter === 'UNREAD'" (click)="setReadFilter('UNREAD')">Unread</button>
+      <button type="button" class="notif-filters__btn" [class.notif-filters__btn--active]="readFilter === 'MINE_UNREAD'" (click)="setReadFilter('MINE_UNREAD')">My unread</button>
+    </div>
+  </div>
+</div>
+
+@if (loading()) {
+  <p class="table-empty">Loading notifications…</p>
+} @else if (!filteredNotifications().length) {
+  <mat-card class="notif-empty">
+    <mat-icon>notifications_off</mat-icon>
+    <h2>No notifications match</h2>
+    <p>Try another filter or clear your search.</p>
+  </mat-card>
+} @else {
+  <section class="notification-list">
+    @for (group of groupedNotifications(); track group.label) {
+      <div class="notification-group">
+        <h2 class="notification-group__label">{{ group.label }}</h2>
+        @for (item of group.items; track item.id) {
+          <article
+            class="notif-card"
+            [class]="typeClass(item.type)"
+            [class.notif-card--unread]="!item.read"
+            [class.notif-card--mine]="isMine(item)">
+            <div class="notif-card__icon-wrap" aria-hidden="true">
+              <mat-icon>{{ typeIcon(item.type) }}</mat-icon>
+            </div>
+
+            <div class="notif-card__body">
+              <div class="notif-card__header">
+                <div class="notif-card__title-row">
+                  <h3 class="notif-card__title">{{ item.title }}</h3>
+                  @if (!item.read) {
+                    <span class="notif-card__badge">Unread</span>
+                  }
+                  @if (isMine(item)) {
+                    <span class="notif-card__badge notif-card__badge--mine">Yours</span>
+                  }
+                </div>
+                <span class="notif-card__meta">
+                  <span class="notif-card__type">{{ typeLabel(item.type) }}</span>
+                  · {{ relativeTime(item.createdAt) }}
+                  · {{ item.createdAt | date:'short' }}
+                </span>
+              </div>
+
+              <p class="notif-card__message">{{ item.message }}</p>
+
+              <div class="notif-recipient">
+                <div class="notif-recipient__avatar">{{ initials(item.recipientName) }}</div>
+                <div class="notif-recipient__info">
+                  <span class="notif-recipient__label">Sent to</span>
+                  <span class="notif-recipient__name">{{ item.recipientName }}</span>
+                  <span class="notif-recipient__email">{{ item.recipientEmail }}</span>
+                </div>
+                @if (item.recipientRole) {
+                  <span class="notif-recipient__role" [class]="roleClass(item.recipientRole)">{{ item.recipientRole }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="notif-card__actions">
+              @if (isMine(item) && !item.read) {
+                <button mat-stroked-button type="button" (click)="markRead(item)">
+                  <mat-icon>done</mat-icon>
+                  Mark read
+                </button>
+              } @else if (item.read) {
+                <span class="notif-card__read-label">
+                  <mat-icon>check_circle</mat-icon>
+                  Read
+                </span>
+              } @else {
+                <span class="notif-card__read-label notif-card__read-label--muted">Recipient inbox</span>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+}
