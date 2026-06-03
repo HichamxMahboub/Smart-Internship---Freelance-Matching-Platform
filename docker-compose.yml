@@ -39,6 +39,7 @@ services:
       APP_CV_UPLOAD_DIR: /uploads/cv
     volumes:
       - smart_match_uploads:/uploads
+      - ./smart-match-backend/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
 
   backoffice:
     build:
