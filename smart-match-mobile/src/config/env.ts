@@ -13,8 +13,10 @@ const expoEnv = ((globalThis as typeof globalThis & { process?: { env?: ExpoEnv 
 
 export const API_BASE_URL = expoEnv.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8080/api';
 
-// STOMP WebSocket endpoint. For Android emulator use ws://10.0.2.2:8080/ws.
-export const WS_URL = expoEnv.EXPO_PUBLIC_WS_URL ?? 'ws://localhost:8080/ws';
+/** STOMP endpoint derived from API host (Android emulator: use http://10.0.2.2:8080/api). */
+export const WS_URL = expoEnv.EXPO_PUBLIC_WS_URL ?? (API_BASE_URL.replace(/\/api\/?$/, '')
+  .replace(/^http:/i, 'ws:')
+  .replace(/^https:/i, 'wss:') + '/ws');
 
 export const firebaseConfig = {
   apiKey: expoEnv.EXPO_PUBLIC_FIREBASE_API_KEY ?? 'replace-me',

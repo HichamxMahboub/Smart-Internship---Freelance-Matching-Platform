@@ -1,3 +1,5 @@
+import { Platform, ViewStyle } from 'react-native';
+
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -18,8 +20,7 @@ export const radius = {
   pill: 999
 };
 
-export const shadow = {
-  // Subtle, LinkedIn-style elevation.
+const nativeShadow = {
   xs: {
     shadowColor: '#0B1430',
     shadowOffset: { width: 0, height: 2 },
@@ -48,7 +49,17 @@ export const shadow = {
     shadowRadius: 20,
     elevation: 6
   }
+} satisfies Record<string, ViewStyle>;
+
+const webShadow: typeof nativeShadow = {
+  xs: { boxShadow: '0px 2px 6px rgba(11, 20, 48, 0.05)' },
+  soft: { boxShadow: '0px 6px 16px rgba(11, 20, 48, 0.07)' },
+  medium: { boxShadow: '0px 12px 24px rgba(11, 20, 48, 0.13)' },
+  brand: { boxShadow: '0px 10px 20px rgba(31, 59, 224, 0.28)' }
 };
+
+/** Subtle elevation; uses boxShadow on web to avoid react-native-web deprecation warnings. */
+export const shadow = Platform.OS === 'web' ? webShadow : nativeShadow;
 
 // Type scale for consistent hierarchy across screens.
 export const typography = {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
-import { radius } from '../theme/spacing';
+import { radius, shadow } from '../theme/spacing';
 import { Icon, IconName } from './Icon';
 
 export interface SegmentOption<T extends string> {
@@ -37,7 +37,7 @@ export function Segmented<T extends string>({
 const styles = StyleSheet.create({
   track: { flexDirection: 'row', backgroundColor: colors.backgroundAlt, borderRadius: radius.md, padding: 4, gap: 4 },
   segment: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 11, borderRadius: radius.sm },
-  segmentActive: { backgroundColor: colors.white, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 5, elevation: 2 },
+  segmentActive: { backgroundColor: colors.white, ...shadow.xs },
   label: { color: colors.muted, fontWeight: '700', fontSize: 14 },
   labelActive: { color: colors.text }
 });
