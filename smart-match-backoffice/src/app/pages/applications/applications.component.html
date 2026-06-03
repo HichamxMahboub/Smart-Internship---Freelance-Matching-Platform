@@ -2,61 +2,122 @@
   <div>
     <span class="eyebrow">Recruitment pipeline</span>
     <h1>Applications</h1>
-    <p>Review candidate submissions and update recruitment status.</p>
+    <p>Every candidate submission across the platform, with the recruiter handling each job.</p>
   </div>
 </section>
 
-@if (auth.currentUser?.role === 'ADMIN') {
-  <mat-card class="details-card admin-hint">
-    <mat-card-content>Use a known application id with the API detail endpoint, or review recruiter queues from a recruiter account.</mat-card-content>
+<div class="apps-toolbar">
+  <div class="apps-filters" role="tablist" aria-label="Status filter">
+    <button type="button" role="tab" class="apps-filter" [class.apps-filter--active]="statusFilter() === 'ALL'" (click)="setStatusFilter('ALL')">
+      <span>All</span>
+      <span class="apps-filter__count">{{ stats().total }}</span>
+    </button>
+    <button type="button" role="tab" class="apps-filter apps-filter--pending" [class.apps-filter--active]="statusFilter() === 'PENDING'" (click)="setStatusFilter('PENDING')">
+      <span>Pending</span>
+      <span class="apps-filter__count">{{ stats().pending }}</span>
+    </button>
+    <button type="button" role="tab" class="apps-filter apps-filter--interview" [class.apps-filter--active]="statusFilter() === 'INTERVIEW'" (click)="setStatusFilter('INTERVIEW')">
+      <span>Interview</span>
+      <span class="apps-filter__count">{{ stats().interview }}</span>
+    </button>
+    <button type="button" role="tab" class="apps-filter apps-filter--accepted" [class.apps-filter--active]="statusFilter() === 'ACCEPTED'" (click)="setStatusFilter('ACCEPTED')">
+      <span>Accepted</span>
+      <span class="apps-filter__count">{{ stats().accepted }}</span>
+    </button>
+    <button type="button" role="tab" class="apps-filter apps-filter--rejected" [class.apps-filter--active]="statusFilter() === 'REJECTED'" (click)="setStatusFilter('REJECTED')">
+      <span>Rejected</span>
+      <span class="apps-filter__count">{{ stats().rejected }}</span>
+    </button>
+  </div>
+
+  <mat-form-field appearance="outline" class="apps-toolbar__search">
+    <mat-label>Search</mat-label>
+    <input matInput [(ngModel)]="search" placeholder="Candidate, recruiter, job, company…">
+  </mat-form-field>
+</div>
+
+@if (loading()) {
+  <mat-card class="apps-state">
+    <mat-card-content>Loading applications…</mat-card-content>
   </mat-card>
-}
-
-<mat-card class="table-card">
-  <table mat-table [dataSource]="applications()">
-    <ng-container matColumnDef="offerId"><th mat-header-cell *matHeaderCellDef>Offer</th><td mat-cell *matCellDef="let app"><span class="cell-primary">{{ app.offerId }}</span></td></ng-container>
-    <ng-container matColumnDef="candidateId"><th mat-header-cell *matHeaderCellDef>Candidate</th><td mat-cell *matCellDef="let app">{{ app.candidateId }}</td></ng-container>
-    <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let app"><mat-chip class="status-chip" [class]="'chip-' + app.status.toLowerCase()">{{ app.status }}</mat-chip></td></ng-container>
-    <ng-container matColumnDef="matchingScore"><th mat-header-cell *matHeaderCellDef>Score</th><td mat-cell *matCellDef="let app">{{ app.matchingScore ?? '—' }}</td></ng-container>
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let app">
-        <div class="table-actions">
-          <button mat-button class="btn-secondary" (click)="view(app)">
-            <mat-icon>visibility</mat-icon>
-            Details
-          </button>
-          <button mat-button class="btn-info" (click)="setStatus(app, 'INTERVIEW')">
-            <mat-icon>event</mat-icon>
-            Interview
-          </button>
-          <button mat-button class="btn-success" (click)="setStatus(app, 'ACCEPTED')">
-            <mat-icon>check_circle</mat-icon>
-            Accept
-          </button>
-          <button mat-button class="btn-danger" (click)="setStatus(app, 'REJECTED')">
-            <mat-icon>cancel</mat-icon>
-            Reject
-          </button>
-          <button mat-button class="btn-primary" (click)="message(app)">
-            <mat-icon>message</mat-icon>
-            Message
-          </button>
-        </div>
-      </td>
-    </ng-container>
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
-</mat-card>
-
-@if (selected) {
-  <mat-card class="details-card">
-    <mat-card-title>Application details</mat-card-title>
+} @else if (filtered().length === 0) {
+  <mat-card class="apps-state">
     <mat-card-content>
-      <p>{{ selected.message }}</p>
-      <p><strong>Applied:</strong> {{ selected.appliedAt }}</p>
-      <p><strong>Application ID:</strong> {{ selected.id }}</p>
+      @if (applications().length === 0) {
+        No applications yet. Candidate submissions will appear here.
+      } @else {
+        No applications match the current filter.
+      }
     </mat-card-content>
   </mat-card>
+} @else {
+  <div class="apps-legend" aria-hidden="true">
+    <span>Candidate</span>
+    <span>Job</span>
+    <span>Recruiter</span>
+    <span>Score</span>
+    <span>Stage</span>
+  </div>
+
+  <div class="apps-list">
+    @for (app of filtered(); track app.id) {
+      <article class="apps-row" [class.apps-row--accepted]="app.status === 'ACCEPTED'" [class.apps-row--rejected]="app.status === 'REJECTED'">
+        <div class="apps-row__cell apps-row__candidate">
+          <div class="apps-row__avatar">{{ initials(app.candidateName) }}</div>
+          <div>
+            <div class="apps-row__primary">{{ app.candidateName ?? 'Unknown candidate' }}</div>
+            <div class="apps-row__secondary" *ngIf="app.candidateEmail">{{ app.candidateEmail }}</div>
+          </div>
+        </div>
+
+        <div class="apps-row__cell apps-row__job">
+          <mat-icon class="apps-row__cell-icon">work_outline</mat-icon>
+          <div>
+            <div class="apps-row__primary">{{ app.offerTitle ?? 'Unknown offer' }}</div>
+            <div class="apps-row__secondary" *ngIf="app.companyName">{{ app.companyName }}</div>
+          </div>
+        </div>
+
+        <div class="apps-row__cell apps-row__recruiter">
+          <mat-icon class="apps-row__cell-icon">badge</mat-icon>
+          <div>
+            <div class="apps-row__primary">{{ app.recruiterName ?? '—' }}</div>
+            <div class="apps-row__secondary">Owner</div>
+          </div>
+        </div>
+
+        <div class="apps-row__cell apps-row__score">
+          @if (app.matchingScore !== undefined && app.matchingScore !== null) {
+            <div class="apps-row__score-bubble">
+              {{ app.matchingScore | number:'1.0-0' }}<small>%</small>
+            </div>
+            <span class="apps-row__secondary">AI match</span>
+          } @else {
+            <span class="apps-row__secondary">—</span>
+          }
+        </div>
+
+        <div class="apps-row__cell apps-row__stage">
+          <span class="apps-row__stage" [ngClass]="statusTone(app.status)">
+            <span class="apps-row__stage-dot"></span>
+            {{ statusLabel(app.status) }}
+          </span>
+          <div class="apps-row__timeline">
+            <span class="apps-row__timeline-step apps-row__timeline-step--done">
+              Applied · {{ formatDate(app.appliedAt) }}
+            </span>
+            <span class="apps-row__timeline-step" [class.apps-row__timeline-step--done]="app.reviewedAt">
+              {{ app.status === 'INTERVIEW' ? 'Interview' : 'Reviewed' }} · {{ formatDate(app.reviewedAt) }}
+            </span>
+            <span class="apps-row__timeline-step"
+                  [class.apps-row__timeline-step--ok]="app.status === 'ACCEPTED'"
+                  [class.apps-row__timeline-step--bad]="app.status === 'REJECTED'"
+                  [class.apps-row__timeline-step--done]="app.decidedAt">
+              {{ app.status === 'ACCEPTED' ? 'Accepted' : app.status === 'REJECTED' ? 'Rejected' : 'Pending decision' }} · {{ formatDate(app.decidedAt) }}
+            </span>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
 }
