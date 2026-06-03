@@ -36,6 +36,8 @@ public class User {
     private boolean active;
     private boolean emailVerified;
 
+    private String fcmToken;
+
     @CreatedDate
     private Instant createdAt;
 

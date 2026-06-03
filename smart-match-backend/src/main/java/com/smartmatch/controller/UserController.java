@@ -1,5 +1,6 @@
 package com.smartmatch.controller;
 
+import com.smartmatch.dto.user.FcmTokenRequest;
 import com.smartmatch.dto.user.UserResponse;
 import com.smartmatch.dto.user.UserStatusUpdateRequest;
 import com.smartmatch.dto.user.UserUpdateRequest;
@@ -30,6 +31,11 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<UserResponse> updateMe(@Valid @RequestBody UserUpdateRequest request) {
         return ResponseEntity.ok(userService.updateCurrentUser(request));
+    }
+
+    @PutMapping("/me/fcm-token")
+    public ResponseEntity<UserResponse> updateFcmToken(@Valid @RequestBody FcmTokenRequest request) {
+        return ResponseEntity.ok(userService.updateFcmToken(request));
     }
 
     @GetMapping("/{id}")
