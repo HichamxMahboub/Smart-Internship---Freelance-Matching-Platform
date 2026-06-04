@@ -58,7 +58,7 @@ class FileStorageServiceTest {
     }
 
     private FileStorageService service() {
-        FileStorageService service = new FileStorageService();
+        FileStorageService service = new FileStorageService(null);
         ReflectionTestUtils.setField(service, "cvUploadDir", tempDir.toString());
         return service;
     }
