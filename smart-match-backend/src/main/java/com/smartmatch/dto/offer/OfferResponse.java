@@ -19,6 +19,10 @@ public record OfferResponse(
         Instant publishedAt,
         Instant archiveAt,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        String companyName,
+        String companyLogoUrl,
+        String companySector,
+        Long applicationCount
 ) {
 }

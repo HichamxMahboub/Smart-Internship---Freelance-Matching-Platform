@@ -1,5 +1,6 @@
 package com.smartmatch.controller;
 
+import com.smartmatch.dto.company.CompanyOverviewResponse;
 import com.smartmatch.dto.company.CompanyResponse;
 import com.smartmatch.dto.company.CompanyValidationRequest;
 import com.smartmatch.service.CompanyService;
@@ -32,6 +33,11 @@ public class AdminCompanyController {
     @GetMapping
     public ResponseEntity<List<CompanyResponse>> getAllCompanies() {
         return ResponseEntity.ok(companyService.getAllCompanies());
+    }
+
+    @GetMapping("/overview")
+    public ResponseEntity<List<CompanyOverviewResponse>> getOverview() {
+        return ResponseEntity.ok(companyService.getAllCompaniesOverview());
     }
 
     @GetMapping("/page")

@@ -11,6 +11,7 @@ import com.smartmatch.model.User;
 import com.smartmatch.model.enums.OfferStatus;
 import com.smartmatch.model.enums.Role;
 import com.smartmatch.model.enums.ValidationStatus;
+import com.smartmatch.repository.ApplicationRepository;
 import com.smartmatch.repository.CompanyRepository;
 import com.smartmatch.repository.OfferRepository;
 import com.smartmatch.security.SecurityUserPrincipal;
@@ -38,6 +39,7 @@ import java.util.regex.Pattern;
 public class OfferService {
     private final OfferRepository offerRepository;
     private final CompanyRepository companyRepository;
+    private final ApplicationRepository applicationRepository;
     private final MongoTemplate mongoTemplate;
 
     public Page<OfferResponse> getOffers(OfferFilterRequest filter) {
@@ -146,6 +148,10 @@ public class OfferService {
     }
 
     public OfferResponse toResponse(Offer offer) {
+        Company company = offer.getCompanyId() == null
+                ? null
+                : companyRepository.findById(offer.getCompanyId()).orElse(null);
+        long appCount = offer.getId() == null ? 0L : applicationRepository.countByOfferId(offer.getId());
         return new OfferResponse(
                 offer.getId(),
                 offer.getCompanyId(),
@@ -159,7 +165,11 @@ public class OfferService {
                 offer.getPublishedAt(),
                 offer.getArchiveAt(),
                 offer.getCreatedAt(),
-                offer.getUpdatedAt()
+                offer.getUpdatedAt(),
+                company != null ? company.getName() : null,
+                company != null ? company.getLogoUrl() : null,
+                company != null ? company.getSector() : null,
+                appCount
         );
     }
 

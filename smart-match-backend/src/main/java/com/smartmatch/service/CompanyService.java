@@ -1,5 +1,6 @@
 package com.smartmatch.service;
 
+import com.smartmatch.dto.company.CompanyOverviewResponse;
 import com.smartmatch.dto.company.CompanyRequest;
 import com.smartmatch.dto.company.CompanyResponse;
 import com.smartmatch.dto.company.CompanyValidationRequest;
@@ -15,7 +16,9 @@ import com.smartmatch.model.enums.NotificationType;
 import com.smartmatch.model.enums.ValidationStatus;
 import com.smartmatch.repository.AdminLogRepository;
 import com.smartmatch.repository.CompanyRepository;
+import com.smartmatch.repository.OfferRepository;
 import com.smartmatch.repository.RecruiterProfileRepository;
+import com.smartmatch.repository.UserRepository;
 import com.smartmatch.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +34,8 @@ public class CompanyService {
     private final RecruiterProfileRepository recruiterProfileRepository;
     private final AdminLogRepository adminLogRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final OfferRepository offerRepository;
 
     public CompanyResponse createCompany(CompanyRequest request) {
         User recruiter = SecurityUtils.currentUser();
@@ -95,6 +100,53 @@ public class CompanyService {
         return companyRepository.findAll()
                 .stream()
                 .map(this::toResponse)
+                .toList();
+    }
+
+    public List<CompanyOverviewResponse> getAllCompaniesOverview() {
+        List<Company> companies = companyRepository.findAll();
+        if (companies.isEmpty()) {
+            return List.of();
+        }
+        java.util.Set<String> recruiterIds = companies.stream()
+                .map(Company::getRecruiterId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        java.util.Map<String, User> recruitersById = recruiterIds.isEmpty()
+                ? java.util.Map.of()
+                : userRepository.findAllById(recruiterIds).stream()
+                        .collect(java.util.stream.Collectors.toMap(User::getId, java.util.function.Function.identity(), (a, b) -> a));
+        java.util.Map<String, RecruiterProfile> recruiterProfiles = new java.util.HashMap<>();
+        for (String rid : recruiterIds) {
+            recruiterProfileRepository.findByUserId(rid).ifPresent(rp -> recruiterProfiles.put(rid, rp));
+        }
+        List<String> companyIds = companies.stream().map(Company::getId).toList();
+        java.util.Map<String, Long> totalOffersByCompany = new java.util.HashMap<>();
+        java.util.Map<String, Long> publishedOffersByCompany = new java.util.HashMap<>();
+        if (!companyIds.isEmpty()) {
+            for (com.smartmatch.model.Offer offer : offerRepository.findByCompanyIdIn(companyIds)) {
+                String cid = offer.getCompanyId();
+                totalOffersByCompany.merge(cid, 1L, Long::sum);
+                if (offer.getStatus() == com.smartmatch.model.enums.OfferStatus.PUBLISHED) {
+                    publishedOffersByCompany.merge(cid, 1L, Long::sum);
+                }
+            }
+        }
+        return companies.stream()
+                .map(c -> {
+                    User u = recruitersById.get(c.getRecruiterId());
+                    RecruiterProfile rp = recruiterProfiles.get(c.getRecruiterId());
+                    return new CompanyOverviewResponse(
+                            c.getId(), c.getRecruiterId(), c.getName(), c.getSector(), c.getSize(),
+                            c.getLocation(), c.getDescription(), c.getLogoUrl(), c.getWebsite(),
+                            c.getValidationStatus(), c.getCreatedAt(), c.getUpdatedAt(),
+                            u != null ? u.getFullName() : null,
+                            u != null ? u.getEmail() : null,
+                            rp != null ? rp.getPhotoUrl() : null,
+                            totalOffersByCompany.getOrDefault(c.getId(), 0L),
+                            publishedOffersByCompany.getOrDefault(c.getId(), 0L)
+                    );
+                })
                 .toList();
     }
 
