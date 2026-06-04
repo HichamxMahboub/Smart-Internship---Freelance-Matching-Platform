@@ -2,114 +2,159 @@
   <div>
     <span class="eyebrow">Opportunities</span>
     <h1>Offers</h1>
-    <p>Select an offer to see its status, then publish, archive, or edit from the detail panel.</p>
+    <p>Browse, publish, archive and moderate marketplace offers in one place.</p>
   </div>
 </section>
 
-<div class="page-toolbar-panel">
-  <mat-form-field appearance="outline">
-    <mat-label>Status</mat-label>
-    <mat-select [(ngModel)]="status" (selectionChange)="load()">
-      <mat-option value="">All statuses</mat-option>
-      <mat-option value="DRAFT">Draft</mat-option>
-      <mat-option value="PUBLISHED">Published</mat-option>
-      <mat-option value="ARCHIVED">Archived</mat-option>
-      <mat-option value="BLOCKED">Blocked</mat-option>
-    </mat-select>
+<section class="offer-stats">
+  <button type="button" class="offer-stat" [class.offer-stat--active]="status === ''" (click)="status = ''; load()">
+    <span class="offer-stat__value">{{ totals().all }}</span>
+    <span class="offer-stat__label">All offers</span>
+  </button>
+  <button type="button" class="offer-stat offer-stat--draft" [class.offer-stat--active]="status === 'DRAFT'" (click)="status = 'DRAFT'; load()">
+    <span class="offer-stat__value">{{ totals().draft }}</span>
+    <span class="offer-stat__label">Drafts</span>
+  </button>
+  <button type="button" class="offer-stat offer-stat--published" [class.offer-stat--active]="status === 'PUBLISHED'" (click)="status = 'PUBLISHED'; load()">
+    <span class="offer-stat__value">{{ totals().published }}</span>
+    <span class="offer-stat__label">Published</span>
+  </button>
+  <button type="button" class="offer-stat offer-stat--archived" [class.offer-stat--active]="status === 'ARCHIVED'" (click)="status = 'ARCHIVED'; load()">
+    <span class="offer-stat__value">{{ totals().archived }}</span>
+    <span class="offer-stat__label">Archived</span>
+  </button>
+  <button type="button" class="offer-stat offer-stat--blocked" [class.offer-stat--active]="status === 'BLOCKED'" (click)="status = 'BLOCKED'; load()">
+    <span class="offer-stat__value">{{ totals().blocked }}</span>
+    <span class="offer-stat__label">Blocked</span>
+  </button>
+</section>
+
+<section class="offer-toolbar">
+  <mat-form-field appearance="outline" class="offer-toolbar__search">
+    <mat-icon matPrefix>search</mat-icon>
+    <mat-label>Search by title, company, location…</mat-label>
+    <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="e.g. Backend Internship" />
   </mat-form-field>
-  <mat-form-field appearance="outline">
+  <mat-form-field appearance="outline" class="offer-toolbar__type">
     <mat-label>Type</mat-label>
     <mat-select [(ngModel)]="type" (selectionChange)="load()">
-      <mat-option value="">All</mat-option>
+      <mat-option value="">All types</mat-option>
       <mat-option value="INTERNSHIP">Internship</mat-option>
       <mat-option value="FREELANCE">Freelance</mat-option>
     </mat-select>
   </mat-form-field>
-  <mat-form-field appearance="outline">
+  <mat-form-field appearance="outline" class="offer-toolbar__loc">
+    <mat-icon matPrefix>place</mat-icon>
     <mat-label>Location</mat-label>
-    <input matInput [(ngModel)]="location" (keyup.enter)="load()">
+    <input matInput [(ngModel)]="location" (keyup.enter)="load()" />
   </mat-form-field>
-  <button mat-flat-button color="primary" (click)="load()">
+  <button mat-flat-button color="primary" class="offer-toolbar__apply" (click)="load()">
     <mat-icon>filter_list</mat-icon>
-    Filter
+    Apply
   </button>
-</div>
+</section>
 
-<section class="split-view split-view--offers">
-  <mat-card class="table-card">
-    <table mat-table [dataSource]="offers()" class="offer-list-table">
-      <ng-container matColumnDef="title">
-        <th mat-header-cell *matHeaderCellDef>Offer</th>
-        <td mat-cell *matCellDef="let offer">
-          <div class="offer-list-item">
-            <div class="offer-list-item__text">
-              <div class="offer-list-item__title-row">
-                <span class="cell-primary">{{ offer.title }}</span>
-                <span class="offer-list-status" [class]="statusListClass(offer.status)">{{ offer.status }}</span>
-              </div>
-              <span class="offer-list-item__hint">
-                {{ isDetailSelected(offer) ? 'Details open' : 'Click to view details' }}
-              </span>
-            </div>
-            <mat-icon class="offer-list-item__chevron" [class.offer-list-item__chevron--open]="isDetailSelected(offer)">
-              {{ isDetailSelected(offer) ? 'expand_less' : 'chevron_right' }}
-            </mat-icon>
-          </div>
-        </td>
-      </ng-container>
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr
-        mat-row
-        *matRowDef="let row; columns: displayedColumns"
-        class="offer-row"
-        [class.offer-row--selected]="isDetailSelected(row)"
-        (click)="selectOffer(row)">
-      </tr>
-    </table>
-    @if (!offers().length) {
-      <p class="table-empty">No offers match this filter.</p>
-    }
-  </mat-card>
+<section class="offer-grid" *ngIf="filtered().length > 0">
+  @for (offer of filtered(); track offer.id) {
+    <article
+      class="offer-card"
+      [class.offer-card--selected]="isDetailSelected(offer)"
+      (click)="selectOffer(offer)"
+      tabindex="0"
+      role="button"
+      [attr.aria-pressed]="isDetailSelected(offer)">
+      <header class="offer-card__header">
+        <div class="offer-card__icon" aria-hidden="true">
+          <mat-icon>{{ offer.type === 'FREELANCE' ? 'laptop_mac' : 'school' }}</mat-icon>
+        </div>
+        <div class="offer-card__title-wrap">
+          <h3 class="offer-card__title">{{ offer.title }}</h3>
+          <p class="offer-card__sub">{{ offer.type }}<span *ngIf="offer.location"> · {{ offer.location }}</span></p>
+        </div>
+        <span class="status-chip offer-card__status" [class]="'chip-' + offer.status.toLowerCase()">{{ offer.status }}</span>
+      </header>
 
-  <aside class="offer-detail-slot">
-    @if (detailSelected(); as offer) {
-      <app-offer-detail-panel
-        [offer]="offer"
-        [isAdmin]="auth.currentUser?.role === 'ADMIN'"
-        [isRecruiter]="auth.currentUser?.role === 'RECRUITER'"
-        [canManage]="canManageOffers()"
-        [editMode]="isEditing(offer)"
-        (closed)="clearDetail()"
-        (edit)="edit($event)"
-        (publish)="publish($event)"
-        (archive)="archive($event)"
-        (remove)="remove($event)"
-        (block)="moderate($event, 'BLOCKED')"
-        (restorePublished)="moderate($event, 'PUBLISHED')">
-        <form offerEditForm class="offer-inline-form" [formGroup]="form" (ngSubmit)="save()">
-          <h3 class="offer-inline-form__title">Edit offer</h3>
-          <mat-form-field appearance="outline"><mat-label>Title</mat-label><input matInput formControlName="title"></mat-form-field>
-          <mat-form-field appearance="outline"><mat-label>Description</mat-label><textarea matInput rows="4" formControlName="description"></textarea></mat-form-field>
-          <mat-form-field appearance="outline"><mat-label>Type</mat-label><mat-select formControlName="type"><mat-option value="INTERNSHIP">Internship</mat-option><mat-option value="FREELANCE">Freelance</mat-option></mat-select></mat-form-field>
-          <mat-form-field appearance="outline"><mat-label>Location</mat-label><input matInput formControlName="location"></mat-form-field>
-          <mat-form-field appearance="outline"><mat-label>Duration</mat-label><input matInput formControlName="duration"></mat-form-field>
-          <mat-form-field appearance="outline"><mat-label>Skills, separated by comma</mat-label><input matInput formControlName="requiredSkills"></mat-form-field>
-          <div class="offer-inline-form__actions">
-            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
-              <mat-icon>save</mat-icon>
-              Save changes
-            </button>
-            <button mat-button type="button" (click)="cancelEdit()">
-              <mat-icon>close</mat-icon>
-              Cancel
-            </button>
+      <div class="offer-card__company">
+        @if (offer.companyLogoUrl) {
+          <img class="offer-card__company-logo" [src]="offer.companyLogoUrl" [alt]="(offer.companyName || 'Company') + ' logo'" />
+        } @else {
+          <div class="offer-card__company-logo offer-card__company-logo--fallback" aria-hidden="true">
+            <mat-icon>apartment</mat-icon>
           </div>
-        </form>
-      </app-offer-detail-panel>
-    } @else {
-      <app-offer-detail-placeholder />
-    }
-  </aside>
+        }
+        <div class="offer-card__company-text">
+          <strong>{{ offer.companyName || 'Unknown company' }}</strong>
+          <span *ngIf="offer.companySector">{{ offer.companySector }}</span>
+        </div>
+      </div>
+
+      <p class="offer-card__desc">{{ offer.description }}</p>
+
+      @if (offer.requiredSkills?.length) {
+        <div class="offer-card__skills">
+          @for (skill of offer.requiredSkills.slice(0, 5); track skill) {
+            <span class="offer-card__skill">{{ skill }}</span>
+          }
+          @if (offer.requiredSkills.length > 5) {
+            <span class="offer-card__skill offer-card__skill--more">+{{ offer.requiredSkills.length - 5 }}</span>
+          }
+        </div>
+      }
+
+      <footer class="offer-card__footer">
+        <div class="offer-card__meta">
+          <span><mat-icon>group</mat-icon> {{ offer.applicationCount ?? 0 }} applicant{{ offer.applicationCount === 1 ? '' : 's' }}</span>
+          <span *ngIf="offer.duration"><mat-icon>schedule</mat-icon> {{ offer.duration }}</span>
+          <span *ngIf="offer.publishedAt"><mat-icon>event</mat-icon> {{ formatDate(offer.publishedAt) }}</span>
+        </div>
+        <mat-icon class="offer-card__chev" [class.offer-card__chev--open]="isDetailSelected(offer)">expand_more</mat-icon>
+      </footer>
+    </article>
+  }
+</section>
+
+@if (detailSelected(); as offer) {
+  <section class="offer-detail-wrap">
+    <app-offer-detail-panel
+      [offer]="offer"
+      [isAdmin]="auth.currentUser?.role === 'ADMIN'"
+      [isRecruiter]="auth.currentUser?.role === 'RECRUITER'"
+      [canManage]="canManageOffers()"
+      [editMode]="isEditing(offer)"
+      (closed)="clearDetail()"
+      (edit)="edit($event)"
+      (publish)="publish($event)"
+      (archive)="archive($event)"
+      (remove)="remove($event)"
+      (block)="moderate($event, 'BLOCKED')"
+      (restorePublished)="moderate($event, 'PUBLISHED')">
+      <form offerEditForm class="offer-inline-form" [formGroup]="form" (ngSubmit)="save()">
+        <h3 class="offer-inline-form__title">Edit offer</h3>
+        <mat-form-field appearance="outline"><mat-label>Title</mat-label><input matInput formControlName="title"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Description</mat-label><textarea matInput rows="4" formControlName="description"></textarea></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Type</mat-label><mat-select formControlName="type"><mat-option value="INTERNSHIP">Internship</mat-option><mat-option value="FREELANCE">Freelance</mat-option></mat-select></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Location</mat-label><input matInput formControlName="location"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Duration</mat-label><input matInput formControlName="duration"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Skills, separated by comma</mat-label><input matInput formControlName="requiredSkills"></mat-form-field>
+        <div class="offer-inline-form__actions">
+          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+            <mat-icon>save</mat-icon>
+            Save changes
+          </button>
+          <button mat-button type="button" (click)="cancelEdit()">
+            <mat-icon>close</mat-icon>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </app-offer-detail-panel>
+  </section>
+}
+
+<section class="offer-empty" *ngIf="!filtered().length">
+  <mat-icon>work_off</mat-icon>
+  <h3>No offers match</h3>
+  <p>Adjust filters or clear the search to see more results.</p>
 </section>
 
 @if (auth.currentUser?.role === 'RECRUITER' && !editingOfferId()) {

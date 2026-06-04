@@ -1,22 +1,30 @@
 <article class="offer-detail" aria-label="Offer details">
-  <header class="offer-detail__hero">
-    <button type="button" class="offer-detail__close" mat-icon-button (click)="closed.emit()" aria-label="Close details">
-      <mat-icon>close</mat-icon>
-    </button>
-
+  <header class="offer-detail__header">
     <div class="offer-detail__brand">
-      <div class="offer-detail__icon" aria-hidden="true">
-        <mat-icon>{{ offer().type === 'FREELANCE' ? 'laptop_mac' : 'school' }}</mat-icon>
-      </div>
+      @if (offer().companyLogoUrl) {
+        <img class="offer-detail__logo" [src]="offer().companyLogoUrl" [alt]="(offer().companyName || 'Company') + ' logo'" />
+      } @else {
+        <div class="offer-detail__logo offer-detail__logo--fallback" aria-hidden="true">
+          <mat-icon>{{ offer().type === 'FREELANCE' ? 'laptop_mac' : 'school' }}</mat-icon>
+        </div>
+      }
       <div class="offer-detail__titles">
         <span class="offer-detail__eyebrow">Opportunity</span>
         <h2 class="offer-detail__name">{{ offer().title }}</h2>
-        <p class="offer-detail__meta">{{ offer().type }} · {{ offer().location || 'Location TBD' }}</p>
+        <p class="offer-detail__meta">
+          {{ offer().companyName || 'Unknown company' }}
+          <span *ngIf="offer().companySector"> · {{ offer().companySector }}</span>
+          <span *ngIf="offer().location"> · {{ offer().location }}</span>
+        </p>
       </div>
     </div>
 
     <div class="offer-detail__chips">
-      <span class="offer-detail__chip offer-detail__chip--type">{{ offer().type }}</span>
+      <span class="status-chip" [class]="'chip-' + offer().status.toLowerCase()">{{ offer().status }}</span>
+      <span class="status-chip chip-default">{{ offer().type }}</span>
+      <button type="button" mat-icon-button class="offer-detail__close" (click)="closed.emit()" aria-label="Close details">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
   </header>
 
@@ -69,7 +77,11 @@
           </div>
           <div class="offer-detail__fact">
             <dt><mat-icon>business</mat-icon> Company</dt>
-            <dd [title]="offer().companyId">{{ shortId(offer().companyId) }}</dd>
+            <dd>{{ offer().companyName || '—' }}<span *ngIf="offer().companySector"> · {{ offer().companySector }}</span></dd>
+          </div>
+          <div class="offer-detail__fact">
+            <dt><mat-icon>group</mat-icon> Applicants</dt>
+            <dd>{{ offer().applicationCount ?? 0 }}</dd>
           </div>
           <div class="offer-detail__fact">
             <dt><mat-icon>event</mat-icon> Published</dt>

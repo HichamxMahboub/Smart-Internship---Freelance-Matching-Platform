@@ -15,6 +15,10 @@ export interface Offer {
   archiveAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  companyName?: string;
+  companyLogoUrl?: string;
+  companySector?: string;
+  applicationCount?: number;
 }
 
 export interface OfferPayload {

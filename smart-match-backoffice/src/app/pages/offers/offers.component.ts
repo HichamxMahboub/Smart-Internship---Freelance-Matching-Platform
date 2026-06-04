@@ -9,7 +9,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { OfferService } from '../../core/services/offer.service';
 import { MaterialModule } from '../../shared/material/material.module';
 import { OfferDetailPanelComponent } from './offer-detail-panel/offer-detail-panel.component';
-import { OfferDetailPlaceholderComponent } from './offer-detail-placeholder/offer-detail-placeholder.component';
 
 @Component({
   selector: 'app-offers',
@@ -19,8 +18,7 @@ import { OfferDetailPlaceholderComponent } from './offer-detail-placeholder/offe
     FormsModule,
     ReactiveFormsModule,
     MaterialModule,
-    OfferDetailPanelComponent,
-    OfferDetailPlaceholderComponent
+    OfferDetailPanelComponent
   ],
   templateUrl: './offers.component.html',
   styleUrl: './offers.component.scss'
@@ -34,16 +32,46 @@ export class OffersComponent implements OnInit {
   readonly offers = signal<Offer[]>([]);
   readonly detailSelected = signal<Offer | undefined>(undefined);
   readonly editingOfferId = signal<string | undefined>(undefined);
+  readonly search = signal('');
 
   readonly canManageOffers = computed(() => {
     const role = this.auth.currentUser?.role;
     return role === 'ADMIN' || role === 'RECRUITER';
   });
 
+  readonly totals = computed(() => {
+    const list = this.offers();
+    return {
+      all: list.length,
+      draft: list.filter((o) => o.status === 'DRAFT').length,
+      published: list.filter((o) => o.status === 'PUBLISHED').length,
+      archived: list.filter((o) => o.status === 'ARCHIVED').length,
+      blocked: list.filter((o) => o.status === 'BLOCKED').length
+    };
+  });
+
+  readonly filtered = computed(() => {
+    const term = this.search().trim().toLowerCase();
+    if (!term) return this.offers();
+    return this.offers().filter((o) =>
+      o.title.toLowerCase().includes(term) ||
+      (o.companyName ?? '').toLowerCase().includes(term) ||
+      (o.location ?? '').toLowerCase().includes(term) ||
+      (o.companySector ?? '').toLowerCase().includes(term)
+    );
+  });
+
+  formatDate(value?: string): string {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? '—'
+      : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
   status: OfferStatus | '' = '';
   type: OfferType | '' = '';
   location = '';
-  displayedColumns = ['title'];
 
   readonly form = this.fb.nonNullable.group({
     title: ['', Validators.required],
