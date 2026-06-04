@@ -12,8 +12,6 @@ import com.smartmatch.model.User;
 import com.smartmatch.repository.UserRepository;
 import com.smartmatch.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -40,10 +38,6 @@ public class UserService {
         User user = SecurityUtils.currentUser();
         user.setFcmToken(request.fcmToken());
         return toResponse(userRepository.save(user));
-    }
-
-    public Page<UserResponse> getUsersPage(int page, int size) {
-        return userRepository.findAll(PageRequest.of(page, size)).map(this::toResponse);
     }
 
     public List<UserResponse> getAllUsers() {
