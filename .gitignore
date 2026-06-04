@@ -15,13 +15,15 @@ dist/
 .web-build/
 
 # Environment and secrets
-.env
-.env.*
-!.env.example
+# .env files committed per project policy; service account JSON stays blocked.
 firebase-service-account.json
 *firebase*service*account*.json
 *firebase-adminsdk*.json
 serviceAccountKey.json
+
+# Screenshot dumps + browser/test snapshots (not part of source)
+[0-9][0-9]-*.png
+.playwright-mcp/
 
 # Runtime data
 uploads/
