@@ -86,12 +86,21 @@
                   </div>
                 }
               } @else {
-                @if (user.companyName) {
-                  <div class="user-card__stat">
-                    <mat-icon>apartment</mat-icon>
-                    <span>{{ user.companyName }}</span>
+                <div class="user-card__company">
+                  @if (user.companyLogoUrl) {
+                    <img class="user-card__company-logo" [src]="user.companyLogoUrl" [alt]="(user.companyName || 'Company') + ' logo'" />
+                  } @else if (user.companyName) {
+                    <div class="user-card__company-logo user-card__company-logo--fallback" aria-hidden="true">
+                      <mat-icon>apartment</mat-icon>
+                    </div>
+                  }
+                  <div class="user-card__company-text">
+                    <span class="user-card__company-name">{{ user.companyName || 'No company linked' }}</span>
+                    @if (user.headline) {
+                      <span class="user-card__company-role">{{ user.headline }}</span>
+                    }
                   </div>
-                }
+                </div>
               }
             </div>
 

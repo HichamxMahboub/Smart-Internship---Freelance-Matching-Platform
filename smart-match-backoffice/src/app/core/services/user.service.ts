@@ -13,4 +13,5 @@ export class UserService {
   getUserDetail(id: string) { return this.api.get<UserDetail>(`/admin/users/${id}`); }
   setStatus(id: string, active: boolean) { return this.api.patch<User>(`/admin/users/${id}/status`, { active }); }
   syncVerification(id: string) { return this.api.post<User>(`/admin/users/${id}/sync-verification`, {}); }
+  runCvAnalysis(id: string) { return this.api.post<UserDetail>(`/admin/users/${id}/run-cv-analysis`, {}); }
 }

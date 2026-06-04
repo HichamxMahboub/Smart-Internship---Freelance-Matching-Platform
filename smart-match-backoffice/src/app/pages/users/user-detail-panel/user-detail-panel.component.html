@@ -5,16 +5,18 @@
   aria-label="User details">
 
   <header class="user-detail__tabs" role="tablist">
-    <button
-      type="button"
-      role="tab"
-      class="user-detail__tab"
-      [class.user-detail__tab--active]="activeTab() === 'ai'"
-      [attr.aria-selected]="activeTab() === 'ai'"
-      (click)="setTab('ai')">
-      <mat-icon>auto_awesome</mat-icon>
-      <span>AI resume summary</span>
-    </button>
+    @if (rosterRole() === 'CANDIDATE') {
+      <button
+        type="button"
+        role="tab"
+        class="user-detail__tab"
+        [class.user-detail__tab--active]="activeTab() === 'ai'"
+        [attr.aria-selected]="activeTab() === 'ai'"
+        (click)="setTab('ai')">
+        <mat-icon>auto_awesome</mat-icon>
+        <span>AI resume summary</span>
+      </button>
+    }
     <button
       type="button"
       role="tab"
@@ -23,7 +25,7 @@
       [attr.aria-selected]="activeTab() === 'profile'"
       (click)="setTab('profile')">
       <mat-icon>person</mat-icon>
-      <span>Profile information</span>
+      <span>{{ rosterRole() === 'RECRUITER' ? 'Recruiter profile' : 'Profile information' }}</span>
     </button>
     <span class="user-detail__tab-spacer"></span>
     <button
@@ -125,55 +127,143 @@
         </ul>
       </section>
 
-      <section class="user-detail__section" *ngIf="resumeAi().length === 0 && !loading()">
-        <p class="user-detail__placeholder">No AI runs yet. Once the candidate uploads a CV and triggers analysis, the summary appears here.</p>
+      <section class="user-detail__section user-detail__empty" *ngIf="resumeAi().length === 0 && !loading() && rosterRole() === 'CANDIDATE'">
+        @if (!datasetSummary().hasCv) {
+          <div class="user-detail__empty-card user-detail__empty-card--muted">
+            <mat-icon>cloud_upload</mat-icon>
+            <div>
+              <strong>Waiting for CV upload</strong>
+              <p>The AI summary runs automatically the moment the candidate uploads their resume.</p>
+            </div>
+          </div>
+        } @else {
+          <div class="user-detail__empty-card">
+            <mat-icon>auto_awesome</mat-icon>
+            <div>
+              <strong>AI summary not generated yet</strong>
+              <p>A CV is on file but no analysis ran. Trigger it now to fetch role, seniority and skill scores.</p>
+            </div>
+            <button mat-flat-button color="primary" type="button" [disabled]="analyzing()" (click)="runCvAnalysis()">
+              <mat-icon>{{ analyzing() ? 'hourglass_top' : 'play_arrow' }}</mat-icon>
+              {{ analyzing() ? 'Analyzing…' : 'Run analysis now' }}
+            </button>
+          </div>
+        }
       </section>
     }
 
     <!-- PROFILE INFORMATION TAB -->
     @if (activeTab() === 'profile') {
-      <dl class="user-detail__facts">
-        <div class="user-detail__fact">
-          <dt><mat-icon>mail</mat-icon> Email</dt>
-          <dd>{{ user().email }}</dd>
-        </div>
-        <div class="user-detail__fact">
-          <dt><mat-icon>verified_user</mat-icon> Verification</dt>
-          <dd>{{ user().emailVerified ? 'Verified' : 'Not verified' }}</dd>
-        </div>
-        <div class="user-detail__fact">
-          <dt><mat-icon>workspace_premium</mat-icon> Subscription</dt>
-          <dd>{{ user().plan }} plan</dd>
-        </div>
-        <div class="user-detail__fact">
-          <dt><mat-icon>event</mat-icon> Joined</dt>
-          <dd>{{ formatDate(user().createdAt) }}</dd>
-        </div>
-        <div class="user-detail__fact">
-          <dt><mat-icon>update</mat-icon> Last updated</dt>
-          <dd>{{ formatDate(user().updatedAt) }}</dd>
-        </div>
-        <div class="user-detail__fact" *ngIf="detail()?.candidateProfile?.location as loc">
-          <dt><mat-icon>place</mat-icon> Location</dt>
-          <dd>{{ loc }}</dd>
-        </div>
-        <div class="user-detail__fact" *ngIf="detail()?.candidateProfile?.educationLevel as edu">
-          <dt><mat-icon>school</mat-icon> Education</dt>
-          <dd>{{ edu }}<span *ngIf="detail()?.candidateProfile?.fieldOfStudy as f"> · {{ f }}</span></dd>
-        </div>
-        <div class="user-detail__fact" *ngIf="detail()?.recruiterProfile?.position as pos">
-          <dt><mat-icon>badge</mat-icon> Position</dt>
-          <dd>{{ pos }}</dd>
-        </div>
-        <div class="user-detail__fact" *ngIf="detail()?.recruiterProfile?.phone as phone">
-          <dt><mat-icon>call</mat-icon> Phone</dt>
-          <dd>{{ phone }}</dd>
-        </div>
-        <div class="user-detail__fact" *ngIf="detail()?.company?.name as cn">
-          <dt><mat-icon>apartment</mat-icon> Company</dt>
-          <dd>{{ cn }}<span *ngIf="detail()?.company?.sector as s"> · {{ s }}</span></dd>
-        </div>
-      </dl>
+      @if (rosterRole() === 'RECRUITER') {
+        <section class="user-detail__recruiter-hero">
+          @if (detail()?.recruiterProfile?.photoUrl) {
+            <img class="user-detail__rec-avatar" [src]="detail()?.recruiterProfile?.photoUrl" [alt]="user().fullName + ' photo'" />
+          } @else {
+            <div class="user-detail__rec-avatar user-detail__rec-avatar--fallback" aria-hidden="true">{{ initials(user().fullName) }}</div>
+          }
+          <div class="user-detail__rec-text">
+            <strong>{{ user().fullName }}</strong>
+            <span class="user-detail__rec-headline" *ngIf="detail()?.recruiterProfile?.headline as h">{{ h }}</span>
+            <span class="user-detail__rec-position" *ngIf="detail()?.recruiterProfile?.position as p">{{ p }}<span *ngIf="detail()?.company?.name as cn"> @ {{ cn }}</span></span>
+            <span class="user-detail__rec-email">{{ user().email }}</span>
+          </div>
+          <div class="user-detail__rec-status">
+            <mat-chip class="status-chip" [class]="user().emailVerified ? 'chip-active' : 'chip-disabled'">
+              {{ user().emailVerified ? 'Verified' : 'Unverified' }}
+            </mat-chip>
+            <mat-chip class="status-chip" [class]="user().active ? 'chip-active' : 'chip-disabled'">
+              {{ user().active ? 'Active' : 'Disabled' }}
+            </mat-chip>
+            <mat-chip class="status-chip" [class]="user().plan === 'PREMIUM' ? 'chip-pending' : 'chip-default'">
+              {{ user().plan }} plan
+            </mat-chip>
+          </div>
+        </section>
+
+        <section class="user-detail__section" *ngIf="detail()?.recruiterProfile?.bio as bio">
+          <h3>About</h3>
+          <p class="user-detail__paragraph">{{ bio }}</p>
+        </section>
+
+        <section class="user-detail__section">
+          <h3>Contact</h3>
+          <div class="user-detail__grid">
+            <div class="user-detail__cell">
+              <span class="user-detail__cell-label">Email</span>
+              <span>{{ user().email }}</span>
+            </div>
+            <div class="user-detail__cell" *ngIf="detail()?.recruiterProfile?.phone as phone">
+              <span class="user-detail__cell-label">Phone</span>
+              <span>{{ phone }}</span>
+            </div>
+            <div class="user-detail__cell" *ngIf="detail()?.recruiterProfile?.linkedin as li">
+              <span class="user-detail__cell-label">LinkedIn</span>
+              <a [href]="li" target="_blank" rel="noopener">{{ li }}</a>
+            </div>
+            <div class="user-detail__cell">
+              <span class="user-detail__cell-label">Joined</span>
+              <span>{{ formatDate(user().createdAt) }}</span>
+            </div>
+            <div class="user-detail__cell">
+              <span class="user-detail__cell-label">Last updated</span>
+              <span>{{ formatDate(user().updatedAt) }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="user-detail__section" *ngIf="detail()?.company as company">
+          <h3>Company</h3>
+          <div class="user-detail__company-card">
+            @if (company.logoUrl) {
+              <img class="user-detail__company-logo" [src]="company.logoUrl" [alt]="company.name + ' logo'" />
+            } @else {
+              <div class="user-detail__company-logo user-detail__company-logo--fallback" aria-hidden="true">
+                {{ initials(company.name || 'NA') }}
+              </div>
+            }
+            <div class="user-detail__company-text">
+              <strong>{{ company.name }}</strong>
+              <span *ngIf="company.sector">{{ company.sector }}<span *ngIf="company.location"> · {{ company.location }}</span></span>
+              <span *ngIf="company.size">Size: {{ company.size }}</span>
+              <a *ngIf="company.website" [href]="company.website" target="_blank" rel="noopener">{{ company.website }}</a>
+            </div>
+            <mat-chip class="status-chip" [class]="'chip-' + (company.validationStatus || '').toLowerCase()">
+              {{ company.validationStatus || 'PENDING' }}
+            </mat-chip>
+          </div>
+        </section>
+      } @else {
+        <dl class="user-detail__facts">
+          <div class="user-detail__fact">
+            <dt><mat-icon>mail</mat-icon> Email</dt>
+            <dd>{{ user().email }}</dd>
+          </div>
+          <div class="user-detail__fact">
+            <dt><mat-icon>verified_user</mat-icon> Verification</dt>
+            <dd>{{ user().emailVerified ? 'Verified' : 'Not verified' }}</dd>
+          </div>
+          <div class="user-detail__fact">
+            <dt><mat-icon>workspace_premium</mat-icon> Subscription</dt>
+            <dd>{{ user().plan }} plan</dd>
+          </div>
+          <div class="user-detail__fact">
+            <dt><mat-icon>event</mat-icon> Joined</dt>
+            <dd>{{ formatDate(user().createdAt) }}</dd>
+          </div>
+          <div class="user-detail__fact">
+            <dt><mat-icon>update</mat-icon> Last updated</dt>
+            <dd>{{ formatDate(user().updatedAt) }}</dd>
+          </div>
+          <div class="user-detail__fact" *ngIf="detail()?.candidateProfile?.location as loc">
+            <dt><mat-icon>place</mat-icon> Location</dt>
+            <dd>{{ loc }}</dd>
+          </div>
+          <div class="user-detail__fact" *ngIf="detail()?.candidateProfile?.educationLevel as edu">
+            <dt><mat-icon>school</mat-icon> Education</dt>
+            <dd>{{ edu }}<span *ngIf="detail()?.candidateProfile?.fieldOfStudy as f"> · {{ f }}</span></dd>
+          </div>
+        </dl>
+      }
 
       <section class="user-detail__section" *ngIf="detail()?.candidateProfile?.bio as bio">
         <h3>About</h3>

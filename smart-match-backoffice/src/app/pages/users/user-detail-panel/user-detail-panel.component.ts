@@ -28,7 +28,8 @@ export class UserDetailPanelComponent {
   readonly loading = signal(false);
   readonly error = signal<string | undefined>(undefined);
   readonly syncing = signal(false);
-  readonly activeTab = signal<'ai' | 'profile'>('ai');
+  readonly analyzing = signal(false);
+  readonly activeTab = signal<'ai' | 'profile'>('profile');
 
   readonly resumeAi = computed(() => {
     const ai = this.detail()?.aiResults ?? [];
@@ -63,6 +64,7 @@ export class UserDetailPanelComponent {
         this.detail.set(undefined);
         return;
       }
+      this.activeTab.set(this.rosterRole() === 'CANDIDATE' ? 'ai' : 'profile');
       this.loadDetail(current.id);
     });
   }
@@ -104,6 +106,22 @@ export class UserDetailPanelComponent {
   scoreLabel(score?: number): string {
     if (score == null) return '—';
     return `${Math.round(score)}%`;
+  }
+
+  runCvAnalysis() {
+    if (this.analyzing()) return;
+    this.analyzing.set(true);
+    this.userService.runCvAnalysis(this.user().id).subscribe({
+      next: (updated) => {
+        this.detail.set(updated);
+        this.analyzing.set(false);
+        this.snackBar.open('AI resume analysis ready.', 'Close', { duration: 2500 });
+      },
+      error: () => {
+        this.analyzing.set(false);
+        this.snackBar.open('Could not run AI analysis. Make sure the candidate has a CV uploaded.', 'Close', { duration: 3500 });
+      }
+    });
   }
 
   syncVerification() {

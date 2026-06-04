@@ -64,6 +64,47 @@
   color: var(--text-muted);
 }
 
+.user-detail__empty { padding-top: 4px; }
+
+.user-detail__empty-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
+
+  mat-icon {
+    color: var(--brand-primary);
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  strong {
+    display: block;
+    font-size: 14px;
+    color: var(--text-strong);
+    margin-bottom: 2px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+}
+
+.user-detail__empty-card--muted {
+  background: var(--surface-muted);
+  border-style: dashed;
+
+  mat-icon { color: var(--text-muted); }
+}
+
 .user-detail__hero { display: none; }
 
 .user-detail__close {
@@ -453,3 +494,175 @@
 
 .user-detail__metric--ok { border-color: var(--brand-teal); }
 .user-detail__metric--warn { border-color: #f59e0b; }
+
+.user-detail__recruiter-hero {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  margin-bottom: 4px;
+}
+
+.user-detail__rec-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  object-fit: cover;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.user-detail__rec-avatar--fallback {
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--brand-primary);
+  background: var(--brand-primary-soft);
+  border-color: var(--brand-primary-soft);
+}
+
+.user-detail__rec-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-strong);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    font-size: 13px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.user-detail__rec-headline {
+  font-weight: 600;
+  color: var(--text) !important;
+}
+
+.user-detail__rec-position {
+  font-weight: 500;
+}
+
+.user-detail__rec-email {
+  font-size: 12.5px !important;
+}
+
+.user-detail__rec-status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.user-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.user-detail__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+
+  span:not(.user-detail__cell-label),
+  a {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-strong);
+    word-break: break-word;
+  }
+
+  a {
+    color: var(--brand-primary);
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.user-detail__cell-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.user-detail__company-card {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.user-detail__company-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+
+.user-detail__company-logo--fallback {
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--brand-primary);
+  background: var(--brand-primary-soft);
+  border-color: var(--brand-primary-soft);
+}
+
+.user-detail__company-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-strong);
+  }
+
+  span, a {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
+  a {
+    color: var(--brand-primary);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover { text-decoration: underline; }
+  }
+}
