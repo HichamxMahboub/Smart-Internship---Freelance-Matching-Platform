@@ -68,6 +68,29 @@ public class AIService {
         return toResponse(savedResult);
     }
 
+    /**
+     * Internal auto-trigger: runs CV analysis for the given user without the Premium gate.
+     * Called after a candidate uploads/autofills a CV so the AI summary is ready without manual action.
+     * Failures are swallowed (logged-only) so a slow/failed AI call never blocks the upload flow.
+     */
+    public AIResultResponse runCvAnalysisFor(User user) {
+        try {
+            AIJobRequest request = new AIJobRequest(AIResultType.CV_ANALYSIS, null, null);
+            AIResult result = createCvAnalysis(user, request);
+            AIResult saved = aiResultRepository.save(result);
+            notificationService.create(
+                    user.getId(),
+                    "AI resume summary ready",
+                    "We analysed your CV and your profile summary is ready.",
+                    NotificationType.AI);
+            return toResponse(saved);
+        } catch (RuntimeException ex) {
+            org.slf4j.LoggerFactory.getLogger(AIService.class)
+                    .warn("Auto CV analysis failed for user {}: {}", user.getId(), ex.getMessage());
+            return null;
+        }
+    }
+
     public AIResultResponse getResult(String id) {
         User user = requirePremiumOrAdmin();
         AIResult result = aiResultRepository.findById(id)

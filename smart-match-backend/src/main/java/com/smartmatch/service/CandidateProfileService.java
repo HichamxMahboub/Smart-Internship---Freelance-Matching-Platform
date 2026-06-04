@@ -18,6 +18,7 @@ import java.util.List;
 public class CandidateProfileService {
     private final CandidateProfileRepository candidateProfileRepository;
     private final FileStorageService fileStorageService;
+    private final AIService aiService;
 
     public CandidateProfileResponse getCurrentProfile() {
         User user = SecurityUtils.currentUser();
@@ -58,6 +59,8 @@ public class CandidateProfileService {
         String cvUrl = fileStorageService.storeCv(file, user.getId());
         profile.setCvUrl(cvUrl);
         candidateProfileRepository.save(profile);
+
+        aiService.runCvAnalysisFor(user);
 
         return new CvUploadResponse(cvUrl);
     }

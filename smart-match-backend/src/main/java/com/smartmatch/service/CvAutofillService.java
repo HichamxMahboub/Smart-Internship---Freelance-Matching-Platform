@@ -33,6 +33,7 @@ public class CvAutofillService {
     private final FileStorageService fileStorageService;
     private final ResumeParserService resumeParserService;
     private final AiMatchingClient aiMatchingClient;
+    private final AIService aiService;
 
     public CvAutofillResponse autofillFromCv(MultipartFile file, boolean overwrite) {
         User user = SecurityUtils.currentUser();
@@ -112,6 +113,10 @@ public class CvAutofillService {
         }
 
         CandidateProfile saved = candidateProfileRepository.save(profile);
+
+        // Auto-run CV analysis so the resume summary is ready without manual trigger.
+        aiService.runCvAnalysisFor(user);
+
         return new CvAutofillResponse(toResponse(saved), aiUsed, source, skillCount, expCount, eduCount);
     }
 

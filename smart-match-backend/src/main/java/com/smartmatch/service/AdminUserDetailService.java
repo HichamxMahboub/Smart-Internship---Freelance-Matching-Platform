@@ -34,6 +34,18 @@ public class AdminUserDetailService {
     private final RecruiterProfileRepository recruiterProfileRepository;
     private final CompanyRepository companyRepository;
     private final AIResultRepository aiResultRepository;
+    private final AIService aiService;
+
+    /** Admin-triggered: runs CV analysis for any candidate (bypasses Premium gate). */
+    public AdminUserDetailResponse runCvAnalysis(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+        if (user.getRole() != Role.CANDIDATE) {
+            throw new com.smartmatch.exception.BadRequestException("CV analysis is only available for candidates");
+        }
+        aiService.runCvAnalysisFor(user);
+        return getDetail(userId);
+    }
 
     public List<AdminUserOverviewResponse> getOverview() {
         return userRepository.findAll().stream()
