@@ -2,64 +2,120 @@
   <div>
     <span class="eyebrow">Marketplace trust</span>
     <h1>Companies</h1>
-    <p>Select a company from the list to review full profile and validation actions.</p>
+    <p>Review recruiter companies, confirm legitimacy and unlock posting rights.</p>
   </div>
 </section>
 
-<div class="page-toolbar-panel">
-  <mat-form-field appearance="outline">
-    <mat-label>Status</mat-label>
-    <mat-select [(ngModel)]="status" (selectionChange)="load()">
-      <mat-option value="">All</mat-option>
-      <mat-option value="PENDING">Pending</mat-option>
-      <mat-option value="APPROVED">Approved</mat-option>
-      <mat-option value="REJECTED">Rejected</mat-option>
-    </mat-select>
+<section class="company-stats">
+  <button type="button" class="company-stat" [class.company-stat--active]="statusFilter() === 'ALL'" (click)="setStatus('ALL')">
+    <span class="company-stat__value">{{ totals().all }}</span>
+    <span class="company-stat__label">All companies</span>
+  </button>
+  <button type="button" class="company-stat company-stat--pending" [class.company-stat--active]="statusFilter() === 'PENDING'" (click)="setStatus('PENDING')">
+    <span class="company-stat__value">{{ totals().pending }}</span>
+    <span class="company-stat__label">Pending review</span>
+  </button>
+  <button type="button" class="company-stat company-stat--approved" [class.company-stat--active]="statusFilter() === 'APPROVED'" (click)="setStatus('APPROVED')">
+    <span class="company-stat__value">{{ totals().approved }}</span>
+    <span class="company-stat__label">Approved</span>
+  </button>
+  <button type="button" class="company-stat company-stat--rejected" [class.company-stat--active]="statusFilter() === 'REJECTED'" (click)="setStatus('REJECTED')">
+    <span class="company-stat__value">{{ totals().rejected }}</span>
+    <span class="company-stat__label">Rejected</span>
+  </button>
+</section>
+
+<section class="company-toolbar">
+  <mat-form-field appearance="outline" class="company-toolbar__search">
+    <mat-icon matPrefix>search</mat-icon>
+    <mat-label>Search by name, sector, recruiter…</mat-label>
+    <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="e.g. Maxpertise" />
   </mat-form-field>
-</div>
+  <span class="company-toolbar__count">{{ filtered().length }} result{{ filtered().length === 1 ? '' : 's' }}</span>
+</section>
 
-<section class="split-view split-view--companies">
-  <mat-card class="table-card">
-    <table mat-table [dataSource]="filteredCompanies()" class="company-list-table">
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Company</th>
-        <td mat-cell *matCellDef="let company">
-          <div class="company-list-item">
-            <div class="company-list-item__text">
-              <span class="cell-primary">{{ company.name }}</span>
-              <span class="company-list-item__hint">
-                {{ isSelected(company) ? 'Profile open' : 'Click to view details' }}
-              </span>
-            </div>
-            <mat-icon class="company-list-item__chevron" [class.company-list-item__chevron--open]="isSelected(company)">
-              {{ isSelected(company) ? 'expand_less' : 'chevron_right' }}
-            </mat-icon>
+<section class="company-grid" *ngIf="!loading() && filtered().length > 0">
+  @for (company of filtered(); track company.id) {
+    <article
+      class="company-card"
+      [class.company-card--selected]="selectedId() === company.id"
+      (click)="select(company)"
+      tabindex="0"
+      role="button"
+      [attr.aria-pressed]="selectedId() === company.id">
+      <header class="company-card__header">
+        @if (company.logoUrl) {
+          <img class="company-card__logo" [src]="company.logoUrl" [alt]="company.name + ' logo'" />
+        } @else {
+          <div class="company-card__logo company-card__logo--fallback" aria-hidden="true">
+            {{ initials(company.name) }}
           </div>
-        </td>
-      </ng-container>
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr
-        mat-row
-        *matRowDef="let row; columns: displayedColumns"
-        class="company-row"
-        [class.company-row--selected]="isSelected(row)"
-        (click)="selectCompany(row)">
-      </tr>
-    </table>
-    @if (!filteredCompanies().length) {
-      <p class="table-empty">No companies match this filter.</p>
-    }
-  </mat-card>
+        }
+        <div class="company-card__head-text">
+          <h3 class="company-card__name">{{ company.name }}</h3>
+          <p class="company-card__sector" *ngIf="company.sector">{{ company.sector }}</p>
+        </div>
+        <span class="status-chip" [class]="statusClass(company.validationStatus)">{{ company.validationStatus }}</span>
+      </header>
 
-  <aside class="company-detail-slot">
-    @if (selected(); as company) {
-      <app-company-detail-panel
-        [company]="company"
-        (closed)="clearSelection()"
-        (approve)="validate($event, 'APPROVED')"
-        (reject)="validate($event, 'REJECTED')" />
-    } @else {
-      <app-company-detail-placeholder />
-    }
-  </aside>
+      <dl class="company-card__meta">
+        <div>
+          <dt>Recruiter</dt>
+          <dd>{{ company.recruiterName || 'Unknown' }}<span *ngIf="company.recruiterEmail"> · {{ company.recruiterEmail }}</span></dd>
+        </div>
+        <div *ngIf="company.location">
+          <dt>Location</dt>
+          <dd>{{ company.location }}</dd>
+        </div>
+        <div>
+          <dt>Offers</dt>
+          <dd>{{ company.publishedOfferCount }} live · {{ company.offerCount }} total</dd>
+        </div>
+        <div>
+          <dt>Registered</dt>
+          <dd>{{ formatDate(company.createdAt) }}</dd>
+        </div>
+      </dl>
+
+      <footer class="company-card__actions">
+        <button mat-stroked-button color="primary" type="button" (click)="$event.stopPropagation(); select(company)">
+          <mat-icon>{{ selectedId() === company.id ? 'expand_less' : 'visibility' }}</mat-icon>
+          {{ selectedId() === company.id ? 'Hide details' : 'Review' }}
+        </button>
+        @if (company.validationStatus !== 'APPROVED') {
+          <button mat-flat-button color="primary" class="btn-success" type="button" (click)="$event.stopPropagation(); validate(company, 'APPROVED')">
+            <mat-icon>check_circle</mat-icon>
+            Approve
+          </button>
+        }
+        @if (company.validationStatus !== 'REJECTED') {
+          <button mat-stroked-button color="warn" class="btn-danger" type="button" (click)="$event.stopPropagation(); validate(company, 'REJECTED')">
+            <mat-icon>block</mat-icon>
+            Reject
+          </button>
+        }
+      </footer>
+    </article>
+  }
+</section>
+
+@if (selected(); as company) {
+  <section class="company-detail-wrap">
+    <app-company-detail-panel
+      [company]="company"
+      (closed)="clearSelection()"
+      (approve)="validate(company, 'APPROVED')"
+      (reject)="validate(company, 'REJECTED')" />
+  </section>
+}
+
+<section class="company-empty" *ngIf="!loading() && filtered().length === 0">
+  <mat-icon>business</mat-icon>
+  <h3>No companies match</h3>
+  <p>Adjust the status filter or clear the search to broaden results.</p>
+</section>
+
+<section class="company-loading" *ngIf="loading()">
+  <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+  <span>Loading companies…</span>
 </section>

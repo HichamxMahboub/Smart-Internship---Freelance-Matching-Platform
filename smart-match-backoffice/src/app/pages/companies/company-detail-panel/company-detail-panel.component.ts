@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, input, output } from '@angular/core';
-import { Company, ValidationStatus } from '../../../core/models/company.model';
+import { Component, computed, input, output } from '@angular/core';
+import { CompanyOverview, ValidationStatus } from '../../../core/models/company.model';
 import { MaterialModule } from '../../../shared/material/material.module';
 
 @Component({
@@ -11,11 +11,14 @@ import { MaterialModule } from '../../../shared/material/material.module';
   styleUrl: './company-detail-panel.component.scss'
 })
 export class CompanyDetailPanelComponent {
-  readonly company = input.required<Company>();
+  readonly company = input.required<CompanyOverview>();
 
   readonly closed = output<void>();
-  readonly approve = output<Company>();
-  readonly reject = output<Company>();
+  readonly approve = output<CompanyOverview>();
+  readonly reject = output<CompanyOverview>();
+
+  readonly canApprove = computed(() => this.company().validationStatus !== 'APPROVED');
+  readonly canReject = computed(() => this.company().validationStatus !== 'REJECTED');
 
   initials(name: string): string {
     return name
@@ -36,10 +39,5 @@ export class CompanyDetailPanelComponent {
     return Number.isNaN(date.getTime())
       ? '—'
       : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-  }
-
-  shortId(id: string): string {
-    if (id.length <= 12) return id;
-    return `${id.slice(0, 6)}…${id.slice(-4)}`;
   }
 }
