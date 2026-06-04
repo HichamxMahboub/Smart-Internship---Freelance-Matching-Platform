@@ -1,0 +1,743 @@
+Navigation structure
+The app has 3 main navigation areas:
+
+Auth flow
+
+Login
+Register
+Candidate app
+
+Bottom tabs for candidate features.
+Extra stack pages for offer details, AI recommendations, and chat.
+Recruiter app
+
+Bottom tabs for recruiter features.
+Extra stack pages for offer creation/editing and chat.
+1. Auth pages
+LoginScreen
+File: src/screens/auth/LoginScreen.tsx
+
+Purpose: lets the user sign in with Firebase email/password.
+
+Uses:
+
+AppInput
+Email input
+Password input
+AppButton
+Sign in button
+Create account button
+AnimatedEntrance
+Entrance animation for brand block and form
+SurfaceCard
+Card container for login form
+UI/UX:
+
+Dark Interlance hero background.
+Interlance logo mark.
+Modern welcome card.
+Clear microcopy: “Where internships and freelance talent meet.”
+RegisterScreen
+File: src/screens/auth/RegisterScreen.tsx
+
+Purpose: lets a user create either a candidate or recruiter account.
+
+Uses:
+
+AppInput
+Full name
+Email
+Password
+AppButton
+Create account
+Back to login
+AnimatedEntrance
+Animates sections into view
+Local RoleCard
+Candidate role selector
+Recruiter role selector
+UI/UX:
+
+User chooses between Candidate and Recruiter.
+Uses modern selectable role cards.
+Creates Firebase account, then syncs backend user.
+2. Candidate pages
+CandidateHomeScreen
+File: src/screens/candidate/CandidateHomeScreen.tsx
+
+Purpose: candidate dashboard/home.
+
+Shows:
+
+Personalized greeting
+Applications count
+Saved/favorites count
+Current plan
+Recent offers
+Uses:
+
+AnimatedEntrance
+AppButton
+StatCard
+SectionHeader
+OfferCard
+EmptyState
+Services:
+
+offerService
+applicationService
+favoriteService
+subscriptionService
+UI/UX:
+
+Premium dark hero card.
+Stats cards.
+Recent opportunities list.
+CTA to explore fresh offers.
+OfferListScreen
+File: src/screens/candidate/OfferListScreen.tsx
+
+Purpose: browse and filter offers.
+
+Shows:
+
+Search input
+Type filter
+Location filter
+Skill filter
+Offer list
+Uses:
+
+SurfaceCard
+AppInput
+AppButton
+OfferCard
+EmptyState
+Service:
+
+offerService
+UI/UX:
+
+“Find work that fits” filter card.
+Modern offer cards.
+Pull-to-refresh.
+Offline cached-data warning if needed.
+OfferDetailsScreen
+File: src/screens/candidate/OfferDetailsScreen.tsx
+
+Purpose: detailed page for one offer.
+
+Shows:
+
+Offer title
+Type badge
+Location/duration
+Description
+Skills
+Application message field
+Apply button
+Message recruiter button
+Save/remove favorite buttons
+Uses:
+
+LoadingView
+StatusBadge
+SurfaceCard
+AppInput
+AppButton
+Services:
+
+offerService
+applicationService
+favoriteService
+chatService
+UI/UX:
+
+Dark hero section.
+Skills as pills.
+Application form grouped inside a card.
+ApplicationsScreen
+File: src/screens/candidate/ApplicationsScreen.tsx
+
+Purpose: candidate can track submitted applications.
+
+Shows:
+
+Application cards
+Application status
+Offer ID
+Match score if available
+Application message
+Uses:
+
+SurfaceCard
+StatusBadge
+EmptyState
+Service:
+
+applicationService
+FavoritesScreen
+File: src/screens/candidate/FavoritesScreen.tsx
+
+Purpose: candidate saved/shortlisted offers.
+
+Shows:
+
+Favorite offers
+Remove from shortlist button
+Uses:
+
+OfferCard
+AppButton
+EmptyState
+Service:
+
+favoriteService
+CandidateProfileScreen
+File: src/screens/candidate/CandidateProfileScreen.tsx
+
+Purpose: candidate profile editing.
+
+Fields:
+
+Education level
+Field of study
+Location
+Skills
+Languages
+Preferences
+Uses:
+
+SurfaceCard
+AppInput
+AppButton
+Service:
+
+profileService
+Notes:
+
+CV upload button exists as “soon/TODO”.
+PremiumScreen
+File: src/screens/candidate/PremiumScreen.tsx
+
+Purpose: premium upgrade and AI access.
+
+Shows:
+
+Current plan
+Expiration date
+Premium benefits
+Upgrade button
+Open AI recommendations button
+Uses:
+
+SurfaceCard
+AppButton
+Service:
+
+subscriptionService
+AIRecommendationsScreen
+File: src/screens/candidate/AIRecommendationsScreen.tsx
+
+Purpose: candidate can run AI jobs.
+
+Actions:
+
+Run CV analysis
+Run offer recommendation
+Shows:
+
+Score
+Recommendation
+Details
+Uses:
+
+AppButton
+Service:
+
+aiService
+Note:
+
+This screen is functional but visually simpler than the redesigned dashboard/offers/profile screens.
+NotificationsScreen
+File: src/screens/candidate/NotificationsScreen.tsx
+
+This re-exports the shared notifications page:
+
+export { NotificationsScreen } from '../shared/NotificationsSharedScreen';
+
+So candidate and recruiter both use the same notifications UI.
+
+3. Recruiter pages
+RecruiterHomeScreen
+File: src/screens/recruiter/RecruiterHomeScreen.tsx
+
+Purpose: recruiter dashboard.
+
+Shows:
+
+Recruiter hero section
+Offers count
+Applications count
+Company validation status
+CTA to create opportunity
+CTA to manage company
+Uses:
+
+AppButton
+StatCard
+SurfaceCard
+Services:
+
+companyService
+offerService
+applicationService
+CompanyScreen
+File: src/screens/recruiter/CompanyScreen.tsx
+
+Purpose: recruiter company profile management.
+
+Fields:
+
+Name
+Sector
+Description
+Logo URL
+Website
+Shows:
+
+Validation status badge
+Explanation that only approved companies can publish offers
+Uses:
+
+SurfaceCard
+StatusBadge
+AppInput
+AppButton
+Service:
+
+companyService
+RecruiterOffersScreen
+File: src/screens/recruiter/RecruiterOffersScreen.tsx
+
+Purpose: manage recruiter offers.
+
+Actions:
+
+Create offer
+Edit offer
+Publish offer
+Archive offer
+Uses:
+
+SurfaceCard
+OfferCard
+StatusBadge
+AppButton
+EmptyState
+Service:
+
+offerService
+OfferFormScreen
+File: src/screens/recruiter/OfferFormScreen.tsx
+
+Purpose: create or edit an offer.
+
+Fields:
+
+Title
+Description
+Type
+Location
+Duration
+Required skills
+Uses:
+
+AppInput
+AppButton
+Service:
+
+offerService
+Note:
+
+This screen is functional but still more basic visually than the redesigned recruiter dashboard/company pages.
+RecruiterApplicationsScreen
+File: src/screens/recruiter/RecruiterApplicationsScreen.tsx
+
+Purpose: recruiter reviews candidate applications.
+
+Shows:
+
+Candidate ID
+Application message
+Application status
+Actions:
+
+Move to interview
+Accept
+Reject
+Message candidate
+Uses:
+
+StatusBadge
+AppButton
+EmptyState
+Services:
+
+applicationService
+chatService
+RecruiterProfileScreen
+File: src/screens/recruiter/RecruiterProfileScreen.tsx
+
+Purpose: recruiter profile editing.
+
+Fields:
+
+Position
+Phone
+Uses:
+
+SurfaceCard
+AppInput
+AppButton
+Service:
+
+profileService
+Recruiter NotificationsScreen
+File: src/screens/recruiter/NotificationsScreen.tsx
+
+Same as candidate notifications. It re-exports:
+
+export { NotificationsScreen } from '../shared/NotificationsSharedScreen';
+
+4. Shared pages
+ConversationsScreen
+File: src/screens/shared/ConversationsScreen.tsx
+
+Purpose: list user conversations.
+
+Shows:
+
+Conversation cards
+Last message
+Unread count badge
+Uses:
+
+EmptyState
+Services:
+
+chatService
+realtimeClient
+Used by:
+
+Candidate Messages tab
+Recruiter Messages tab
+ChatScreen
+File: src/screens/shared/ChatScreen.tsx
+
+Purpose: real-time chat page.
+
+Shows:
+
+Message list
+Sender/receiver bubbles
+Message input
+Send button
+Uses:
+
+AppInput
+AppButton
+Services:
+
+chatService
+realtimeClient
+Used by:
+
+Candidate chat
+Recruiter chat
+NotificationsSharedScreen
+File: src/screens/shared/NotificationsSharedScreen.tsx
+
+Purpose: shared notifications center.
+
+Shows:
+
+Notification title
+Message
+Type
+Read/unread state
+Actions:
+
+Mark one notification read
+Mark all notifications read
+Uses:
+
+AppButton
+EmptyState
+Service:
+
+notificationService
+5. Reusable components
+AppButton
+File: src/components/AppButton.tsx
+
+Reusable button.
+
+Supports variants:
+
+primary
+secondary
+danger
+ghost
+accent
+Features:
+
+Loading spinner
+Disabled state
+Press animation scale
+Premium glow for primary/accent buttons
+Used almost everywhere.
+
+AppInput
+File: src/components/AppInput.tsx
+
+Reusable input field.
+
+Supports:
+
+Label
+Helper text
+Multiline input
+Placeholder styling
+Standard Interlance border/radius/colors
+Used in:
+
+Auth forms
+Profiles
+Offer forms
+Chat composer
+Filters
+AnimatedEntrance
+File: src/components/AnimatedEntrance.tsx
+
+Reusable entrance animation wrapper.
+
+Purpose:
+
+Fades content in
+Moves content slightly upward
+Uses native driver on mobile
+Falls back safely on web
+Used in:
+
+Login
+Register
+Candidate home
+SurfaceCard
+File: src/components/SurfaceCard.tsx
+
+Reusable card container.
+
+Provides:
+
+White background
+Rounded corners
+Border
+Soft shadow
+Padding
+Used in:
+
+Auth forms
+Filters
+Profiles
+Premium
+Recruiter dashboard
+Company page
+StatCard
+File: src/components/StatCard.tsx
+
+Reusable metric card.
+
+Props:
+
+label
+value
+tone
+Tones:
+
+primary
+teal
+accent
+Used in:
+
+Candidate home
+Recruiter home
+SectionHeader
+File: src/components/SectionHeader.tsx
+
+Small reusable section title row.
+
+Props:
+
+title
+optional action
+Used in:
+
+Candidate home recent opportunities section.
+OfferCard
+File: src/components/OfferCard.tsx
+
+Reusable offer preview card.
+
+Shows:
+
+Initials/mark
+Offer title
+Offer location
+Duration
+Type badge
+Description
+Required skills
+“View →” CTA
+Used in:
+
+Candidate offers
+Candidate home
+Favorites
+Recruiter offers
+StatusBadge
+File: src/components/StatusBadge.tsx
+
+Reusable status pill.
+
+It changes color depending on status/type:
+
+Green-ish:
+
+PUBLISHED
+APPROVED
+ACCEPTED
+ACTIVE
+INTERNSHIP
+Yellow-ish:
+
+PENDING
+INTERVIEW
+DRAFT
+FREELANCE
+Red-ish:
+
+REJECTED
+ARCHIVED
+BLOCKED
+EXPIRED
+CANCELLED
+Used in:
+
+Offers
+Applications
+Company validation
+Notifications/status displays
+EmptyState
+File: src/components/EmptyState.tsx
+
+Reusable empty list/message UI.
+
+Props:
+
+title
+optional message
+optional icon
+Used when:
+
+No offers
+No favorites
+No applications
+No conversations
+No notifications
+LoadingView
+File: src/components/LoadingView.tsx
+
+Reusable loading screen.
+
+Shows:
+
+Animated Interlance logo mark
+Loading label
+Used when:
+
+App restores session
+Offer details are loading
+Screen
+File: src/components/Screen.tsx
+
+Generic safe-area screen wrapper.
+
+Supports:
+
+Scrollable mode
+Non-scrollable mode
+Default background and padding
+Note:
+
+This component exists but is not heavily used yet.
+6. Navigation components
+AppNavigator
+File: src/navigation/AppNavigator.tsx
+
+Main app router.
+
+Logic:
+
+If app is initializing → show LoadingView
+If no user → show AuthNavigator
+If user role is RECRUITER → show RecruiterNavigator
+Otherwise → show CandidateNavigator
+Also:
+
+Connects/disconnects realtime client.
+Registers push token.
+Applies Interlance navigation theme.
+AuthNavigator
+File: src/navigation/AuthNavigator.tsx
+
+Stack navigator with:
+
+Login
+Register
+No headers.
+
+CandidateNavigator
+File: src/navigation/CandidateNavigator.tsx
+
+Candidate bottom tabs:
+
+Home
+Offers
+Applications
+Favorites
+Messages
+Premium
+Profile
+Notifications
+Candidate stack pages:
+
+OfferDetails
+AIRecommendations
+Chat
+RecruiterNavigator
+File: src/navigation/RecruiterNavigator.tsx
+
+Recruiter bottom tabs:
+
+Home
+Company
+Offers
+Applications
+Messages
+Profile
+Notifications
+Recruiter stack pages:
+
+OfferForm
+Chat
