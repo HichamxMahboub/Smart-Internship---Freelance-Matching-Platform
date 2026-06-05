@@ -41,6 +41,10 @@ services:
       OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openrouter/free}
       OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
       OPENROUTER_MAX_TOKENS: ${OPENROUTER_MAX_TOKENS:-1024}
+      ASSISTANT_N8N_URL: ${ASSISTANT_N8N_URL:-http://n8n:5678/webhook/interlance-assistant}
+      ASSISTANT_SCORING_N8N_URL: ${ASSISTANT_SCORING_N8N_URL:-http://n8n:5678/webhook/interlance-cv-score}
+      ASSISTANT_CANDIDATE_MATCH_URL: ${ASSISTANT_CANDIDATE_MATCH_URL:-http://n8n:5678/webhook/interlance-candidate-match}
+      ASSISTANT_RECRUITER_MATCH_URL: ${ASSISTANT_RECRUITER_MATCH_URL:-http://n8n:5678/webhook/interlance-recruiter-match}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
@@ -60,6 +64,27 @@ services:
     ports:
       - "4200:80"
 
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:stable
+    container_name: smart-match-platform-n8n
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+      - backend
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:5678/
+      GENERIC_TIMEZONE: Africa/Casablanca
+      TZ: Africa/Casablanca
+      N8N_SECURE_COOKIE: "false"
+    volumes:
+      - smart_match_n8n_data:/home/node/.n8n
+
 volumes:
   smart_match_mongodb_data:
   smart_match_uploads:
+  smart_match_n8n_data:

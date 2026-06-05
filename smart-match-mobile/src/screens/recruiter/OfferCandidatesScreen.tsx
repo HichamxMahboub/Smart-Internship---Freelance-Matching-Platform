@@ -9,7 +9,9 @@ import { Avatar } from '../../components/Avatar';
 import { Icon } from '../../components/Icon';
 import { StatusBadge } from '../../components/StatusBadge';
 import { MatchBadge } from '../../components/MatchBadge';
+import { MatchResultCard } from '../../components/MatchResultCard';
 import { aiService, CandidateRecommendation } from '../../services/aiService';
+import { MatchItem } from '../../types';
 import { computeMatch } from '../../utils/match';
 import { colors } from '../../theme/colors';
 import { radius, shadow } from '../../theme/spacing';
@@ -19,6 +21,8 @@ export function OfferCandidatesScreen({ route, navigation }: NativeStackScreenPr
   const [items, setItems] = useState<CandidateRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [aiMatches, setAiMatches] = useState<MatchItem[] | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const load = async () => {
     setRefreshing(true);
@@ -27,6 +31,12 @@ export function OfferCandidatesScreen({ route, navigation }: NativeStackScreenPr
     finally { setRefreshing(false); setLoading(false); }
   };
   useEffect(() => { load(); }, []);
+
+  const loadAiMatches = async () => {
+    try { setAiLoading(true); setAiMatches(await aiService.recruiterMatches(offerId)); }
+    catch { setAiMatches([]); }
+    finally { setAiLoading(false); }
+  };
 
   const scoreOf = (rec: CandidateRecommendation) =>
     Math.round(rec.matchingScore ?? rec.application.matchingScore ?? (offer && rec.profile ? computeMatch(rec.profile.skills ?? [], offer.requiredSkills ?? []).score : 0));
@@ -42,6 +52,24 @@ export function OfferCandidatesScreen({ route, navigation }: NativeStackScreenPr
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={load} tintColor={colors.primary} />}
+        ListHeaderComponent={
+          <View style={styles.aiSection}>
+            <Pressable onPress={loadAiMatches} disabled={aiLoading} style={({ pressed }) => [styles.aiBtn, pressed && { opacity: 0.92 }]}>
+              <Icon name="sparkles" size={18} color={colors.primary} />
+              <Text style={styles.aiBtnText}>{aiLoading ? 'AI is scoring all candidates…' : 'AI: rank every candidate for this role'}</Text>
+            </Pressable>
+            {aiMatches ? (
+              aiMatches.length > 0 ? (
+                aiMatches.map((m, i) => (
+                  <MatchResultCard key={m.candidateId ?? `a${i}`} title={m.name ?? 'Candidate'} subtitle={m.headline} score={m.score} reasons={m.reasons} gaps={m.gaps} />
+                ))
+              ) : (
+                <Text style={styles.aiEmpty}>No candidates available to rank yet.</Text>
+              )
+            ) : null}
+            {aiMatches ? <Text style={styles.applicantsLabel}>Applicants</Text> : null}
+          </View>
+        }
         ListEmptyComponent={loading ? null : <EmptyState icon="user" title="No candidates yet" message="When students apply to this role, ranked matches appear here." />}
         renderItem={({ item }) => {
           const name = item.candidateName || `Candidate #${item.application.candidateId.slice(0, 8)}`;
@@ -72,5 +100,10 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.96, transform: [{ scale: 0.99 }] },
   name: { color: colors.text, fontWeight: '800', fontSize: 15, letterSpacing: -0.2 },
   headline: { color: colors.muted, fontSize: 12.5, fontWeight: '600' },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
+  aiSection: { gap: 11, marginBottom: 4 },
+  aiBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.primaryLight, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.primarySoft, paddingVertical: 13, paddingHorizontal: 14 },
+  aiBtnText: { color: colors.primary, fontWeight: '800', fontSize: 14 },
+  aiEmpty: { color: colors.muted, fontSize: 13, paddingVertical: 6 },
+  applicantsLabel: { color: colors.text, fontWeight: '800', fontSize: 16, letterSpacing: -0.2, marginTop: 6 }
 });

@@ -54,7 +54,7 @@ export function CandidateNavigator() {
     <Stack.Navigator screenOptions={stackHeader}>
       <Stack.Screen name="CandidateTabs" component={CandidateTabs} options={{ headerShown: false }} />
       <Stack.Screen name="OfferDetails" component={OfferDetailsScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="AIRecommendations" component={AIRecommendationsScreen} options={{ title: 'AI insights' }} />
+      <Stack.Screen name="AIRecommendations" component={AIRecommendationsScreen} options={{ title: 'AI Assistant' }} />
       <Stack.Screen name="Chat" component={ChatScreen} options={{ title: '' }} />
       <Stack.Screen name="Favorites" component={FavoritesScreen} options={{ title: 'Saved offers' }} />
       <Stack.Screen name="Premium" component={PremiumScreen} options={{ headerShown: false }} />

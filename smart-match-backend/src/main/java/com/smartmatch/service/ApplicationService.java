@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -40,17 +42,17 @@ public class ApplicationService {
             ApplicationStatus.REJECTED
     );
 
+    private static final Logger log = Logger.getLogger(ApplicationService.class.getName());
+
     private final ApplicationRepository applicationRepository;
     private final OfferRepository offerRepository;
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final ChatService chatService;
 
     public ApplicationResponse apply(ApplicationRequest request) {
         User candidate = SecurityUtils.currentUser();
-        if (!candidate.isEmailVerified()) {
-            throw new ForbiddenException("Email must be verified before applying to an offer");
-        }
 
         Offer offer = offerRepository.findById(request.offerId())
                 .orElseThrow(() -> new NotFoundException("Offer not found with id: " + request.offerId()));
@@ -209,6 +211,27 @@ public class ApplicationService {
                 "Your application for " + offer.getTitle() + " is now " + savedApplication.getStatus().name() + ".",
                 NotificationType.APPLICATION);
 
+        // Once the recruiter moves the candidate to INTERVIEW/ACCEPTED, auto-send a video meeting
+        // link into their conversation (created if needed). Sent at most once per application.
+        if ((request.status() == ApplicationStatus.INTERVIEW || request.status() == ApplicationStatus.ACCEPTED)
+                && savedApplication.getMeetingLink() == null) {
+            try {
+                String conversationId = chatService
+                        .startConversation(recruiter.getId(), offer.getId(), savedApplication.getCandidateId())
+                        .id();
+                String link = "https://meet.jit.si/Interlance-" + conversationId;
+                chatService.sendMessage(recruiter.getId(), conversationId,
+                        "📅 Interview scheduled for \"" + offer.getTitle()
+                                + "\". Join the video meeting here: " + link);
+                savedApplication.setMeetingLink(link);
+                savedApplication = applicationRepository.save(savedApplication);
+            } catch (Exception exception) {
+                // A messaging hiccup must not fail the status update itself.
+                log.log(Level.WARNING, "Failed to auto-send meeting link for application "
+                        + savedApplication.getId() + ": " + exception.getMessage());
+            }
+        }
+
         return toResponse(savedApplication);
     }
 
@@ -242,6 +265,7 @@ public class ApplicationService {
                 application.getMessage(),
                 application.getStatus(),
                 application.getMatchingScore(),
+                application.getMeetingLink(),
                 application.getAppliedAt(),
                 application.getReviewedAt(),
                 application.getDecidedAt(),

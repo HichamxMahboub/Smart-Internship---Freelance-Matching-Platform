@@ -52,6 +52,7 @@ export function RecruiterProfileScreen() {
 
         <View style={styles.menu}>
           <MenuRow icon="building" label="Organisation profile" onPress={() => navigation.navigate('Company')} />
+          <MenuRow icon="sparkles" label="AI Assistant" onPress={() => navigation.navigate('RecruiterAssistant')} />
           <MenuRow icon="bell" label="Notifications" onPress={() => navigation.navigate('Notifications')} last />
         </View>
 

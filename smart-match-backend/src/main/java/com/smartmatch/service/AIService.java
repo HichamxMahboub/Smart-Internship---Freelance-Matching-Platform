@@ -102,7 +102,7 @@ public class AIService {
     }
 
     public List<CandidateRecommendationResponse> getCandidateRecommendationsForOffer(String offerId) {
-        User user = requirePremiumOrAdmin();
+        User user = SecurityUtils.currentUser();
         Offer offer = offerRepository.findById(offerId)
                 .orElseThrow(() -> new NotFoundException("Offer not found with id: " + offerId));
         if (user.getRole() == Role.RECRUITER) {
@@ -342,6 +342,7 @@ public class AIService {
                 application.getMessage(),
                 application.getStatus(),
                 application.getMatchingScore(),
+                application.getMeetingLink(),
                 application.getAppliedAt(),
                 application.getReviewedAt(),
                 application.getDecidedAt(),

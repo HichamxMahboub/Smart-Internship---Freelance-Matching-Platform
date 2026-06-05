@@ -46,10 +46,20 @@ export function CandidateDetailScreen({ route, navigation }: NativeStackScreenPr
   const score = Math.round(recommendation?.matchingScore ?? application.matchingScore ?? computed?.score ?? 0);
   const hasScore = (recommendation?.matchingScore ?? application.matchingScore ?? computed) != null;
 
+  const STATUS_LABEL: Record<ApplicationStatus, string> = { PENDING: 'Pending', INTERVIEW: 'Interview', ACCEPTED: 'Accepted', REJECTED: 'Rejected' };
   const updateStatus = async (next: ApplicationStatus) => {
-    try { setBusy(true); await applicationService.updateStatus(application.id, next); setStatus(next); }
-    catch { Alert.alert('Error', 'Could not update application.'); }
-    finally { setBusy(false); }
+    if (next === status || busy) return;
+    try {
+      setBusy(true);
+      await applicationService.updateStatus(application.id, next);
+      setStatus(next);
+      const linkNote = next === 'INTERVIEW' || next === 'ACCEPTED' ? ' A video meeting link was sent to the candidate in chat.' : '';
+      Alert.alert('Status updated', `Candidate moved to ${STATUS_LABEL[next]}.${linkNote}`);
+    } catch {
+      Alert.alert('Error', 'Could not update application.');
+    } finally {
+      setBusy(false);
+    }
   };
   const message = async () => {
     try { const c = await chatService.start(application.offerId, application.candidateId); navigation.navigate('Chat', { conversationId: c.id }); }
@@ -184,10 +194,14 @@ export function CandidateDetailScreen({ route, navigation }: NativeStackScreenPr
       </ScrollView>
 
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 12 }]}>
+        <View style={styles.statusHeader}>
+          <Text style={styles.statusLabel}>Move application to</Text>
+          <StatusBadge status={status} />
+        </View>
         <View style={styles.statusRow}>
-          <AppButton title="Interview" size="sm" onPress={() => updateStatus('INTERVIEW')} loading={busy} style={styles.flex} />
-          <AppButton title="Accept" size="sm" variant="secondary" onPress={() => updateStatus('ACCEPTED')} style={styles.flex} />
-          <AppButton title="Reject" size="sm" variant="danger" onPress={() => updateStatus('REJECTED')} style={styles.flex} />
+          <AppButton title="Interview" size="sm" onPress={() => updateStatus('INTERVIEW')} loading={busy} disabled={status === 'INTERVIEW'} style={styles.flex} />
+          <AppButton title="Accept" size="sm" variant="secondary" onPress={() => updateStatus('ACCEPTED')} disabled={busy || status === 'ACCEPTED'} style={styles.flex} />
+          <AppButton title="Reject" size="sm" variant="danger" onPress={() => updateStatus('REJECTED')} disabled={busy || status === 'REJECTED'} style={styles.flex} />
         </View>
         <AppButton title="Message candidate" icon="chat" variant="ghost" size="sm" onPress={message} />
       </View>
@@ -213,6 +227,8 @@ const styles = StyleSheet.create({
   dot: { width: 7, height: 7, borderRadius: 4, marginTop: 6 },
   lineText: { flex: 1, color: colors.textSoft, fontSize: 13.5, lineHeight: 19 },
   actionBar: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: colors.white, borderTopWidth: 1, borderTopColor: colors.border, paddingHorizontal: 16, paddingTop: 12, gap: 8 },
+  statusHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  statusLabel: { color: colors.muted, fontWeight: '800', fontSize: 11.5, letterSpacing: 0.5, textTransform: 'uppercase' },
   statusRow: { flexDirection: 'row', gap: 8 },
   flex: { flex: 1 },
   aiCard: { backgroundColor: colors.background, borderRadius: radius.md, padding: 12, gap: 6, borderWidth: 1, borderColor: colors.border },

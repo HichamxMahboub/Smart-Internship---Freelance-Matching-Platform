@@ -36,6 +36,12 @@ smartmatch:
     base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
     referer: ${OPENROUTER_REFERER:https://interlance.app}
     title: ${OPENROUTER_TITLE:Interlance}
+  assistant:
+    n8n-url: ${ASSISTANT_N8N_URL:http://n8n:5678/webhook/interlance-assistant}
+    scoring-n8n-url: ${ASSISTANT_SCORING_N8N_URL:http://n8n:5678/webhook/interlance-cv-score}
+    candidate-match-url: ${ASSISTANT_CANDIDATE_MATCH_URL:http://n8n:5678/webhook/interlance-candidate-match}
+    recruiter-match-url: ${ASSISTANT_RECRUITER_MATCH_URL:http://n8n:5678/webhook/interlance-recruiter-match}
+    timeout-seconds: ${ASSISTANT_TIMEOUT_SECONDS:120}
 
 app:
   payment:

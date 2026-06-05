@@ -36,6 +36,8 @@ public class Application {
     private String message;
     private ApplicationStatus status;
     private Double matchingScore;
+    /** Video meeting link auto-sent to the candidate when moved to INTERVIEW/ACCEPTED. Set once. */
+    private String meetingLink;
     private Instant appliedAt;
     private Instant reviewedAt;
     private Instant decidedAt;

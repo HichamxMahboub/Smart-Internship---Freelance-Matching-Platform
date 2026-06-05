@@ -39,14 +39,12 @@ export function ApplyOfferSheet({ visible, offer, profile, user, match, onClose,
 
   const hasCv = Boolean(profile?.cvUrl);
   const hasSkills = (profile?.skills?.length ?? 0) > 0;
-  const emailVerified = user?.emailVerified === true;
   const readinessIssues = useMemo(() => {
     const issues: string[] = [];
-    if (!emailVerified) issues.push('Verify your email to apply.');
     if (!hasCv) issues.push('Upload your CV before applying.');
     if (!hasSkills) issues.push('Add at least one skill so the recruiter sees your fit.');
     return issues;
-  }, [emailVerified, hasCv, hasSkills]);
+  }, [hasCv, hasSkills]);
   const readyToApply = readinessIssues.length === 0;
 
   const noteLen = note.trim().length;
@@ -76,7 +74,7 @@ export function ApplyOfferSheet({ visible, offer, profile, user, match, onClose,
       setStep(3);
       onApplied();
     } catch (e: any) {
-      Alert.alert('Could not apply', e?.response?.data?.message ?? 'You may have already applied or your email is not verified.');
+      Alert.alert('Could not apply', e?.response?.data?.message ?? 'You may have already applied to this offer.');
     } finally {
       setSubmitting(false);
     }
@@ -158,7 +156,7 @@ export function ApplyOfferSheet({ visible, offer, profile, user, match, onClose,
                     {!readyToApply ? readinessIssues.map((i) => (
                       <Text key={i} style={styles.readinessLine}>• {i}</Text>
                     )) : (
-                      <Text style={styles.readinessLine}>CV attached · skills set · email verified.</Text>
+                      <Text style={styles.readinessLine}>CV attached · skills set.</Text>
                     )}
                   </View>
                 </View>

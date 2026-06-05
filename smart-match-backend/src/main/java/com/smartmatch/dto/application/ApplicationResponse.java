@@ -12,6 +12,7 @@ public record ApplicationResponse(
         String message,
         ApplicationStatus status,
         Double matchingScore,
+        String meetingLink,
         Instant appliedAt,
         Instant reviewedAt,
         Instant decidedAt,

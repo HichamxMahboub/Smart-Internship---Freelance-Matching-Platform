@@ -1,0 +1,118 @@
+<section class="page-hero-compact assistant-hero">
+  <div>
+    <span class="eyebrow">Intelligence</span>
+    <h1>Interlance AI Assistant</h1>
+    <p>Ask anything about companies, offers, candidates, applications and matching — answered from your live data.</p>
+  </div>
+  <div class="hero-actions">
+    <button class="ghost-btn" (click)="toggleHistory()" [class.on]="historyOpen" title="Toggle history">
+      <span class="material-icons">history</span>
+    </button>
+    <button class="ghost-btn" (click)="newChat()" title="New chat">
+      <span class="material-icons">add</span> New chat
+    </button>
+  </div>
+</section>
+
+<div class="assistant-layout" [class.no-history]="!historyOpen">
+  <!-- History sidebar -->
+  @if (historyOpen) {
+    <aside class="history">
+      <div class="history-head">
+        <span>Chats</span>
+        <button class="mini" (click)="newChat()" title="New chat"><span class="material-icons">add</span></button>
+      </div>
+      <div class="history-list">
+        @for (c of orderedConversations(); track c.id) {
+          <button class="history-item" [class.active]="c.id === currentId()" (click)="openConversation(c)">
+            <span class="material-icons chat-ic">chat_bubble_outline</span>
+            <span class="title">{{ c.title || 'New chat' }}</span>
+            <span class="del material-icons" (click)="deleteConversation(c, $event)" title="Delete">close</span>
+          </button>
+        }
+        @if (orderedConversations().length === 0) {
+          <p class="history-empty">No conversations yet.</p>
+        }
+      </div>
+      @if (orderedConversations().length > 0) {
+        <button class="clear-all" (click)="clearHistory()">
+          <span class="material-icons">delete_sweep</span> Clear history
+        </button>
+      }
+    </aside>
+  }
+
+  <!-- Chat -->
+  <div class="chat-shell">
+    <div class="chat-scroll" #scrollHost>
+      @if (messages().length === 0) {
+        <div class="welcome">
+          <div class="orb"><span class="material-icons">auto_awesome</span></div>
+          <h2>How can I help you today?</h2>
+          <p>I read your marketplace in real time — companies and their offers, candidates, applications, and how well they match.</p>
+          <div class="suggestions">
+            @for (s of suggestions; track s) {
+              <button class="suggestion" (click)="send(s)">{{ s }}</button>
+            }
+          </div>
+        </div>
+      }
+
+      @for (m of messages(); track $index) {
+        @if (m.role === 'user') {
+          <div class="turn user">
+            <div class="bubble">{{ m.content }}</div>
+          </div>
+        } @else {
+          <div class="turn assistant">
+            <div class="avatar"><span class="material-icons">auto_awesome</span></div>
+            <div class="answer">
+              @if (m.pending) {
+                <div class="thinking-live">
+                  <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                  <span class="label">Thinking…</span>
+                </div>
+              } @else {
+                @if (m.thinking) {
+                  <button class="thinking-toggle" (click)="toggleThinking(m)">
+                    <span class="material-icons">{{ m.showThinking ? 'expand_less' : 'psychology' }}</span>
+                    {{ m.showThinking ? 'Hide thinking' : 'Show thinking' }}
+                  </button>
+                  @if (m.showThinking) {
+                    <div class="thinking-trace" [innerHTML]="render(m.thinking)"></div>
+                  }
+                }
+                <div class="markdown" [class.error]="m.error" [innerHTML]="render(m.content)"></div>
+                @if (m.sources && m.sources.length > 0) {
+                  <div class="sources">
+                    <span class="material-icons">storage</span>
+                    @for (src of m.sources; track src) {
+                      <span class="chip">{{ src }}</span>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="composer">
+      <div class="composer-box">
+        <textarea
+          #input
+          [(ngModel)]="draft"
+          (keydown)="onKeydown($event)"
+          (input)="autoGrow($event)"
+          rows="1"
+          placeholder="Ask about companies, offers, candidates, applications…"
+          [disabled]="loading()"></textarea>
+        <button class="send" (click)="send()" [disabled]="!draft.trim() || loading()" aria-label="Send">
+          <span class="material-icons">{{ loading() ? 'hourglass_empty' : 'arrow_upward' }}</span>
+        </button>
+      </div>
+      <p class="hint">Interlance AI can make mistakes. Verify important numbers. <kbd>Enter</kbd> to send · <kbd>Shift</kbd>+<kbd>Enter</kbd> for a new line.</p>
+    </div>
+  </div>
+</div>

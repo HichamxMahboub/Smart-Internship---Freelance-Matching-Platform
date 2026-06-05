@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, KeyboardAvoidingView, Linking, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EmptyState } from '../../components/EmptyState';
@@ -12,6 +12,14 @@ import { Conversation, Message } from '../../types';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/spacing';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+
+const URL_RE = /(https?:\/\/[^\s]+)/;
+
+/** First URL in a message (trailing punctuation trimmed), or null. */
+function firstUrl(text: string): string | null {
+  const match = text.match(URL_RE);
+  return match ? match[0].replace(/[).,]+$/, '') : null;
+}
 
 export function ChatScreen() {
   const route = useRoute<any>();
@@ -115,10 +123,19 @@ export function ChatScreen() {
         }
         renderItem={({ item }) => {
           const mine = item.senderId === user?.id;
+          const url = firstUrl(item.content);
           return (
             <View style={[styles.bubbleRow, mine ? styles.rowMine : styles.rowTheirs]}>
               <View style={[styles.bubble, mine ? styles.mine : styles.theirs]}>
                 <Text style={mine ? styles.mineText : styles.theirsText}>{item.content}</Text>
+                {url ? (
+                  <Pressable
+                    onPress={() => Linking.openURL(url)}
+                    style={({ pressed }) => [styles.joinBtn, pressed && { opacity: 0.85 }]}
+                  >
+                    <Text style={styles.joinText}>🎥  Join meeting</Text>
+                  </Pressable>
+                ) : null}
               </View>
             </View>
           );
@@ -161,6 +178,15 @@ const styles = StyleSheet.create({
   theirs: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 4 },
   mineText: { color: colors.white, fontSize: 14.5, lineHeight: 20 },
   theirsText: { color: colors.text, fontSize: 14.5, lineHeight: 20 },
+  joinBtn: {
+    marginTop: 10,
+    backgroundColor: colors.primary,
+    borderRadius: radius.lg,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center'
+  },
+  joinText: { color: colors.white, fontWeight: '800', fontSize: 14 },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',

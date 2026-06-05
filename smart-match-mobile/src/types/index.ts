@@ -12,7 +12,10 @@ export interface User { id: string; firebaseUid?: string; fullName: string; emai
 export interface Company { id: string; recruiterId: string; name: string; sector?: string; size?: string; location?: string; description?: string; logoUrl?: string; website?: string; validationStatus: ValidationStatus; createdAt?: string; updatedAt?: string; }
 export interface Offer { id: string; companyId: string; title: string; description: string; type: OfferType; location?: string; duration?: string; requiredSkills: string[]; status: OfferStatus; publishedAt?: string; archiveAt?: string; createdAt?: string; updatedAt?: string; }
 export interface OfferPayload { title: string; description: string; type: OfferType; location?: string; duration?: string; requiredSkills: string[]; }
-export interface Application { id: string; offerId: string; candidateId: string; recruiterId: string; message?: string; status: ApplicationStatus; matchingScore?: number; appliedAt?: string; reviewedAt?: string; decidedAt?: string; updatedAt?: string; }
+export interface Application { id: string; offerId: string; candidateId: string; recruiterId: string; message?: string; status: ApplicationStatus; matchingScore?: number; meetingLink?: string; appliedAt?: string; reviewedAt?: string; decidedAt?: string; updatedAt?: string; }
+
+/** One AI match result from the assistant matchers (offer fields for candidates, candidate fields for recruiters). */
+export interface MatchItem { offerId?: string; candidateId?: string; title?: string; name?: string; company?: string; type?: string; headline?: string; score?: number; reasons?: string[]; gaps?: string[]; }
 export interface SkillLevel { name: string; level: number; }
 export interface Favorite { id: string; userId: string; offerId: string; offer?: Offer; createdAt?: string; }
 export interface Subscription { id?: string; userId: string; plan: Plan; active: boolean; startDate?: string; expirationDate?: string; status?: SubscriptionStatus; createdAt?: string; updatedAt?: string; }
