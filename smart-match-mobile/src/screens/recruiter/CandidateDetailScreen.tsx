@@ -203,6 +203,9 @@ export function CandidateDetailScreen({ route, navigation }: NativeStackScreenPr
           <AppButton title="Accept" size="sm" variant="secondary" onPress={() => updateStatus('ACCEPTED')} disabled={busy || status === 'ACCEPTED'} style={styles.flex} />
           <AppButton title="Reject" size="sm" variant="danger" onPress={() => updateStatus('REJECTED')} disabled={busy || status === 'REJECTED'} style={styles.flex} />
         </View>
+        {offer?.type === 'FREELANCE' ? (
+          <AppButton title="Pay candidate" icon="check" size="sm" onPress={() => navigation.navigate('PayCandidate', { application, offer, candidateName: name })} />
+        ) : null}
         <AppButton title="Message candidate" icon="chat" variant="ghost" size="sm" onPress={message} />
       </View>
     </View>

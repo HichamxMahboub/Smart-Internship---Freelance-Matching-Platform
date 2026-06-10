@@ -9,6 +9,7 @@ import com.smartmatch.model.Payment;
 import com.smartmatch.model.Subscription;
 import com.smartmatch.model.User;
 import com.smartmatch.model.enums.PaymentStatus;
+import com.smartmatch.model.enums.PaymentType;
 import com.smartmatch.model.enums.Plan;
 import com.smartmatch.model.enums.Role;
 import com.smartmatch.model.enums.SubscriptionStatus;
@@ -160,7 +161,10 @@ class SubscriptionServiceTest {
     }
 
     private PaymentResponse toPaymentResponse(Payment payment) {
-        return new PaymentResponse(payment.getId(), payment.getSubscriptionId(), payment.getUserId(), payment.getAmount(),
-                payment.getCurrency(), payment.getMethod(), payment.getStatus(), payment.getPaidAt(), payment.getCreatedAt());
+        return new PaymentResponse(payment.getId(), PaymentType.SUBSCRIPTION, payment.getSubscriptionId(),
+                payment.getUserId(), payment.getUserId(), null, payment.getPayeeId(), null,
+                payment.getOfferId(), null, payment.getApplicationId(), payment.getAmount(),
+                payment.getCurrency(), payment.getMethod(), payment.getDescription(), payment.getStatus(),
+                payment.getPaidAt(), payment.getCreatedAt());
     }
 }

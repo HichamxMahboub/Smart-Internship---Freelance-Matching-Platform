@@ -12,6 +12,7 @@ const typeIcon: Record<NotificationType, IconName> = {
   APPLICATION: 'document',
   OFFER: 'briefcase',
   SUBSCRIPTION: 'star',
+  PAYMENT: 'check',
   AI: 'sparkles',
   ADMIN: 'shield'
 };

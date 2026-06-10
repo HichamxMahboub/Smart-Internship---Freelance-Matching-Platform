@@ -117,8 +117,19 @@ public class SubscriptionService {
     }
 
     private void confirmPaidPayment(Payment payment) {
+        payment.setPaidAt(Instant.now());
+        activatePaidSubscription(payment);
+    }
+
+    /**
+     * Marks the subscription tied to a paid payment as active for 30 days and upgrades the user to PREMIUM.
+     * Reused by the Stripe flow once Stripe confirms the checkout was paid.
+     */
+    public void activatePaidSubscription(Payment payment) {
         Instant now = Instant.now();
-        payment.setPaidAt(now);
+        if (payment.getPaidAt() == null) {
+            payment.setPaidAt(now);
+        }
 
         Subscription subscription = subscriptionRepository.findById(payment.getSubscriptionId())
                 .orElseThrow(() -> new NotFoundException("Subscription not found for payment"));

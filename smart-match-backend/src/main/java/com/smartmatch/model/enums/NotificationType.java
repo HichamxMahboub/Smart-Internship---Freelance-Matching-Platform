@@ -4,6 +4,7 @@ public enum NotificationType {
     APPLICATION,
     OFFER,
     SUBSCRIPTION,
+    PAYMENT,
     AI,
     ADMIN
 }

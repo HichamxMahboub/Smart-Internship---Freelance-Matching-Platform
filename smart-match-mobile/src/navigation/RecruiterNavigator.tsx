@@ -10,6 +10,7 @@ import { RecruiterApplicationsScreen } from '../screens/recruiter/RecruiterAppli
 import { CandidateDetailScreen } from '../screens/recruiter/CandidateDetailScreen';
 import { OfferCandidatesScreen } from '../screens/recruiter/OfferCandidatesScreen';
 import { RecruiterAssistantScreen } from '../screens/recruiter/RecruiterAssistantScreen';
+import { PayCandidateScreen } from '../screens/recruiter/PayCandidateScreen';
 import { NotificationsScreen } from '../screens/recruiter/NotificationsScreen';
 import { ConversationsScreen } from '../screens/shared/ConversationsScreen';
 import { ChatScreen } from '../screens/shared/ChatScreen';
@@ -27,6 +28,7 @@ export type RecruiterStackParamList = {
   CandidateDetail: { application: Application; recommendation?: CandidateRecommendation; offer?: Offer };
   OfferCandidates: { offerId: string; offer?: Offer };
   RecruiterAssistant: undefined;
+  PayCandidate: { application: Application; offer?: Offer; candidateName?: string };
 };
 const Stack = createNativeStackNavigator<RecruiterStackParamList>();
 const Tab = createBottomTabNavigator();
@@ -63,6 +65,7 @@ export function RecruiterNavigator() {
       <Stack.Screen name="CandidateDetail" component={CandidateDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="OfferCandidates" component={OfferCandidatesScreen} options={{ headerShown: false }} />
       <Stack.Screen name="RecruiterAssistant" component={RecruiterAssistantScreen} options={{ title: 'AI Assistant' }} />
+      <Stack.Screen name="PayCandidate" component={PayCandidateScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

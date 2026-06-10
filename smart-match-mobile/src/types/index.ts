@@ -5,7 +5,9 @@ export type OfferStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'BLOCKED';
 export type ApplicationStatus = 'PENDING' | 'INTERVIEW' | 'ACCEPTED' | 'REJECTED';
 export type ValidationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
-export type NotificationType = 'APPLICATION' | 'OFFER' | 'SUBSCRIPTION' | 'AI' | 'ADMIN';
+export type NotificationType = 'APPLICATION' | 'OFFER' | 'SUBSCRIPTION' | 'PAYMENT' | 'AI' | 'ADMIN';
+export type PaymentType = 'SUBSCRIPTION' | 'FREELANCE';
+export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
 export type AIResultType = 'CV_ANALYSIS' | 'OFFER_RECOMMENDATION' | 'CANDIDATE_RECOMMENDATION' | 'PROFILE_OPTIMIZATION';
 
 export interface User { id: string; firebaseUid?: string; fullName: string; email: string; role: Role; plan: Plan; active: boolean; emailVerified: boolean; createdAt?: string; updatedAt?: string; }
@@ -19,6 +21,10 @@ export interface MatchItem { offerId?: string; candidateId?: string; title?: str
 export interface SkillLevel { name: string; level: number; }
 export interface Favorite { id: string; userId: string; offerId: string; offer?: Offer; createdAt?: string; }
 export interface Subscription { id?: string; userId: string; plan: Plan; active: boolean; startDate?: string; expirationDate?: string; status?: SubscriptionStatus; createdAt?: string; updatedAt?: string; }
+/** A payment: SUBSCRIPTION (user -> platform) or FREELANCE (recruiter -> candidate). amount is a major-unit decimal. */
+export interface Payment { id: string; type: PaymentType; subscriptionId?: string; userId?: string; payerId?: string; payerName?: string; payeeId?: string; payeeName?: string; offerId?: string; offerTitle?: string; applicationId?: string; amount: number; currency: string; method?: string; description?: string; status: PaymentStatus; paidAt?: string; createdAt?: string; }
+/** Stripe Checkout session returned by the backend; open `url` in a browser, then confirm with `paymentId`. */
+export interface CheckoutSession { paymentId: string; sessionId: string; url: string; }
 export interface Notification { id: string; userId: string; title: string; message: string; type: NotificationType; read: boolean; createdAt?: string; }
 export interface RecruiterProfile { id?: string; userId?: string; companyId?: string; photoUrl?: string; headline?: string; bio?: string; linkedin?: string; position?: string; phone?: string; createdAt?: string; updatedAt?: string; }
 export interface Project { id?: string; title: string; description?: string; link?: string; imageUrl?: string; }

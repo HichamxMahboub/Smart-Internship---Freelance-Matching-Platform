@@ -42,6 +42,13 @@ smartmatch:
     candidate-match-url: ${ASSISTANT_CANDIDATE_MATCH_URL:http://n8n:5678/webhook/interlance-candidate-match}
     recruiter-match-url: ${ASSISTANT_RECRUITER_MATCH_URL:http://n8n:5678/webhook/interlance-recruiter-match}
     timeout-seconds: ${ASSISTANT_TIMEOUT_SECONDS:120}
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    currency: ${STRIPE_CURRENCY:usd}
+    success-url: ${STRIPE_SUCCESS_URL:https://interlance.app/pay/success}
+    cancel-url: ${STRIPE_CANCEL_URL:https://interlance.app/pay/cancel}
+    premium-amount: ${STRIPE_PREMIUM_AMOUNT:99}
 
 app:
   payment:

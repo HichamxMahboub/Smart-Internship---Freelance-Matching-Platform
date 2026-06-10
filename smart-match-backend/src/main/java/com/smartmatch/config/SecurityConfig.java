@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/sync-user").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/subscriptions/webhook/payment").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/subscriptions/demo-confirm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/payments/stripe/webhook").permitAll()
                         .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
                         .anyRequest().authenticated()

@@ -1,6 +1,7 @@
 package com.smartmatch.model;
 
 import com.smartmatch.model.enums.PaymentStatus;
+import com.smartmatch.model.enums.PaymentType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,11 +23,31 @@ public class Payment {
     @Id
     private String id;
 
+    /** SUBSCRIPTION (user -> platform) or FREELANCE (recruiter -> candidate). Null legacy rows = SUBSCRIPTION. */
+    private PaymentType type;
+
     @Indexed
     private String subscriptionId;
 
+    /** Legacy payer reference kept for backward compatibility; mirrors payerId. */
     @Indexed
     private String userId;
+
+    /** Who pays (recruiter for freelance, subscriber for subscription). */
+    @Indexed
+    private String payerId;
+
+    /** Who gets paid (candidate for freelance). Null for subscriptions. */
+    @Indexed
+    private String payeeId;
+
+    private String offerId;
+    private String applicationId;
+    private String description;
+
+    @Indexed
+    private String stripeSessionId;
+    private String stripePaymentIntentId;
 
     private BigDecimal amount;
     private String currency;

@@ -9,6 +9,7 @@ import { ApplicationsScreen } from '../screens/candidate/ApplicationsScreen';
 import { FavoritesScreen } from '../screens/candidate/FavoritesScreen';
 import { PremiumScreen } from '../screens/candidate/PremiumScreen';
 import { AIRecommendationsScreen } from '../screens/candidate/AIRecommendationsScreen';
+import { EarningsScreen } from '../screens/candidate/EarningsScreen';
 import { NotificationsScreen } from '../screens/candidate/NotificationsScreen';
 import { ConversationsScreen } from '../screens/shared/ConversationsScreen';
 import { ChatScreen } from '../screens/shared/ChatScreen';
@@ -23,6 +24,7 @@ export type CandidateStackParamList = {
   Chat: { conversationId: string; displayName?: string; displayAvatarUrl?: string; offerTitle?: string };
   Favorites: undefined;
   Premium: undefined;
+  Earnings: undefined;
   Notifications: undefined;
 };
 const Stack = createNativeStackNavigator<CandidateStackParamList>();
@@ -58,6 +60,7 @@ export function CandidateNavigator() {
       <Stack.Screen name="Chat" component={ChatScreen} options={{ title: '' }} />
       <Stack.Screen name="Favorites" component={FavoritesScreen} options={{ title: 'Saved offers' }} />
       <Stack.Screen name="Premium" component={PremiumScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Earnings" component={EarningsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notifications' }} />
     </Stack.Navigator>
   );
