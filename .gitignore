@@ -57,3 +57,9 @@ smart-match-mobile/.env.*
 **/.claude/
 CLAUDE.md
 **/CLAUDE.md
+
+# Local environment secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
