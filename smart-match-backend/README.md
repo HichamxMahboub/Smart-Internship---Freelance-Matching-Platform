@@ -1,6 +1,6 @@
-# Smart Internship & Freelance Matching Platform API
+# Interlance — Backend API
 
-Backend REST API for a mobile and backoffice platform connecting candidates/students/freelancers with recruiters and companies publishing internship or freelance offers.
+Interlance backend REST API for a mobile and backoffice platform connecting candidates/students/freelancers with recruiters and companies publishing internship or freelance offers.
 
 ## Technologies
 

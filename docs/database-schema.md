@@ -1,4 +1,4 @@
-# Database Schema
+# Interlance — Database Schema
 
 MongoDB stores data as documents. Collection names in code use snake case where configured.
 

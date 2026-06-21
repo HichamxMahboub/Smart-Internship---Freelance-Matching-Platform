@@ -1,4 +1,4 @@
-# Architecture
+# Interlance — Architecture
 
 ## Components
 

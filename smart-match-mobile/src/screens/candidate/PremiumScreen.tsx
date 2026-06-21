@@ -36,7 +36,7 @@ export function PremiumScreen() {
   const confirming = useRef(false);
   const load = async () => { try { setSubscription(await subscriptionService.current()); } catch {} };
   useFocusEffect(useCallback(() => { load(); }, []));
-  const upgrade = async () => { try { setUpgrading(true); await subscriptionService.upgrade(); Alert.alert('Premium active', 'Your simulated payment was accepted.'); load(); } catch (e: any) { Alert.alert('Upgrade failed', e?.response?.data?.message ?? 'Could not upgrade.'); } finally { setUpgrading(false); } };
+  const upgrade = async () => { try { setUpgrading(true); await subscriptionService.upgrade(); Alert.alert('Payment pending', 'Your Premium request is pending confirmation.'); load(); } catch (e: any) { Alert.alert('Upgrade failed', e?.response?.data?.message ?? 'Could not upgrade.'); } finally { setUpgrading(false); } };
 
   const payWithStripe = async () => {
     try {

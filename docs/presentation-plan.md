@@ -1,8 +1,8 @@
-# Presentation Plan
+# Interlance — Presentation Plan
 
 ## Slide 1: Title
 
-Smart Internship & Freelance Matching Platform, team members and academic context.
+Interlance, team members and academic context.
 
 ## Slide 2: Problem
 

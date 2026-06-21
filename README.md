@@ -1,8 +1,10 @@
-# Smart Internship & Freelance Matching Platform
+# Interlance
+
+> Interlance est l’évolution du projet Smart Match, une plateforme intelligente de stages et missions freelance.
 
 ## General Description
 
-Smart Internship & Freelance Matching Platform is a complete academic full-stack project that connects candidates, students and freelancers with recruiters and companies publishing internship or freelance opportunities. The platform includes a Spring Boot backend, an Angular PWA backoffice, and an Expo React Native mobile app.
+Interlance is a complete academic full-stack project that connects candidates, students and freelancers with recruiters and companies publishing internship or freelance opportunities. The platform includes a Spring Boot backend, an Angular PWA backoffice, and an Expo React Native mobile app.
 
 ## Problem Statement
 
@@ -51,7 +53,7 @@ Firebase authenticates users. The frontend apps send the Firebase ID token as a 
 ## Folder Structure
 
 ```text
-smart-match-platform/
+Interlance/
   smart-match-backend/
   smart-match-backoffice/
   smart-match-mobile/
@@ -101,6 +103,16 @@ In this workspace, these folders are prepared side-by-side at the repository roo
 5. Backend loads local `User` from MongoDB using `firebaseUid`.
 6. Spring Security applies role-based access control.
 
+## AI Assistance
+
+Interlance uses AI to analyse a candidate profile/CV, rank offers or candidates, and suggest profile improvements. It returns recommendations and scores only; it never accepts or rejects a candidacy automatically. External AI providers are optional and local fallback heuristics remain available. See [AI role](docs/ai-role.md).
+
+## Security Summary
+
+Firebase ID tokens are verified by the Spring Boot backend before a local MongoDB user and role are resolved. Candidate, recruiter and admin resources are guarded by role and ownership checks. CV uploads are limited to 5 MB, constrained to PDF/DOC/DOCX, given server-generated names and protected against path traversal. Secrets are environment variables; real credentials are not committed. See [security documentation](docs/security.md).
+
+Premium upgrades create `PENDING` subscription/payment records and activate only after a protected Demo Mode/webhook confirmation or a configured Stripe confirmation. See [payment flow](docs/payment-flow.md).
+
 ## Main Features by Role
 
 ### Candidate
@@ -133,6 +145,13 @@ In this workspace, these folders are prepared side-by-side at the repository roo
 - Validate/reject companies.
 - Moderate offers.
 - View subscriptions and admin logs.
+
+## Documentation
+
+- [User guide](docs/user-guide.md)
+- [Demo data](docs/demo-data.md)
+- [10-minute demo script](docs/demo-script.md)
+- [Final checklist](docs/final-checklist.md)
 
 ## Run Backend
 
@@ -238,13 +257,13 @@ Add screenshots before final submission:
 
 ## Academic Notes
 
-This project is designed for academic demonstration. Payment and AI features are simulated but structured as real backend modules, allowing future integration with payment gateways and AI services. Firebase Authentication is real and should be configured with a Firebase project before the final demo.
+This project is designed for academic demonstration. Payment includes a secret-protected Demo Mode and an optional Stripe Checkout test integration; AI can use configured external services or local fallback heuristics. Firebase Authentication is real and must be configured with a Firebase project before the final demo.
 
 ## Security Hardening Implemented
 
 - Admin self-registration is blocked: `/api/auth/sync-user` accepts only `CANDIDATE` and `RECRUITER`; `ADMIN` users are created only through controlled seed/admin mechanisms.
 - Premium payment flow now creates `PENDING` payments and subscriptions; the user remains `FREE` until `/api/subscriptions/webhook/payment` or `/api/subscriptions/demo-confirm` confirms with `X-Payment-Secret`.
-- Mongo Express is protected by basic auth in Docker Compose through `MONGO_EXPRESS_USERNAME` and `MONGO_EXPRESS_PASSWORD`.
+- The backend Docker Compose protects Mongo Express with `MONGO_EXPRESS_USERNAME` and `MONGO_EXPRESS_PASSWORD`; the root Compose must remain local until it is similarly protected.
 - CV upload validates size, extension, content type, path traversal, and stores server-generated filenames.
 - Chat messages are size-limited, message history is paginated, and recruiter/candidate conversations require an existing application.
 - MongoDB indexes were added for users, offers, applications, payments, subscriptions, notifications, companies and chat collections.
@@ -253,7 +272,7 @@ This project is designed for academic demonstration. Payment and AI features are
 
 ## Known Limitations for Academic Demo
 
-- Payment remains simulated, but activation is gated by a secret-confirmed webhook/demo endpoint.
+- Demo Mode payment is simulated and gated by a secret-confirmed endpoint; Stripe requires test keys and public webhook configuration.
 - AI depends on external provider configuration or backend fallback heuristics.
 - Mobile offline behavior is partial and depends on local client storage only.
 - Firebase client configuration is public app config and must be replaced with the project values before demo.

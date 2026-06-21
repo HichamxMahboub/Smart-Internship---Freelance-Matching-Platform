@@ -1,4 +1,4 @@
-# Rapport de projet — Smart Internship & Freelance Matching Platform (Interlance)
+# Rapport de projet — Interlance
 
 > Projet de fin de module — équipe de **5 personnes**.
 > Ce document répond à deux questions :

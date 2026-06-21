@@ -1,4 +1,4 @@
-# API Summary
+# Interlance — API Summary
 
 All protected endpoints require:
 

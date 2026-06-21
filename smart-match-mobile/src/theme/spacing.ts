@@ -51,7 +51,9 @@ const nativeShadow = {
   }
 } satisfies Record<string, ViewStyle>;
 
-const webShadow: typeof nativeShadow = {
+type WebShadowStyle = ViewStyle & { boxShadow: string };
+
+const webShadow: Record<keyof typeof nativeShadow, WebShadowStyle> = {
   xs: { boxShadow: '0px 2px 6px rgba(11, 20, 48, 0.05)' },
   soft: { boxShadow: '0px 6px 16px rgba(11, 20, 48, 0.07)' },
   medium: { boxShadow: '0px 12px 24px rgba(11, 20, 48, 0.13)' },

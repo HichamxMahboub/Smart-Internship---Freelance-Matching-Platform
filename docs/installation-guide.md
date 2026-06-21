@@ -1,4 +1,4 @@
-# Installation Guide
+# Interlance — Installation Guide
 
 ## Prerequisites
 

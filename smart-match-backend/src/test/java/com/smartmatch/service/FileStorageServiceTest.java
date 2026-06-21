@@ -6,6 +6,9 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -58,7 +61,9 @@ class FileStorageServiceTest {
     }
 
     private FileStorageService service() {
-        FileStorageService service = new FileStorageService(null);
+        CloudinaryStorageService cloudinaryStorageService = mock(CloudinaryStorageService.class);
+        when(cloudinaryStorageService.isEnabled()).thenReturn(false);
+        FileStorageService service = new FileStorageService(cloudinaryStorageService);
         ReflectionTestUtils.setField(service, "cvUploadDir", tempDir.toString());
         return service;
     }
