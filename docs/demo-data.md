@@ -4,9 +4,9 @@
 
 | Profil | E-mail | Mot de passe | Rôle |
 |---|---|---|---|
-| Administrateur | [admin@interlance.demo](mailto:admin@interlance.demo) | `DemoAdmin123!` | `ADMIN` |
-| Candidate | [candidate@interlance.demo](mailto:candidate@interlance.demo) | `DemoCandidate123!` | `CANDIDATE` |
-| Recruteur | [recruiter@interlance.demo](mailto:recruiter@interlance.demo) | `DemoRecruiter123!` | `RECRUITER` |
+| Administrateur | [admin@interlance.demo](mailto:admin@interlance.demo) | `demo123` | `ADMIN` |
+| Candidate | [candidate@interlance.demo](mailto:candidate@interlance.demo) | `demo123` | `CANDIDATE` |
+| Recruteur | [recruiter@interlance.demo](mailto:recruiter@interlance.demo) | `demo123` | `RECRUITER` |
 
 Ces identifiants sont réservés à la démo académique. Ils ne sont ni des secrets de production ni des comptes à réutiliser en environnement réel.
 
@@ -18,7 +18,7 @@ Le backend fournit `DataSeeder`, activé avec :
 APP_SEED_ENABLED=true
 ```
 
-Il crée les documents MongoDB de démonstration de façon idempotente. Il **ne crée pas les utilisateurs ni les mots de passe dans Firebase**. Avant la démonstration, créer les trois comptes e-mail/mot de passe dans Firebase Authentication (ou l’émulateur Firebase) avec les valeurs du tableau. À la première connexion, le backend associe le compte Firebase au document seed de même e-mail et conserve son rôle local.
+Il crée les documents MongoDB de démonstration de façon idempotente. Avec Docker Compose, `APP_DEMO_AUTH_ENABLED=true` permet d’utiliser les identités du tableau sans Firebase ; le mot de passe `demo123` est accepté par les clients de démo. Le seeder **ne crée pas de comptes Firebase**. Pour un environnement de production, Firebase Authentication doit être configuré séparément et le backend associe le compte vérifié au document local de même e-mail.
 
 ## Jeu de données créé
 

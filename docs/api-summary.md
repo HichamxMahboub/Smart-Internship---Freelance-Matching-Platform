@@ -1,6 +1,40 @@
 # Interlance — API Summary
 
-All protected endpoints require:
+> Référence de démo : la documentation interactive OpenAPI est disponible sur [Swagger UI](http://localhost:8080/swagger-ui/index.html). Les chemins et opérations ci-dessous sont ceux des contrôleurs Spring Boot ; Swagger reste la source de détail (paramètres, schémas et réponses).
+
+## Accès et authentification
+
+En production, un client transmet un jeton Firebase dans `Authorization: Bearer <firebase_id_token>`. Le backend le vérifie avant de charger l'utilisateur et son rôle (`CANDIDATE`, `RECRUITER` ou `ADMIN`).
+
+Dans Docker Compose local, `APP_DEMO_AUTH_ENABLED=true` autorise les comptes seed sans Firebase : les clients de démonstration transmettent l'identité dans l'en-tête `X-Demo-User-Email`. Cet en-tête est réservé à la démo locale et ne remplace pas la vérification Firebase en production.
+
+## Groupes d'API
+
+| Groupe | Objet et principales opérations | Acteur principal |
+|---|---|---|
+| `/api/auth` | Synchroniser le compte authentifié et obtenir l'utilisateur courant (`POST /sync-user`, `GET /me`). | Tous les utilisateurs authentifiés |
+| `/api/users` | Consulter ou modifier son profil utilisateur, enregistrer un jeton de notification ; l'administration peut consulter et changer un statut. | Utilisateur, Admin |
+| `/api/candidates` | Nom fonctionnel du domaine candidat ; les routes réelles sont `/api/candidate-profiles` (`GET`/`PUT /me`, dépôt et analyse de CV). | Candidate |
+| `/api/recruiters` | Nom fonctionnel du domaine recruteur ; les routes réelles sont `/api/recruiter-profiles` (`GET`/`PUT /me`). | Recruiter |
+| `/api/companies` | Créer, consulter et modifier son entreprise ; `/api/admin/companies` valide les entreprises. | Recruiter, Admin |
+| `/api/offers` | Lister, consulter, créer, modifier, publier ou archiver une offre ; `/api/admin/offers` modère. | Public, Recruiter, Admin |
+| `/api/applications` | Postuler, consulter ses candidatures ou celles reçues, et modifier le statut autorisé. | Candidate, Recruiter, Admin |
+| `/api/favorites` | Ajouter, supprimer et lister les offres favorites. | Candidate |
+| `/api/subscriptions` | Consulter la souscription, demander un upgrade, confirmer une démo et administrer les souscriptions. | Utilisateur, Admin |
+| `/api/payments` | Initialiser une souscription ou un paiement freelance, confirmer un paiement et traiter le webhook Stripe si configuré. | Utilisateur, service de paiement |
+| `/api/notifications` | Lire les notifications, marquer une notification ou toutes comme lues. | Utilisateur |
+| `/api/ai` | Lancer/consulter un traitement IA et obtenir des recommandations de candidats pour une offre. | Candidate, Recruiter selon la ressource |
+| `/api/admin` | Dashboard, utilisateurs, entreprises, offres, abonnements, notifications et logs d'administration. | Admin |
+
+### Groupes complémentaires réellement exposés
+
+- `/api/uploads` : signatures Cloudinary et dépôts d'images/CV autorisés ;
+- `/api/conversations` : conversations et messages liés aux candidatures ;
+- `/api/assistant` : assistance conversationnelle et propositions de matching.
+
+Ne pas déduire un endpoint précis du seul nom fonctionnel : vérifier Swagger avant d'intégrer un client ou de préparer une collection Postman.
+
+Outside the explicit local Docker demo mode, protected endpoints require:
 
 ```http
 Authorization: Bearer <firebase_id_token>
@@ -10,7 +44,6 @@ Authorization: Bearer <firebase_id_token>
 
 - `POST /api/auth/sync-user` public with Firebase bearer token; `ADMIN` role is rejected for self-registration
 - `GET /api/auth/me` authenticated
-- `POST /api/auth/verify-email-status` planned/extendable
 
 ## Users
 

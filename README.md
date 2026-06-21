@@ -146,12 +146,32 @@ Premium upgrades create `PENDING` subscription/payment records and activate only
 - Moderate offers.
 - View subscriptions and admin logs.
 
-## Documentation
+## Technical Documentation
 
-- [User guide](docs/user-guide.md)
-- [Demo data](docs/demo-data.md)
-- [10-minute demo script](docs/demo-script.md)
-- [Final checklist](docs/final-checklist.md)
+- [Architecture technique](docs/architecture.md)
+- [Design patterns](docs/design-patterns.md)
+- [Guide d'installation](docs/installation-guide.md)
+- [Résumé API et Swagger](docs/api-summary.md)
+- [Schéma MongoDB](docs/database-schema.md)
+- [Guide utilisateur](docs/user-guide.md)
+- [Données de démonstration](docs/demo-data.md)
+- [Script de démonstration (10 minutes)](docs/demo-script.md)
+- [Checklist finale](docs/final-checklist.md)
+- [Déploiement Docker et Kubernetes](deployment/README.md)
+
+## Run local demo
+
+```bash
+docker compose up -d --build
+docker ps
+docker logs --tail=80 smart-match-platform-backend
+```
+
+URLs : [Swagger](http://localhost:8080/swagger-ui/index.html), [Backoffice](http://localhost:4200), [Mongo Express](http://localhost:8081) et [n8n](http://localhost:5678). Expo Web est lancé séparément sur `http://localhost:8082` selon le [guide d'installation](docs/installation-guide.md).
+
+Le Compose local active le seeder et un mode démo sans Firebase ; Firebase reste l'authentification prévue pour la production. Les fichiers `.env` sont privés : ne jamais les committer. Seuls les fichiers `.env.example` peuvent être versionnés.
+
+Comptes de démo : `candidate@interlance.demo`, `recruiter@interlance.demo` et `admin@interlance.demo`, avec le mot de passe `demo123`.
 
 ## Run Backend
 
@@ -186,8 +206,7 @@ For Android emulator, set mobile API URL to `http://10.0.2.2:8080/api` in `src/c
 ## Run With Docker Compose
 
 ```bash
-cp .env.example .env
-docker compose up --build
+docker compose up -d --build
 ```
 
 Services:
@@ -199,7 +218,7 @@ Services:
 
 ## Swagger URL
 
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - API docs: `http://localhost:8080/v3/api-docs`
 
 ## Mongo Express URL
@@ -255,7 +274,7 @@ Add screenshots before final submission:
 
 ## Academic Notes
 
-This project is designed for academic demonstration. Payment includes a secret-protected Demo Mode and an optional Stripe Checkout test integration; AI can use configured external services or local fallback heuristics. Firebase Authentication is real and must be configured with a Firebase project before the final demo.
+This project is designed for academic demonstration. Payment includes a secret-protected Demo Mode and an optional Stripe Checkout test integration; AI can use configured external services or local fallback heuristics. Firebase Authentication is configured for production, while the local Docker demo can run with its explicit optional demo-auth mode.
 
 ## Security Hardening Implemented
 

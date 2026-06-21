@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph Clients[Clients]
+    Mobile[Mobile Expo React Native]
+    Backoffice[Backoffice Angular + Nginx]
+  end
+
+  subgraph Platform[Plateforme Interlance]
+    API[API REST Spring Boot]
+    Mongo[(MongoDB smart_match)]
+  end
+
+  subgraph Integrations[Intégrations optionnelles]
+    Firebase[Firebase Authentication]
+    N8N[n8n Workflows]
+    OpenRouter[OpenRouter]
+    Cloudinary[Cloudinary]
+    Stripe[Stripe]
+  end
+
+  Mobile -->|HTTP REST / WebSocket| API
+  Backoffice -->|HTTP REST / WebSocket| API
+  API --> Mongo
+  Mobile -. Token Firebase .-> Firebase
+  Backoffice -. Token Firebase .-> Firebase
+  API -. Vérification token .-> Firebase
+  API --> N8N
+  API --> OpenRouter
+  API --> Cloudinary
+  API --> Stripe

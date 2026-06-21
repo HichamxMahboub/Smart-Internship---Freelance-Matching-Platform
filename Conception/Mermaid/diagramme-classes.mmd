@@ -1,0 +1,57 @@
+classDiagram
+  class User {
+    +String id
+    +String firebaseUid
+    +String email
+    +Role role
+    +Plan plan
+  }
+  class CandidateProfile {
+    +String userId
+    +List skills
+    +String cvUrl
+  }
+  class RecruiterProfile {
+    +String userId
+    +String companyId
+  }
+  class Company {
+    +String id
+    +String recruiterId
+    +ValidationStatus validationStatus
+  }
+  class Offer {
+    +String id
+    +String companyId
+    +OfferType type
+    +OfferStatus status
+  }
+  class Application {
+    +String id
+    +String offerId
+    +String candidateId
+    +String recruiterId
+    +ApplicationStatus status
+  }
+  class Subscription {
+    +String userId
+    +Plan plan
+    +SubscriptionStatus status
+  }
+  class Payment {
+    +String subscriptionId
+    +PaymentStatus status
+  }
+  class Notification {
+    +String userId
+    +NotificationType type
+  }
+  User "1" --> "0..1" CandidateProfile
+  User "1" --> "0..1" RecruiterProfile
+  User "1" --> "0..*" Application
+  RecruiterProfile --> Company
+  Company "1" --> "0..*" Offer
+  Offer "1" --> "0..*" Application
+  User "1" --> "0..*" Subscription
+  Subscription --> Payment
+  User "1" --> "0..*" Notification

@@ -1,0 +1,25 @@
+sequenceDiagram
+  actor Utilisateur
+  participant Client as Mobile ou Backoffice
+  participant API as Spring Boot
+  participant DB as MongoDB
+  participant N8N as n8n optionnel
+
+  Utilisateur->>Client: Connexion démo ou Firebase
+  Client->>API: Requête API avec identité
+  API->>DB: Charger utilisateur et rôle
+  DB-->>API: Document utilisateur
+  API-->>Client: Réponse autorisée
+
+  Utilisateur->>Client: Consulter une offre
+  Client->>API: GET /api/offers
+  API->>DB: Lire les offres publiées
+  DB-->>API: Offres
+  API-->>Client: Liste des offres
+
+  Utilisateur->>Client: Demander un matching
+  Client->>API: Appel /api/assistant ou /api/ai
+  API->>N8N: Workflow si configuré
+  N8N-->>API: Résultat ou indisponibilité
+  API->>DB: Enregistrer résultat / notification
+  API-->>Client: Score et recommandations

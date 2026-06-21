@@ -1,5 +1,24 @@
 # Interlance — Checklist finale
 
+## Contrôle technique juste avant la présentation
+
+```bash
+docker ps
+docker logs --tail=80 smart-match-platform-backend
+git ls-files | grep -E '(^|/).env($|.)' || echo "No tracked .env files"
+git status --short
+```
+
+- [ ] `docker ps` affiche MongoDB, Mongo Express, backend, backoffice et n8n ;
+- [ ] le log backend ne contient pas d'erreur bloquante et le seeder de démo est terminé ;
+- [ ] Swagger s'ouvre sur `http://localhost:8080/swagger-ui/index.html` ;
+- [ ] le backoffice s'ouvre sur `http://localhost:4200` ;
+- [ ] Expo Web s'ouvre sur `http://localhost:8082` après son lancement séparé ;
+- [ ] Mongo Express s'ouvre sur `http://localhost:8081` et affiche `smart_match` ;
+- [ ] n8n s'ouvre sur `http://localhost:5678` ;
+- [ ] aucun fichier `.env` n'est suivi par Git et le statut Git ne contient que les changements attendus ;
+- [ ] le mode démo local est expliqué : Firebase est optionnel en Compose, mais requis/configuré pour l'authentification de production.
+
 ## Démarrage et configuration
 
 - [ ] Backend lancé

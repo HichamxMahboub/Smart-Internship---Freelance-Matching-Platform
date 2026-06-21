@@ -1,0 +1,62 @@
+erDiagram
+  USERS {
+    string id PK
+    string firebaseUid UK
+    string email UK
+    string role
+    string plan
+  }
+  CANDIDATE_PROFILES {
+    string userId FK
+    string cvUrl
+  }
+  RECRUITER_PROFILES {
+    string userId FK
+    string companyId FK
+  }
+  COMPANIES {
+    string id PK
+    string recruiterId FK
+    string validationStatus
+  }
+  OFFERS {
+    string id PK
+    string companyId FK
+    string status
+  }
+  APPLICATIONS {
+    string id PK
+    string offerId FK
+    string candidateId FK
+    string recruiterId FK
+    string status
+  }
+  FAVORITES {
+    string userId FK
+    string offerId FK
+  }
+  SUBSCRIPTIONS {
+    string id PK
+    string userId FK
+    string status
+  }
+  PAYMENTS {
+    string id PK
+    string subscriptionId FK
+    string userId FK
+    string status
+  }
+  NOTIFICATIONS {
+    string userId FK
+    string type
+  }
+  USERS ||--o| CANDIDATE_PROFILES : possède
+  USERS ||--o| RECRUITER_PROFILES : possède
+  USERS ||--o{ APPLICATIONS : dépose
+  COMPANIES ||--o{ OFFERS : publie
+  OFFERS ||--o{ APPLICATIONS : reçoit
+  USERS ||--o{ FAVORITES : enregistre
+  OFFERS ||--o{ FAVORITES : est_favorisée
+  USERS ||--o{ SUBSCRIPTIONS : souscrit
+  SUBSCRIPTIONS ||--o{ PAYMENTS : déclenche
+  USERS ||--o{ NOTIFICATIONS : reçoit
