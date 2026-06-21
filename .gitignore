@@ -15,7 +15,7 @@ dist/
 .web-build/
 
 # Environment and secrets
-# .env files committed per project policy; service account JSON stays blocked.
+# Environment files and service account JSON must not be committed.
 firebase-service-account.json
 *firebase*service*account*.json
 *firebase-adminsdk*.json
@@ -40,3 +40,20 @@ Thumbs.db
 # Local tooling
 coverage/
 .cache/
+
+# Local env files
+.env
+.env.*
+!.env.example
+smart-match-backend/.env
+smart-match-backend/.env.*
+!smart-match-backend/.env.example
+smart-match-mobile/.env
+smart-match-mobile/.env.*
+!smart-match-mobile/.env.example
+# Local AI/tooling scratch folders
+.ai/
+.claude/
+**/.claude/
+CLAUDE.md
+**/CLAUDE.md

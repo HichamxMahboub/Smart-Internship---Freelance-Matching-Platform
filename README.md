@@ -103,7 +103,7 @@ In this workspace, these folders are prepared side-by-side at the repository roo
 5. Backend loads local `User` from MongoDB using `firebaseUid`.
 6. Spring Security applies role-based access control.
 
-## AI Assistance
+## Assistance intelligente
 
 Interlance uses AI to analyse a candidate profile/CV, rank offers or candidates, and suggest profile improvements. It returns recommendations and scores only; it never accepts or rejects a candidacy automatically. External AI providers are optional and local fallback heuristics remain available. See [AI role](docs/matching-assistance.md).
 

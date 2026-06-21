@@ -162,8 +162,8 @@ public class AIService {
                     .conclusion(analysis.conclusion())
                     .details(analysis.details())
                     .analysisSource(context.resumeParsed()
-                            ? "Smart Match AI · resume + profile"
-                            : "Smart Match AI · profile only")
+                            ? "Interlance intelligent matching · resume + profile"
+                            : "Interlance intelligent matching · profile only")
                     .build();
         }
         List<String> skills = mergeSkills(profile.getSkills(), extractSkillsFromResumeText(context.resumeText()));
@@ -234,7 +234,7 @@ public class AIService {
                     .extractedSkills(safeList(profile.getSkills()))
                     .recommendation("Offers ranked by AI semantic fit between your profile, CV, and each role.")
                     .details(details.toString().trim())
-                    .analysisSource("Smart Match AI" + (context.resumeParsed() ? " · resume" : ""))
+                    .analysisSource("Interlance intelligent matching" + (context.resumeParsed() ? " · resume" : ""))
                     .build();
         }
 
@@ -280,7 +280,7 @@ public class AIService {
                         ? "Candidates ranked by AI semantic fit with the offer requirements."
                         : "Candidates are ranked by skill overlap with the offer requirements.")
                 .details("Recommended candidates: " + recommendations.size())
-                .analysisSource(aiMatchingClient.isEnabled() ? "Smart Match AI" : "Smart Match heuristic")
+                .analysisSource(aiMatchingClient.isEnabled() ? "Interlance intelligent matching" : "Smart Match heuristic")
                 .build();
     }
 
@@ -298,7 +298,7 @@ public class AIService {
                     .extractedSkills(safeList(profile.getSkills()))
                     .recommendation(suggestions.recommendation())
                     .details(suggestions.details())
-                    .analysisSource("Smart Match AI" + (context.resumeParsed() ? " · resume" : ""))
+                    .analysisSource("Interlance intelligent matching" + (context.resumeParsed() ? " · resume" : ""))
                     .build();
         }
         StringBuilder suggestions = new StringBuilder();

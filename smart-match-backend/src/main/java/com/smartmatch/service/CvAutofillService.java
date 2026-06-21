@@ -101,7 +101,7 @@ public class CvAutofillService {
             profile.setEducations(overwrite || isEmpty(profile.getEducations()) ? aiEducations : profile.getEducations());
             eduCount = aiEducations.size();
 
-            source = "Smart Match AI";
+            source = "Interlance intelligent matching";
         } else {
             // Offline fallback: skill keyword extraction only, no structured fields.
             List<String> heuristicSkills = HeuristicSkillExtractor.extract(resumeText.get());

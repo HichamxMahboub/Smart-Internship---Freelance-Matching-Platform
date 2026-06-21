@@ -16,7 +16,7 @@ public class OpenApiConfig {
     public OpenAPI smartMatchOpenApi() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Smart Internship & Freelance Matching Platform API")
+                        .title("Interlance API")
                         .version("1.0.0")
                         .description("Backend REST API for a mobile and backoffice platform connecting candidates with recruiters."))
                 .components(new Components()
