@@ -12,6 +12,7 @@ import com.smartmatch.model.User;
 import com.smartmatch.repository.UserRepository;
 import com.smartmatch.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final FirebaseAuth firebaseAuth;
+    private final ObjectProvider<FirebaseAuth> firebaseAuthProvider;
 
     public UserResponse getCurrentUser() {
         return toResponse(SecurityUtils.currentUser());
@@ -72,6 +73,11 @@ public class UserService {
     public UserResponse syncVerificationFromFirebase(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+        FirebaseAuth firebaseAuth = firebaseAuthProvider.getIfAvailable();
+        if (firebaseAuth == null) {
+            return toResponse(user);
+        }
+
         try {
             UserRecord record = null;
             if (user.getFirebaseUid() != null && !user.getFirebaseUid().startsWith("seed-")) {

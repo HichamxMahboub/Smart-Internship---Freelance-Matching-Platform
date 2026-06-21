@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.smartmatch.security.DisabledFirebaseTokenVerifier;
 import com.smartmatch.security.FirebaseAdminTokenVerifier;
 import com.smartmatch.security.FirebaseTokenVerifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +33,7 @@ public class FirebaseConfig {
 
     /** Exposes FirebaseAuth so server-side flows (email verification sync) can use it. */
     @Bean
+    @ConditionalOnExpression("'${firebase.service-account-path:}' != '' || '${firebase.service-account-json:}' != ''")
     public FirebaseAuth firebaseAuth(FirebaseProperties properties) throws IOException {
         FirebaseAuth firebaseAuth = initializeFirebaseAuth(properties);
         if (firebaseAuth == null) {
