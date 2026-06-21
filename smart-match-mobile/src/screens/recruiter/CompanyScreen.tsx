@@ -51,7 +51,7 @@ export function CompanyScreen() {
           </View>
           <AppInput label="Location" icon="location" value={form.location} onChangeText={(v) => set('location', v)} placeholder="Remote · Casablanca" />
           <AppInput label="Description" value={form.description} onChangeText={(v) => set('description', v)} multiline placeholder="What does your company do, and why join?" />
-          <AppInput label="Logo URL" value={form.logoUrl} onChangeText={(v) => set('logoUrl', v)} autoCapitalize="none" placeholder="https://…" />
+          <AppInput label="Logo URL (optional)" value={form.logoUrl} onChangeText={(v) => set('logoUrl', v)} autoCapitalize="none" placeholder="Leave blank to use company initials" />
           <AppInput label="Website" icon="globe" value={form.website} onChangeText={(v) => set('website', v)} keyboardType="url" autoCapitalize="none" placeholder="https://…" />
           <AppButton title={company ? 'Update company' : 'Create company'} icon="check" onPress={() => save()} loading={saving} />
         </SurfaceCard>

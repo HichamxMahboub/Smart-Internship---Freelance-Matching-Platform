@@ -50,7 +50,7 @@ export function RecruiterOnboarding({ onDone }: { onDone: () => void }) {
         <AppInput label="Company name" icon="building" value={form.name} onChangeText={(v) => set('name', v)} placeholder="Acme Inc." helper="Required." />
         <AppInput label="Sector" value={form.sector} onChangeText={(v) => set('sector', v)} placeholder="Software, finance, education…" />
         <AppInput label="Description" multiline value={form.description} onChangeText={(v) => set('description', v)} placeholder="What you do, and why students should join." />
-        <AppInput label="Logo URL" value={form.logoUrl} onChangeText={(v) => set('logoUrl', v)} autoCapitalize="none" placeholder="https://…" />
+        <AppInput label="Logo URL (optional)" value={form.logoUrl} onChangeText={(v) => set('logoUrl', v)} autoCapitalize="none" placeholder="Leave blank to use company initials" />
         <AppInput label="Website" icon="globe" value={form.website} onChangeText={(v) => set('website', v)} keyboardType="url" autoCapitalize="none" placeholder="https://…" />
       </ScrollView>
 

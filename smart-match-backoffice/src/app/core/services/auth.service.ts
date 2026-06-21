@@ -52,21 +52,34 @@ export class AuthService {
 
   login(email: string, password: string) {
     const normalizedEmail = email.trim().toLowerCase();
+    const demoUsers: Record<string, User> = {
+      'admin@interlance.demo': {
+        id: 'seed-admin-uid', firebaseUid: 'seed-admin-uid', fullName: 'Admin Interlance',
+        email: 'admin@interlance.demo', role: 'ADMIN', plan: 'PREMIUM', active: true, emailVerified: true
+      },
+      'recruiter@interlance.demo': {
+        id: 'seed-recruiter-uid', firebaseUid: 'seed-recruiter-uid', fullName: 'Recruiter Interlance',
+        email: 'recruiter@interlance.demo', role: 'RECRUITER', plan: 'PREMIUM', active: true, emailVerified: true
+      },
+      'amal.idrissi@interlance.demo': {
+        id: 'seed-amal-idrissi-uid', firebaseUid: 'seed-amal-idrissi-uid', fullName: 'Amal Idrissi',
+        email: 'amal.idrissi@interlance.demo', role: 'RECRUITER', plan: 'FREE', active: true, emailVerified: true
+      },
+      'mehdi.alami@interlance.demo': {
+        id: 'seed-mehdi-alami-uid', firebaseUid: 'seed-mehdi-alami-uid', fullName: 'Mehdi Alami',
+        email: 'mehdi.alami@interlance.demo', role: 'RECRUITER', plan: 'FREE', active: true, emailVerified: true
+      },
+      'nour.belghiti@interlance.demo': {
+        id: 'seed-nour-belghiti-uid', firebaseUid: 'seed-nour-belghiti-uid', fullName: 'Nour Belghiti',
+        email: 'nour.belghiti@interlance.demo', role: 'RECRUITER', plan: 'FREE', active: true, emailVerified: true
+      }
+    };
+    const demoUser = demoUsers[normalizedEmail];
 
-    if (['admin@interlance.demo', 'recruiter@interlance.demo'].includes(normalizedEmail)) {
-      const user: User = {
-        id: normalizedEmail.startsWith('admin') ? 'seed-admin-uid' : 'seed-recruiter-uid',
-        firebaseUid: normalizedEmail.startsWith('admin') ? 'seed-admin-uid' : 'seed-recruiter-uid',
-        fullName: normalizedEmail.startsWith('admin') ? 'Admin Interlance' : 'Recruiter Interlance',
-        email: normalizedEmail,
-        role: normalizedEmail.startsWith('admin') ? 'ADMIN' : 'RECRUITER',
-        plan: normalizedEmail.startsWith('admin') ? 'PREMIUM' : 'FREE',
-        active: true,
-        emailVerified: true
-      };
-      localStorage.setItem(this.demoUserStorageKey, JSON.stringify(user));
-      this.currentUserSubject.next(user);
-      return of(user);
+    if (password === 'demo123' && demoUser) {
+      localStorage.setItem(this.demoUserStorageKey, JSON.stringify(demoUser));
+      this.currentUserSubject.next(demoUser);
+      return of(demoUser);
     }
 
     return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(

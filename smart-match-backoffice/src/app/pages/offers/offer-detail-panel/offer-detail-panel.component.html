@@ -5,7 +5,7 @@
         <img class="offer-detail__logo" [src]="offer().companyLogoUrl" [alt]="(offer().companyName || 'Company') + ' logo'" />
       } @else {
         <div class="offer-detail__logo offer-detail__logo--fallback" aria-hidden="true">
-          <mat-icon>{{ offer().type === 'FREELANCE' ? 'laptop_mac' : 'school' }}</mat-icon>
+          {{ initials(offer().companyName || offer().title) }}
         </div>
       }
       <div class="offer-detail__titles">

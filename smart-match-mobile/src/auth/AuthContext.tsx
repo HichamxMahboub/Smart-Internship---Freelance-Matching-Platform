@@ -26,6 +26,46 @@ const DEMO_USERS: Record<string, User> = {
     fullName: 'Candidate Interlance',
     email: 'candidate@interlance.demo',
     role: 'CANDIDATE',
+    plan: 'PREMIUM',
+    active: true,
+    emailVerified: true
+  },
+  'sara.bennani@interlance.demo': {
+    id: 'seed-sara-bennani-uid',
+    firebaseUid: 'seed-sara-bennani-uid',
+    fullName: 'Sara Bennani',
+    email: 'sara.bennani@interlance.demo',
+    role: 'CANDIDATE',
+    plan: 'FREE',
+    active: true,
+    emailVerified: true
+  },
+  'yassine.elamrani@interlance.demo': {
+    id: 'seed-yassine-elamrani-uid',
+    firebaseUid: 'seed-yassine-elamrani-uid',
+    fullName: 'Yassine El Amrani',
+    email: 'yassine.elamrani@interlance.demo',
+    role: 'CANDIDATE',
+    plan: 'FREE',
+    active: true,
+    emailVerified: true
+  },
+  'imane.zahraoui@interlance.demo': {
+    id: 'seed-imane-zahraoui-uid',
+    firebaseUid: 'seed-imane-zahraoui-uid',
+    fullName: 'Imane Zahraoui',
+    email: 'imane.zahraoui@interlance.demo',
+    role: 'CANDIDATE',
+    plan: 'FREE',
+    active: true,
+    emailVerified: true
+  },
+  'omar.tazi@interlance.demo': {
+    id: 'seed-omar-tazi-uid',
+    firebaseUid: 'seed-omar-tazi-uid',
+    fullName: 'Omar Tazi',
+    email: 'omar.tazi@interlance.demo',
+    role: 'CANDIDATE',
     plan: 'FREE',
     active: true,
     emailVerified: true
@@ -35,6 +75,36 @@ const DEMO_USERS: Record<string, User> = {
     firebaseUid: 'seed-recruiter-uid',
     fullName: 'Recruiter Interlance',
     email: 'recruiter@interlance.demo',
+    role: 'RECRUITER',
+    plan: 'PREMIUM',
+    active: true,
+    emailVerified: true
+  },
+  'amal.idrissi@interlance.demo': {
+    id: 'seed-amal-idrissi-uid',
+    firebaseUid: 'seed-amal-idrissi-uid',
+    fullName: 'Amal Idrissi',
+    email: 'amal.idrissi@interlance.demo',
+    role: 'RECRUITER',
+    plan: 'FREE',
+    active: true,
+    emailVerified: true
+  },
+  'mehdi.alami@interlance.demo': {
+    id: 'seed-mehdi-alami-uid',
+    firebaseUid: 'seed-mehdi-alami-uid',
+    fullName: 'Mehdi Alami',
+    email: 'mehdi.alami@interlance.demo',
+    role: 'RECRUITER',
+    plan: 'FREE',
+    active: true,
+    emailVerified: true
+  },
+  'nour.belghiti@interlance.demo': {
+    id: 'seed-nour-belghiti-uid',
+    firebaseUid: 'seed-nour-belghiti-uid',
+    fullName: 'Nour Belghiti',
+    email: 'nour.belghiti@interlance.demo',
     role: 'RECRUITER',
     plan: 'FREE',
     active: true,

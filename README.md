@@ -154,7 +154,7 @@ Premium upgrades create `PENDING` subscription/payment records and activate only
 - [Résumé API et Swagger](docs/api-summary.md)
 - [Schéma MongoDB](docs/database-schema.md)
 - [Guide utilisateur](docs/user-guide.md)
-- [Données de démonstration](docs/demo-data.md)
+- [Demo data / données de démonstration](docs/demo-data.md)
 - [Script de démonstration (10 minutes)](docs/demo-script.md)
 - [Checklist finale](docs/final-checklist.md)
 - [Déploiement Docker et Kubernetes](deployment/README.md)

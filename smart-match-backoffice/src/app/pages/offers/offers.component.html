@@ -79,7 +79,7 @@
           <img class="offer-card__company-logo" [src]="offer.companyLogoUrl" [alt]="(offer.companyName || 'Company') + ' logo'" />
         } @else {
           <div class="offer-card__company-logo offer-card__company-logo--fallback" aria-hidden="true">
-            <mat-icon>apartment</mat-icon>
+            {{ initials(offer.companyName || offer.title) }}
           </div>
         }
         <div class="offer-card__company-text">

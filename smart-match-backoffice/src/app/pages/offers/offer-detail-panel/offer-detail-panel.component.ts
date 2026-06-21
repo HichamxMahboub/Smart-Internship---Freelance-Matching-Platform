@@ -90,6 +90,15 @@ export class OfferDetailPanelComponent {
       : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
+  initials(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('');
+  }
+
   shortId(id: string): string {
     if (id.length <= 12) return id;
     return `${id.slice(0, 6)}…${id.slice(-4)}`;
