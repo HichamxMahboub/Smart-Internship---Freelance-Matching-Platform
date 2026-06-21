@@ -58,5 +58,4 @@ git status --short
 - [ ] Kubernetes préparé ou statut clarifié
 - [ ] Ressources, probes, PVC et Secret Kubernetes revus
 - [ ] Vidéo de démonstration préparée
-- [ ] Script de démonstration répété en 10 minutes
 - [ ] Documentation complète et nom officiel Interlance vérifié

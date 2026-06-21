@@ -2,295 +2,154 @@
 
 > Interlance est l’évolution du projet Smart Match, une plateforme intelligente de stages et missions freelance.
 
-## General Description
+## Présentation
 
-Interlance is a complete academic full-stack project that connects candidates, students and freelancers with recruiters and companies publishing internship or freelance opportunities. The platform includes a Spring Boot backend, an Angular PWA backoffice, and an Expo React Native mobile app.
+Interlance est un projet full stack académique qui met en relation des candidats, étudiants et freelances avec des recruteurs et des entreprises. La plateforme centralise la publication de stages et missions freelance, le suivi des candidatures, la validation des entreprises et une assistance intelligente au matching.
 
-## Problem Statement
+## Problématique
 
-Students and junior freelancers often struggle to find relevant opportunities, while recruiters spend time filtering candidates manually. Existing workflows are fragmented across email, social platforms and spreadsheets, making offer publication, application tracking, company validation and candidate matching inefficient.
+La recherche de stage ou de mission est souvent fragmentée entre messageries, réseaux sociaux et fichiers partagés. Les recruteurs doivent de leur côté traiter manuellement les candidatures. Interlance propose un parcours unique, traçable et adapté aux rôles de chaque utilisateur.
 
-## Objectives
+## Objectifs
 
-- Centralize internship and freelance offer management.
-- Provide candidates with mobile access to offers, applications, favorites and premium intelligent matching features.
-- Provide recruiters with company, offer and application management tools.
-- Provide admins with validation, moderation, analytics and monitoring tools.
-- Secure access with Firebase Authentication and role-based authorization.
-- Package the system for local, Docker and Kubernetes deployment.
+- Centraliser les offres de stage et les missions freelance.
+- Permettre aux candidats de rechercher, enregistrer et suivre leurs candidatures depuis le mobile.
+- Donner aux recruteurs les outils pour gérer entreprise, offres et candidatures.
+- Fournir aux administrateurs un backoffice de validation, modération et suivi.
+- Proposer une IA responsable qui recommande et explique, sans prendre de décision finale.
+- Permettre une exécution locale avec Docker sans dépendre de Firebase.
 
-## Main Actors
+## Utilisateurs
 
-- **Candidate**: browses offers, applies, saves favorites, manages profile, upgrades to premium and uses intelligent matching features.
-- **Recruiter**: manages recruiter profile, company, offers and received applications.
-- **Admin**: validates companies, supervises users/offers/subscriptions/logs and monitors dashboard analytics.
-
-## Technologies Used
-
-| Layer | Technologies |
+| Rôle | Responsabilités principales |
 |---|---|
-| Backend | Java 17, Spring Boot 3, Spring Security, Spring Data MongoDB, Firebase Admin SDK, Swagger/OpenAPI, Maven |
-| Database | MongoDB, Mongo Express |
-| Backoffice | Angular, Angular Material, PWA, Firebase Auth, HTTP Client |
-| Mobile | Expo, React Native, TypeScript, React Navigation, Firebase Auth, Axios, AsyncStorage, Expo Notifications |
-| Deployment | Docker Compose, Kubernetes/Minikube, Nginx |
+| Candidat | Profil, recherche, favoris, candidatures, notifications, Premium et recommandations. |
+| Recruteur | Profil recruteur, entreprise, offres, candidatures reçues et échanges. |
+| Administrateur | Tableau de bord, utilisateurs, entreprises, offres, abonnements et journaux. |
 
-## Global Architecture
+## Architecture et technologies
 
-```text
-Candidate / Recruiter Mobile App       Admin / Recruiter Backoffice
-              |                                      |
-              | Firebase ID token                    | Firebase ID token
-              v                                      v
-        Spring Boot REST API with Firebase security and RBAC
-              |
-              v
-            MongoDB
+| Couche | Technologies |
+|---|---|
+| Backend | Java 17, Spring Boot 3, Spring Security, Spring Data MongoDB, Swagger/OpenAPI, Maven |
+| Base de données | MongoDB et Mongo Express |
+| Backoffice | Angular, Angular Material, Nginx |
+| Mobile | Expo, React Native, TypeScript |
+| Automatisation et IA | n8n, OpenRouter avec fallback local |
+| Stockage | Cloudinary optionnel, stockage local de CV en mode local |
+| Déploiement | Docker Compose, Kubernetes et Nginx |
+
+```mermaid
+flowchart LR
+    M[Application mobile Expo] --> B[API Spring Boot]
+    A[Backoffice Angular] --> B
+    B --> D[(MongoDB)]
+    B --> N[n8n]
+    B --> I[OpenRouter optionnel]
+    B --> C[Cloudinary optionnel]
+    F[Firebase optionnel en production] --> B
 ```
 
-Firebase authenticates users. The frontend apps send the Firebase ID token as a bearer token to the backend. The backend verifies the token, loads the MongoDB user by `firebaseUid`, and applies role-based access rules.
+Firebase est prévu pour la production. Le mode local Compose active une authentification de démonstration explicite et des données seed, ce qui permet de travailler sans projet Firebase.
 
-## Folder Structure
+## Fonctionnalités principales
 
-```text
-Interlance/
-  smart-match-backend/
-  smart-match-backoffice/
-  smart-match-mobile/
-  docs/
-  deployment/
-  README.md
-  docker-compose.yml
-  .gitignore
-```
+### Candidat
 
-In this workspace, these folders are prepared side-by-side at the repository root.
+- Créer ou compléter un profil et renseigner ses compétences.
+- Parcourir, filtrer et enregistrer des offres.
+- Postuler et suivre le statut des candidatures.
+- Consulter les notifications.
+- Accéder aux fonctions Premium et aux recommandations IA lorsque disponibles.
 
-## Backend Description
+### Recruteur
 
-`smart-match-backend` is a Spring Boot REST API that exposes modules for authentication, users, candidate profiles, recruiter profiles, companies, offers, applications, favorites, subscriptions, payments, matching assistance results, notifications and admin dashboard. It uses MongoDB documents and Firebase Authentication.
+- Gérer son profil et son entreprise.
+- Créer, modifier, publier ou archiver une offre.
+- Consulter les candidatures reçues et mettre à jour leur statut.
+- Échanger avec un candidat lorsque le chat est disponible.
 
-## Backoffice Description
+### Administrateur
 
-`smart-match-backoffice` is an Angular PWA for admins and recruiters. It includes Firebase login, role-based routing, Material tables/forms/cards, admin dashboard, user/company/offer/application/subscription management, notifications and recruiter profile/company pages.
+- Consulter les indicateurs du tableau de bord.
+- Gérer les utilisateurs et les entreprises.
+- Valider les entreprises et modérer les offres.
+- Consulter abonnements, paiements, notifications et journaux selon les droits.
 
-## Mobile App Description
+## Lancer le projet localement
 
-`smart-match-mobile` is an Expo React Native TypeScript app for candidates and recruiters. It supports Firebase login/register, offer browsing, application submission, favorites, candidate profile, premium subscription, intelligent matching jobs, notifications, recruiter company management, recruiter offers and recruiter applications.
-
-## Database Collections
-
-- `users`
-- `candidate_profiles`
-- `recruiter_profiles`
-- `companies`
-- `offers`
-- `applications`
-- `favorites`
-- `subscriptions`
-- `payments`
-- `notifications`
-- `ai_results`
-- `admin_logs`
-- `analytics`
-
-## Authentication Flow
-
-1. User logs in or registers with Firebase email/password.
-2. Frontend retrieves Firebase ID token.
-3. Frontend calls backend with `Authorization: Bearer <firebase_id_token>`.
-4. Backend verifies token using Firebase Admin SDK.
-5. Backend loads local `User` from MongoDB using `firebaseUid`.
-6. Spring Security applies role-based access control.
-
-## Assistance intelligente
-
-Interlance uses AI to analyse a candidate profile/CV, rank offers or candidates, and suggest profile improvements. It returns recommendations and scores only; it never accepts or rejects a candidacy automatically. External AI providers are optional and local fallback heuristics remain available. See [AI role](docs/matching-assistance.md).
-
-## Security Summary
-
-Firebase ID tokens are verified by the Spring Boot backend before a local MongoDB user and role are resolved. Candidate, recruiter and admin resources are guarded by role and ownership checks. CV uploads are limited to 5 MB, constrained to PDF/DOC/DOCX, given server-generated names and protected against path traversal. Secrets are environment variables; real credentials are not committed. See [security documentation](docs/security.md).
-
-Premium upgrades create `PENDING` subscription/payment records and activate only after a protected Demo Mode/webhook confirmation or a configured Stripe confirmation. See [payment flow](docs/payment-flow.md).
-
-## Main Features by Role
-
-### Candidate
-
-- Register/login from mobile.
-- Browse and filter published offers.
-- View offer details.
-- Apply once per offer.
-- Save/remove favorites.
-- Manage candidate profile.
-- Upgrade to premium.
-- Run simulated matching analysis/recommendations.
-- Read notifications.
-
-### Recruiter
-
-- Register/login from mobile or backoffice.
-- Manage recruiter profile.
-- Create/update company.
-- Create/update/publish/archive offers after company approval.
-- Review received applications.
-- Change application status.
-- Read notifications.
-
-### Admin
-
-- Login from backoffice.
-- View dashboard analytics.
-- Manage users.
-- Validate/reject companies.
-- Moderate offers.
-- View subscriptions and admin logs.
-
-## Technical Documentation
-
-- [Architecture technique](docs/architecture.md)
-- [Design patterns](docs/design-patterns.md)
-- [Guide d'installation](docs/installation-guide.md)
-- [Résumé API et Swagger](docs/api-summary.md)
-- [Schéma MongoDB](docs/database-schema.md)
-- [Guide utilisateur](docs/user-guide.md)
-- [Demo data / données de démonstration](docs/demo-data.md)
-- [Script de démonstration (10 minutes)](docs/demo-script.md)
-- [Checklist finale](docs/final-checklist.md)
-- [Déploiement Docker et Kubernetes](deployment/README.md)
-
-## Run local demo
+### Avec Docker Compose
 
 ```bash
 docker compose up -d --build
+```
+
+Si le plugin Compose v2 est indisponible :
+
+```bash
+docker-compose up -d --build
+```
+
+Vérification :
+
+```bash
 docker ps
 docker logs --tail=80 smart-match-platform-backend
 ```
 
-URLs : [Swagger](http://localhost:8080/swagger-ui/index.html), [Backoffice](http://localhost:4200), [Mongo Express](http://localhost:8081) et [n8n](http://localhost:5678). Expo Web est lancé séparément sur `http://localhost:8082` selon le [guide d'installation](docs/installation-guide.md).
+Services disponibles :
 
-Le Compose local active le seeder et un mode démo sans Firebase ; Firebase reste l'authentification prévue pour la production. Les fichiers `.env` sont privés : ne jamais les committer. Seuls les fichiers `.env.example` peuvent être versionnés.
+| Service | Adresse |
+|---|---|
+| Backend | `http://localhost:8080` |
+| Swagger UI | `http://localhost:8080/swagger-ui/index.html` |
+| Backoffice | `http://localhost:4200` |
+| Mongo Express | `http://localhost:8081` |
+| n8n | `http://localhost:5678` |
 
-Comptes de démo : `candidate@interlance.demo`, `recruiter@interlance.demo` et `admin@interlance.demo`, avec le mot de passe `demo123`.
-
-## Run Backend
-
-```bash
-cd smart-match-backend
-cp .env.example .env
-mvn spring-boot:run
-```
-
-Backend URL: `http://localhost:8080/api`
-
-## Run Backoffice
-
-```bash
-cd smart-match-backoffice
-npm install
-npm start
-```
-
-Backoffice URL: `http://localhost:4200`
-
-## Run Mobile
+### Application mobile Expo Web
 
 ```bash
 cd smart-match-mobile
 npm install
-npx expo start
+echo "EXPO_PUBLIC_API_BASE_URL=http://localhost:8080/api" > .env
+npx expo start --web --port 8082
 ```
 
-For Android emulator, set mobile API URL to `http://10.0.2.2:8080/api` in `src/config/env.ts`.
+Ouvrir ensuite `http://localhost:8082`. Le fichier `.env` est local et privé : ne jamais le committer.
 
-## Run With Docker Compose
+## Données de démonstration
 
-```bash
-docker compose up -d --build
-```
+Les comptes synthétiques, entreprises, offres, candidatures, paiements, résultats IA et placeholders textuels sont documentés dans [docs/demo-data.md](docs/demo-data.md).
 
-Services:
+Les données seed ne contiennent aucune URL externe de photo ou logo. Les interfaces affichent automatiquement des initiales ou un badge lisible lorsque aucune image est fournie.
 
-- Backend: `http://localhost:8080/api`
-- Backoffice: `http://localhost:4200`
-- MongoDB: `localhost:27017`
-- Mongo Express: `http://localhost:8081`
+## Documentation technique
 
-## Swagger URL
+- [Architecture technique](docs/architecture.md)
+- [Design patterns](docs/design-patterns.md)
+- [Guide installation et configuration](docs/installation-guide.md)
+- [Résumé API et Swagger](docs/api-summary.md)
+- [Schéma MongoDB](docs/database-schema.md)
+- [Guide utilisateur](docs/user-guide.md)
+- [Données de démonstration](docs/demo-data.md)
+- [Checklist finale](docs/final-checklist.md)
+- [Déploiement Docker et Kubernetes](deployment/README.md)
 
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- API docs: `http://localhost:8080/v3/api-docs`
+## Sécurité
 
-## Mongo Express URL
+- Les rôles `CANDIDATE`, `RECRUITER` et `ADMIN` sont contrôlés côté backend.
+- Firebase Authentication est utilisé en production ; le mode local sans Firebase est limité à Compose et aux comptes synthétiques.
+- Les fichiers uploadés sont validés par type, taille et chemin.
+- Les secrets sont fournis par variables environnement et ne sont jamais versionnés.
+- Ne jamais committer un fichier `.env`, un compte de service Firebase ou une clé API.
 
-- `http://localhost:8081`
+Consulter aussi la [documentation sécurité](docs/security.md) et le [flux de paiement](docs/payment-flow.md).
 
-## Firebase Configuration Instructions
+## Déploiement
 
-Backend needs Firebase Admin credentials through one of:
+Le répertoire [deployment](deployment/README.md) décrit les services Docker et les manifests Kubernetes disponibles. Avant toute mise en production, configurer MongoDB sécurisé, HTTPS, Firebase Admin, Cloudinary, OpenRouter, n8n et les secrets de paiement dans une plateforme de gestion de secrets.
 
-- `FIREBASE_SERVICE_ACCOUNT_JSON`
-- `FIREBASE_SERVICE_ACCOUNT_PATH`
+## Licence et cadre académique
 
-Backoffice Firebase config is placed in:
-
-- `smart-match-backoffice/src/environments/environment.ts`
-- `smart-match-backoffice/src/environments/environment.development.ts`
-
-Mobile Firebase config is placed in:
-
-- `smart-match-mobile/src/config/env.ts`
-
-Never commit real Firebase service account JSON files.
-
-## Demo Scenario
-
-1. Start MongoDB and backend.
-2. Start backoffice and mobile app.
-3. Register candidate in mobile and sync user.
-4. Register recruiter and create company.
-5. Admin validates company in backoffice.
-6. Recruiter creates and publishes an offer.
-7. Candidate browses, favorites and applies to the offer.
-8. Recruiter changes application status to `INTERVIEW`.
-9. Candidate upgrades to premium and runs CV matching analysis.
-10. Admin opens dashboard, subscriptions and logs.
-
-## Screenshots
-
-Add screenshots before final submission:
-
-- Mobile login/register
-- Candidate offer list
-- Candidate offer details/apply
-- Recruiter company page
-- Recruiter offer management
-- Backoffice dashboard
-- Backoffice company validation
-- Swagger UI
-
-- HICHAM MAHBOUB
-- Supervisor: To be confirmed
-
-## Academic Notes
-
-This project is designed for academic demonstration. Payment includes a secret-protected Demo Mode and an optional Stripe Checkout test integration; AI can use configured external services or local fallback heuristics. Firebase Authentication is configured for production, while the local Docker demo can run with its explicit optional demo-auth mode.
-
-## Security Hardening Implemented
-
-- Admin self-registration is blocked: `/api/auth/sync-user` accepts only `CANDIDATE` and `RECRUITER`; `ADMIN` users are created only through controlled seed/admin mechanisms.
-- Premium payment flow now creates `PENDING` payments and subscriptions; the user remains `FREE` until `/api/subscriptions/webhook/payment` or `/api/subscriptions/demo-confirm` confirms with `X-Payment-Secret`.
-- The backend Docker Compose protects Mongo Express with `MONGO_EXPRESS_USERNAME` and `MONGO_EXPRESS_PASSWORD`; the root Compose must remain local until it is similarly protected.
-- CV upload validates size, extension, content type, path traversal, and stores server-generated filenames.
-- Chat messages are size-limited, message history is paginated, and recruiter/candidate conversations require an existing application.
-- MongoDB indexes were added for users, offers, applications, payments, subscriptions, notifications, companies and chat collections.
-- Backend Docker image runs as a non-root user; Nginx includes basic security headers.
-- Kubernetes manifests include resources, probes, backend replicas and PVC-backed MongoDB storage.
-
-## Known Limitations for Academic Demo
-
-- Demo Mode payment is simulated and gated by a secret-confirmed endpoint; Stripe requires test keys and public webhook configuration.
-- AI depends on external provider configuration or backend fallback heuristics.
-- Mobile offline behavior is partial and depends on local client storage only.
-- Firebase client configuration is public app config and must be replaced with the project values before demo.
-- Kubernetes manifests are Minikube-friendly examples, not a full production platform baseline.
+Ce dépôt est préparé pour une présentation académique. Les paiements, données et résultats IA de démonstration ne correspondent à aucun utilisateur réel ni à aucune transaction réelle.
