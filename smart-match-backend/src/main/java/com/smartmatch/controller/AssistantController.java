@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * Backoffice-facing entry point for the Interlance AI Assistant. Forwards questions to the n8n RAG
+ * Backoffice-facing entry point for the Assistant intelligent Interlance. Forwards questions to the n8n RAG
  * workflow via {@link AssistantService}. Admins and recruiters only.
  */
 @RestController

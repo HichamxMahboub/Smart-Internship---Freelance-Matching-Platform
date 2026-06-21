@@ -39,7 +39,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     { label: 'Applications', icon: 'assignment', route: '/applications', roles: ['ADMIN', 'RECRUITER'] },
     { label: 'Subscriptions', icon: 'workspace_premium', route: '/subscriptions', roles: ['ADMIN'] },
     { label: 'Notifications', icon: 'notifications', route: '/notifications', roles: ['ADMIN', 'RECRUITER'] },
-    { label: 'Interlance AI', icon: 'auto_awesome', route: '/assistant', roles: ['ADMIN', 'RECRUITER'] },
+    { label: 'Assistant Interlance', icon: 'auto_awesome', route: '/assistant', roles: ['ADMIN', 'RECRUITER'] },
     { label: 'Profile', icon: 'account_circle', route: '/profile', roles: ['RECRUITER'] }
   ];
 

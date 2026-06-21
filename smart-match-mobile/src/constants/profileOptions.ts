@@ -16,7 +16,7 @@ export const SKILL_OPTIONS = [
   'Linux', 'Nginx', 'Jenkins',
   // Data / AI
   'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'Pandas', 'NumPy', 'Scikit-learn',
-  'OpenAI API', 'LangChain', 'NLP', 'Computer Vision',
+  'LLM APIs', 'LangChain', 'NLP', 'Computer Vision',
   // Tools / Other
   'Git', 'GitHub', 'GitLab', 'Jira', 'Figma', 'Adobe XD', 'Photoshop', 'Illustrator',
   'Agile', 'Scrum', 'UX Design', 'UI Design', 'Product Management', 'Marketing', 'SEO',

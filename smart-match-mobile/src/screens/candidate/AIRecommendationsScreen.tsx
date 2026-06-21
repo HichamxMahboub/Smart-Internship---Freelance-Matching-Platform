@@ -9,7 +9,7 @@ import { MatchItem } from '../../types';
 import { colors } from '../../theme/colors';
 import { radius, shadow } from '../../theme/spacing';
 
-/** Candidate AI Assistant: best-matching offers for the profile, ranked + explained (n8n + Gemini). */
+/** Candidate Assistant intelligent: best-matching offers for the profile, ranked + explained (n8n + Gemini). */
 export function AIRecommendationsScreen() {
   const navigation = useNavigation<any>();
   const [matches, setMatches] = useState<MatchItem[] | null>(null);
@@ -39,7 +39,7 @@ export function AIRecommendationsScreen() {
     >
       <View style={styles.hero}>
         <View style={styles.heroIcon}><Icon name="sparkles" size={26} color={colors.white} /></View>
-        <Text style={styles.heroTitle}>AI Assistant</Text>
+        <Text style={styles.heroTitle}>Assistant intelligent</Text>
         <Text style={styles.heroSub}>Your best-matching internships and freelance gigs, ranked and explained from your profile.</Text>
       </View>
 
@@ -73,7 +73,7 @@ export function AIRecommendationsScreen() {
         <EmptyState
           icon={error ? 'sparkles' : 'briefcase'}
           title={error ? 'Assistant unavailable' : 'No matches yet'}
-          message={error ? 'The AI assistant is busy. Pull to refresh in a moment.' : 'Add more skills to your profile to get matched with offers.'}
+          message={error ? 'The assistant intelligent is busy. Pull to refresh in a moment.' : 'Add more skills to your profile to get matched with offers.'}
         />
       ) : null}
     </ScrollView>

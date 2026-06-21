@@ -131,7 +131,7 @@ export function CandidateProfileScreen() {
         {/* Menu */}
         <View style={styles.menu}>
           <MenuRow icon="bookmark" label="Saved offers" onPress={() => navigation.navigate('Favorites')} />
-          <MenuRow icon="sparkles" label="AI Assistant" onPress={() => navigation.navigate('AIRecommendations')} />
+          <MenuRow icon="sparkles" label="Assistant intelligent" onPress={() => navigation.navigate('AIRecommendations')} />
           <MenuRow icon="briefcase" label="Earnings" onPress={() => navigation.navigate('Earnings')} />
           <MenuRow icon="star" label="Premium plan" tone="gold" onPress={() => navigation.navigate('Premium')} />
           <MenuRow icon="bell" label="Notifications" onPress={() => navigation.navigate('Notifications')} last />

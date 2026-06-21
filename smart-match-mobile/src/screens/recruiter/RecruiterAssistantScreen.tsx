@@ -30,7 +30,7 @@ function SkeletonCard() {
   );
 }
 
-/** Recruiter AI Assistant: pick one of your offers, get AI-ranked candidates for it (n8n + Gemini). */
+/** Recruiter Assistant intelligent: pick one of your offers, get AI-ranked candidates for it (n8n + Gemini). */
 export function RecruiterAssistantScreen() {
   const navigation = useNavigation<any>();
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -76,7 +76,7 @@ export function RecruiterAssistantScreen() {
     >
       <View style={styles.hero}>
         <View style={styles.heroIcon}><Icon name="sparkles" size={26} color={colors.white} /></View>
-        <Text style={styles.heroTitle}>AI Assistant</Text>
+        <Text style={styles.heroTitle}>Assistant intelligent</Text>
         <Text style={styles.heroSub}>Pick one of your offers — the AI ranks every candidate by fit and explains why.</Text>
       </View>
 

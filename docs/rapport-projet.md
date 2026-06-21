@@ -20,7 +20,7 @@ La plateforme centralise tout le cycle :
 - publication et gestion des offres (stage / freelance) ;
 - candidatures, favoris, profils enrichis (style LinkedIn) ;
 - **matching intelligent** offre ↔ candidat (score de compatibilité) ;
-- **assistant IA** (style ChatGPT) avec recherche augmentée (RAG) ;
+- **assistance intelligente** (conversationnel) avec recherche augmentée (RAG) ;
 - **monétisation** : abonnement Premium + **paiement de missions freelance** ;
 - back-office d'administration (validation des entreprises, modération, analytics) ;
 - notifications temps réel.
@@ -95,9 +95,9 @@ com.smartmatch
 
 ### 1.6 Fonctionnalités par rôle
 
-**Candidat** — inscription/connexion, parcours et filtrage des offres, détail d'offre, candidature (une seule par offre), favoris, profil enrichi, passage Premium, recommandations/analyse IA, assistant IA, notifications, **suivi des gains freelance**.
+**Candidat** — inscription/connexion, parcours et filtrage des offres, détail d'offre, candidature (une seule par offre), favoris, profil enrichi, passage Premium, recommandations/analyse intelligente, assistance intelligente, notifications, **suivi des gains freelance**.
 
-**Recruteur** — profil, création/gestion d'entreprise, création/publication/archivage d'offres (après validation de l'entreprise), traitement des candidatures (changement de statut), assistant IA, **paiement des candidats pour les missions freelance**.
+**Recruteur** — profil, création/gestion d'entreprise, création/publication/archivage d'offres (après validation de l'entreprise), traitement des candidatures (changement de statut), assistance intelligente, **paiement des candidats pour les missions freelance**.
 
 **Admin** — tableau de bord (analytics), gestion des utilisateurs, validation/refus des entreprises, modération des offres, consultation des abonnements et des logs.
 
@@ -109,7 +109,7 @@ Le projet a été découpé en modules fonctionnels. Chaque membre a pris la res
 |---|---|
 | Membre 1 | **Authentification & Utilisateurs** — Firebase Auth, rôles/RBAC, synchronisation des comptes, sécurité (`SecurityConfig`, filtre Firebase). |
 | Membre 2 | **Offres, Candidatures & Favoris** — cycle de vie des offres, candidatures, favoris, gestion des entreprises. |
-| Membre 3 | **Matching IA & Assistant** — score de compatibilité offre/candidat, assistant IA style ChatGPT, RAG via n8n/OpenRouter, parsing de CV. |
+| Membre 3 | **Matching intelligent & Assistant** — score de compatibilité offre/candidat, assistance intelligente conversationnel, RAG via n8n/OpenRouter, parsing de CV. |
 | Membre 4 | **Back-office Admin & Notifications** — tableau de bord Angular, validation des entreprises, modération, analytics, notifications. |
 | **Moi (Membre 5)** | **Paiement & Monétisation (Stripe)** — abonnement Premium + paiement des missions freelance, côté backend et mobile. |
 

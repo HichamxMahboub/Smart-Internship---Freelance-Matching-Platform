@@ -17,7 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Smart Match AI client. Calls an OpenAI-compatible Chat Completions endpoint to turn
+ * Interlance matching client. Calls an chat-completions-compatible Chat Completions endpoint to turn
  * candidate/offer text into structured matching results. Disabled when no API key is
  * configured; the platform falls back to a deterministic heuristic in {@link AIService}.
  */
@@ -64,7 +64,7 @@ public class AiMatchingClient {
                     .defaultHeader("X-Title", title)
                     .build();
             this.enabled = true;
-            log.info("Smart Match AI client enabled with model " + model);
+            log.info("Interlance matching client enabled with model " + model);
         } else {
             log.info("AiMatchingClient disabled (no OPENROUTER_API_KEY); using heuristic fallback.");
         }

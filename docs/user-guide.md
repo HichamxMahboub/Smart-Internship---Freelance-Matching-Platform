@@ -32,7 +32,7 @@ Ce guide décrit le parcours de démonstration. Les intitulés peuvent varier l�
 
 1. Ouvrir **Premium** pour consulter le plan courant.
 2. L’upgrade simulé crée d’abord une demande de paiement en attente ; l’opérateur de démo doit la confirmer côté backend.
-3. Avec un plan Premium actif, ouvrir les insights ou l’assistant IA.
+3. Avec un plan Premium actif, ouvrir les insights ou l’assistance intelligente.
 4. Consulter les recommandations et l’analyse comme une aide : vérifier les compétences et ne pas interpréter un score comme une décision.
 
 ## Recruteur

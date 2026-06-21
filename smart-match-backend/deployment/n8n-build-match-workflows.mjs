@@ -2,7 +2,7 @@
 //  - interlance-candidate-match : body {candidateId} -> ranked OFFERS for that candidate
 //  - interlance-recruiter-match : body {offerId}     -> ranked CANDIDATES for that offer
 // Each: Webhook -> Offers + Candidates (enriched Mongo aggregates) -> Build (Gemini prompt)
-//   -> Gemini (OpenAI-compat, json_object) -> Parse -> Respond {matches:[...]}.
+//   -> Gemini (chat-completions-compatible, json_object) -> Parse -> Respond {matches:[...]}.
 // Run: N8N_API_KEY=... node n8n-build-match-workflows.mjs
 const API = 'http://localhost:5678/api/v1';
 const KEY = process.env.N8N_API_KEY;

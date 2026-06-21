@@ -64,7 +64,7 @@ export function RecruiterNavigator() {
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notifications' }} />
       <Stack.Screen name="CandidateDetail" component={CandidateDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="OfferCandidates" component={OfferCandidatesScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="RecruiterAssistant" component={RecruiterAssistantScreen} options={{ title: 'AI Assistant' }} />
+      <Stack.Screen name="RecruiterAssistant" component={RecruiterAssistantScreen} options={{ title: 'Assistant intelligent' }} />
       <Stack.Screen name="PayCandidate" component={PayCandidateScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
