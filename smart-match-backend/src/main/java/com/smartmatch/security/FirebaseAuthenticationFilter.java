@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,10 +28,27 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
+    @Value("${app.demo-auth.enabled:false}")
+    private boolean demoAuthEnabled;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
+            String demoEmail = request.getHeader("X-Demo-User-Email");
+            if (demoAuthEnabled && StringUtils.hasText(demoEmail)) {
+                userRepository.findByEmail(demoEmail.trim().toLowerCase())
+                        .filter(User::isActive)
+                        .ifPresent(user -> {
+                            SecurityUserPrincipal principal = new SecurityUserPrincipal(user);
+                            UsernamePasswordAuthenticationToken authentication =
+                                    new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                        });
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 FirebaseToken firebaseToken = authTokenService.verifyAuthorizationHeader(authorizationHeader);

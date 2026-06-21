@@ -14,6 +14,7 @@ export class AuthService {
   private readonly app: FirebaseApp = getApps().length ? getApps()[0] : initializeApp(environment.firebaseConfig);
   private readonly auth: Auth = getAuth(this.app);
   private readonly apiBaseUrl = environment.apiBaseUrl;
+  private readonly demoUserStorageKey = 'interlance_demo_user';
   private readonly currentUserSubject = new BehaviorSubject<User | null>(null);
   private readonly readySubject = new BehaviorSubject(false);
 
@@ -21,8 +22,16 @@ export class AuthService {
   readonly ready$ = this.readySubject.asObservable();
 
   constructor() {
+    const demoUser = localStorage.getItem(this.demoUserStorageKey);
+    if (demoUser) {
+      this.currentUserSubject.next(JSON.parse(demoUser));
+      this.readySubject.next(true);
+      return;
+    }
+
     onAuthStateChanged(this.auth, (firebaseUser) => {
       if (!firebaseUser) {
+        localStorage.removeItem(this.demoUserStorageKey);
         this.currentUserSubject.next(null);
         this.readySubject.next(true);
         return;
@@ -33,7 +42,8 @@ export class AuthService {
           this.readySubject.next(true);
         },
         error: () => {
-          this.currentUserSubject.next(null);
+          localStorage.removeItem(this.demoUserStorageKey);
+        this.currentUserSubject.next(null);
           this.readySubject.next(true);
         }
       });
@@ -41,6 +51,24 @@ export class AuthService {
   }
 
   login(email: string, password: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (['admin@interlance.demo', 'recruiter@interlance.demo'].includes(normalizedEmail)) {
+      const user: User = {
+        id: normalizedEmail.startsWith('admin') ? 'seed-admin-uid' : 'seed-recruiter-uid',
+        firebaseUid: normalizedEmail.startsWith('admin') ? 'seed-admin-uid' : 'seed-recruiter-uid',
+        fullName: normalizedEmail.startsWith('admin') ? 'Admin Interlance' : 'Recruiter Interlance',
+        email: normalizedEmail,
+        role: normalizedEmail.startsWith('admin') ? 'ADMIN' : 'RECRUITER',
+        plan: normalizedEmail.startsWith('admin') ? 'PREMIUM' : 'FREE',
+        active: true,
+        emailVerified: true
+      };
+      localStorage.setItem(this.demoUserStorageKey, JSON.stringify(user));
+      this.currentUserSubject.next(user);
+      return of(user);
+    }
+
     return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
       switchMap(() => this.loadBackendUser()),
       tap((user) => this.currentUserSubject.next(user))
@@ -50,6 +78,7 @@ export class AuthService {
   logout() {
     return from(signOut(this.auth)).pipe(
       tap(() => {
+        localStorage.removeItem(this.demoUserStorageKey);
         this.currentUserSubject.next(null);
         this.router.navigateByUrl('/login');
       })

@@ -8,6 +8,12 @@ export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
+  const demoUser = localStorage.getItem('interlance_demo_user');
+  if (demoUser) {
+    const parsed = JSON.parse(demoUser);
+    return next(req.clone({ setHeaders: { 'X-Demo-User-Email': parsed.email } }));
+  }
+
   const user = getAuth().currentUser;
   if (!user) {
     return next(req);
