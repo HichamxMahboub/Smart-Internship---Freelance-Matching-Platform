@@ -17,6 +17,31 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const DEMO_USER_STORAGE_KEY = 'interlance_demo_user';
+
+const DEMO_USERS: Record<string, User> = {
+  'candidate@interlance.demo': {
+    id: 'seed-candidate-uid',
+    firebaseUid: 'seed-candidate-uid',
+    fullName: 'Candidate Interlance',
+    email: 'candidate@interlance.demo',
+    role: 'CANDIDATE',
+    plan: 'FREE',
+    active: true,
+    emailVerified: true
+  },
+  'recruiter@interlance.demo': {
+    id: 'seed-recruiter-uid',
+    firebaseUid: 'seed-recruiter-uid',
+    fullName: 'Recruiter Interlance',
+    email: 'recruiter@interlance.demo',
+    role: 'RECRUITER',
+    plan: 'FREE',
+    active: true,
+    emailVerified: true
+  }
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [initializing, setInitializing] = useState(true);
@@ -27,6 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const demoUserRaw = typeof localStorage !== 'undefined' ? localStorage.getItem(DEMO_USER_STORAGE_KEY) : null;
+    if (demoUserRaw) {
+      try {
+        setUser(JSON.parse(demoUserRaw));
+      } catch {
+        localStorage.removeItem(DEMO_USER_STORAGE_KEY);
+        setUser(null);
+      }
+      setInitializing(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       if (!firebaseUser) {
         setUser(null);
@@ -45,6 +82,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser]);
 
   const login = useCallback(async (email: string, password: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const demoUser = DEMO_USERS[normalizedEmail];
+
+    if (password === 'demo123' && demoUser) {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(DEMO_USER_STORAGE_KEY, JSON.stringify(demoUser));
+      }
+      setUser(demoUser);
+      return;
+    }
+
     const credential = await signInWithEmailAndPassword(firebaseAuth, email, password);
     try { await reload(credential.user); } catch { /* ignore network blip */ }
     await refreshUser();
@@ -72,7 +120,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await signOut(firebaseAuth);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(DEMO_USER_STORAGE_KEY);
+    }
+    try {
+      await signOut(firebaseAuth);
+    } catch {
+      // Demo mode may not have an active Firebase session.
+    }
     setUser(null);
   }, []);
 

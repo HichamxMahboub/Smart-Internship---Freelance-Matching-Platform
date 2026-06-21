@@ -9,6 +9,13 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (config) => {
+  const demoUserRaw = typeof localStorage !== 'undefined' ? localStorage.getItem('interlance_demo_user') : null;
+  if (demoUserRaw) {
+    const demoUser = JSON.parse(demoUserRaw);
+    config.headers['X-Demo-User-Email'] = demoUser.email;
+    return config;
+  }
+
   const user = firebaseAuth.currentUser;
   if (user) {
     const token = await user.getIdToken();
