@@ -3,6 +3,7 @@ package com.smartmatch.controller;
 import com.smartmatch.dto.assistant.AssistantChatRequest;
 import com.smartmatch.dto.assistant.AssistantChatResponse;
 import com.smartmatch.dto.assistant.MatchItem;
+import com.smartmatch.service.AIService;
 import com.smartmatch.service.AssistantService;
 import com.smartmatch.util.SecurityUtils;
 import jakarta.validation.Valid;
@@ -27,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AssistantController {
     private final AssistantService assistantService;
+    private final AIService aiService;
 
     @PostMapping("/chat")
     @PreAuthorize("hasAnyRole('ADMIN','RECRUITER')")
@@ -34,17 +36,17 @@ public class AssistantController {
         return ResponseEntity.ok(assistantService.chat(request));
     }
 
-    /** AI-ranked offers that best match the signed-in candidate's profile. */
+    /** Real AI-ranked offers that best match the signed-in candidate's profile (OpenRouter, in-process). */
     @GetMapping("/candidate-matches")
     @PreAuthorize("hasRole('CANDIDATE')")
     public ResponseEntity<List<MatchItem>> candidateMatches() {
-        return ResponseEntity.ok(assistantService.candidateMatches(SecurityUtils.currentUser().getId()));
+        return ResponseEntity.ok(aiService.candidateOfferMatches(SecurityUtils.currentUser().getId()));
     }
 
-    /** AI-ranked candidates that best match one of the recruiter's offers. */
+    /** Real AI-ranked applicants for one of the recruiter's offers (OpenRouter, in-process). */
     @GetMapping("/recruiter-matches")
     @PreAuthorize("hasRole('RECRUITER')")
     public ResponseEntity<List<MatchItem>> recruiterMatches(@RequestParam String offerId) {
-        return ResponseEntity.ok(assistantService.recruiterMatches(offerId));
+        return ResponseEntity.ok(aiService.offerCandidateMatches(offerId));
     }
 }

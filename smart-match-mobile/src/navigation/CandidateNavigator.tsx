@@ -14,6 +14,7 @@ import { NotificationsScreen } from '../screens/candidate/NotificationsScreen';
 import { ConversationsScreen } from '../screens/shared/ConversationsScreen';
 import { ChatScreen } from '../screens/shared/ChatScreen';
 import { TabBar } from '../components/TabBar';
+import { CandidateMatchProvider } from '../match/CandidateMatchContext';
 import { Offer } from '../types';
 import { colors } from '../theme/colors';
 
@@ -53,6 +54,7 @@ function CandidateTabs() {
 
 export function CandidateNavigator() {
   return (
+    <CandidateMatchProvider>
     <Stack.Navigator screenOptions={stackHeader}>
       <Stack.Screen name="CandidateTabs" component={CandidateTabs} options={{ headerShown: false }} />
       <Stack.Screen name="OfferDetails" component={OfferDetailsScreen} options={{ headerShown: false }} />
@@ -63,5 +65,6 @@ export function CandidateNavigator() {
       <Stack.Screen name="Earnings" component={EarningsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notifications' }} />
     </Stack.Navigator>
+    </CandidateMatchProvider>
   );
 }

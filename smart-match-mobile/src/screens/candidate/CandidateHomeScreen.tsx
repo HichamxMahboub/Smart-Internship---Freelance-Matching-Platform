@@ -16,6 +16,7 @@ import { offerService } from '../../services/offerService';
 import { subscriptionService } from '../../services/subscriptionService';
 import { profileService } from '../../services/profileService';
 import { matchForOffer } from '../../utils/match';
+import { useCandidateMatches } from '../../match/CandidateMatchContext';
 import { candidateCompletion } from '../../onboarding/completeness';
 import { colors } from '../../theme/colors';
 import { radius, shadow } from '../../theme/spacing';
@@ -29,6 +30,7 @@ export function CandidateHomeScreen() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const { scoreFor } = useCandidateMatches();
 
   const load = async () => {
     try {
@@ -167,11 +169,15 @@ export function CandidateHomeScreen() {
           <View style={styles.list}>
             {offers.length ? (
               [...offers]
-                .map((offer) => ({ offer, score: matchForOffer(skills, offer).score }))
-                .sort((a, b) => b.score - a.score)
-                .map(({ offer, score }, i) => (
+                .map((offer) => {
+                  const ai = scoreFor(offer.id);
+                  const score = ai ?? (skills.length ? matchForOffer(skills, offer).score : undefined);
+                  return { offer, score, hasScore: typeof score === 'number' };
+                })
+                .sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
+                .map(({ offer, score, hasScore }, i) => (
                   <AnimatedEntrance key={offer.id} delay={320 + i * 50}>
-                    <OfferCard offer={offer} matchScore={skills.length ? score : undefined} onPress={() => navigation.navigate('OfferDetails', { offerId: offer.id, offer })} />
+                    <OfferCard offer={offer} matchScore={hasScore ? score : undefined} onPress={() => navigation.navigate('OfferDetails', { offerId: offer.id, offer })} />
                   </AnimatedEntrance>
                 ))
             ) : (

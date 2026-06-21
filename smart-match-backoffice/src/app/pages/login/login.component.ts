@@ -11,472 +11,160 @@ import { MaterialModule } from '../../shared/material/material.module';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MaterialModule],
   template: `
-    <section class="login-page">
-      <div class="login-background">
-        <div class="bg-orb orb-1"></div>
-        <div class="bg-orb orb-2"></div>
-        <div class="bg-orb orb-3"></div>
-        <div class="bg-grid"></div>
-      </div>
-      
-      <div class="login-container">
-        <div class="login-panel">
-          <div class="login-header">
-            <div class="logo-wrapper">
-              <img src="/interlance.png" alt="Interlance" class="logo-image">
-            </div>
-            <div class="header-text">
-              <h1>Interlance</h1>
-              <p>Backoffice Command Center</p>
-            </div>
-          </div>
-
-          <mat-card class="login-card">
-            <div class="card-glow"></div>
-            <mat-card-header>
-              <mat-card-title>Welcome back</mat-card-title>
-              <mat-card-subtitle>Sign in to access the command center</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <form [formGroup]="form" (ngSubmit)="submit()">
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Email Address</mat-label>
-                  <input matInput type="email" formControlName="email" autocomplete="email" placeholder="admin@interlance.com">
-                  <mat-icon matPrefix>email</mat-icon>
-                  @if (form.controls.email.hasError('email') && form.controls.email.touched) {
-                    <mat-error>Please enter a valid email</mat-error>
-                  }
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Password</mat-label>
-                  <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" autocomplete="current-password" placeholder="Enter your password">
-                  <mat-icon matPrefix>lock</mat-icon>
-                  <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" [attr.aria-label]="'Toggle password visibility'">
-                    <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                  </button>
-                  @if (form.controls.password.hasError('required') && form.controls.password.touched) {
-                    <mat-error>Password is required</mat-error>
-                  }
-                </mat-form-field>
-
-                <div class="form-options">
-                  <mat-checkbox color="primary">Remember me</mat-checkbox>
-                </div>
-
-                <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="form.invalid || loading">
-                  @if (loading) {
-                    <span class="submit-btn-content">
-                      <mat-spinner diameter="20" color="accent"></mat-spinner>
-                      <span>Signing in...</span>
-                    </span>
-                  } @else {
-                    <span class="submit-btn-content">
-                      <mat-icon>login</mat-icon>
-                      <span>Sign in</span>
-                    </span>
-                  }
-                </button>
-              </form>
-            </mat-card-content>
-            
-            <mat-card-footer>
-              <div class="footer-links">
-                <a href="#" class="link">Need help?</a>
-                <span class="divider">•</span>
-                <a href="#" class="link">Contact support</a>
-              </div>
-            </mat-card-footer>
-          </mat-card>
-
-          <div class="login-footer">
-            <p>© 2024 Interlance. All rights reserved.</p>
-          </div>
+    <main class="login">
+      <aside class="brand-pane">
+        <div class="brand-top">
+          <img src="/interlance.png" alt="Interlance" class="brand-logo" />
+          <span class="brand-name">Interlance</span>
         </div>
-      </div>
-    </section>
+
+        <div class="brand-copy">
+          <p class="brand-kicker">Backoffice</p>
+          <h1>The control room for your internship &amp; freelance marketplace.</h1>
+          <p class="brand-lead">
+            Validate companies, moderate offers, follow applications and track premium growth —
+            all from one place.
+          </p>
+        </div>
+
+        <ul class="brand-points">
+          <li><mat-icon>verified</mat-icon><span>Company validation &amp; moderation</span></li>
+          <li><mat-icon>insights</mat-icon><span>Live marketplace analytics</span></li>
+          <li><mat-icon>workspace_premium</mat-icon><span>Subscriptions &amp; revenue at a glance</span></li>
+        </ul>
+
+        <p class="brand-foot">© {{ year }} Interlance</p>
+      </aside>
+
+      <section class="form-pane">
+        <div class="form-wrap">
+          <header class="form-head">
+            <h2>Sign in</h2>
+            <p>Use your admin or recruiter account to continue.</p>
+          </header>
+
+          <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+            <mat-form-field appearance="outline" class="field">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" autocomplete="email" placeholder="you@company.com" />
+              <mat-icon matPrefix>mail_outline</mat-icon>
+              @if (form.controls.email.hasError('email') && form.controls.email.touched) {
+                <mat-error>Enter a valid email address.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field">
+              <mat-label>Password</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" autocomplete="current-password" placeholder="Your password" />
+              <mat-icon matPrefix>lock_outline</mat-icon>
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+                <mat-error>Password is required.</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="row">
+              <mat-checkbox color="primary">Keep me signed in</mat-checkbox>
+            </div>
+
+            <button mat-flat-button color="primary" type="submit" class="submit" [disabled]="form.invalid || loading">
+              @if (loading) {
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Signing in…</span>
+              } @else {
+                <span>Sign in</span>
+              }
+            </button>
+          </form>
+
+          <p class="note">Restricted to ADMIN and RECRUITER accounts.</p>
+        </div>
+      </section>
+    </main>
   `,
   styles: [`
-    .login-page {
-      position: relative;
+    :host { display: block; }
+
+    .login {
       min-height: 100vh;
       display: grid;
-      place-items: center;
-      padding: 24px;
-      overflow: hidden;
-      background: #0f0c29;
+      grid-template-columns: 1.05fr 1fr;
+      background: var(--surface);
     }
 
-    .login-background {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .bg-orb {
-      position: absolute;
-      border-radius: 999px;
-      filter: blur(80px);
-      opacity: 0.3;
-      animation: float 20s ease-in-out infinite;
-    }
-
-    .orb-1 {
-      width: 500px;
-      height: 500px;
-      background: #667eea;
-      top: -250px;
-      right: -100px;
-      animation-delay: 0s;
-    }
-
-    .orb-2 {
-      width: 400px;
-      height: 400px;
-      background: #f093fb;
-      bottom: -200px;
-      left: -150px;
-      animation-delay: 5s;
-    }
-
-    .orb-3 {
-      width: 350px;
-      height: 350px;
-      background: #4facfe;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      animation-delay: 10s;
-    }
-
-    @keyframes float {
-      0%, 100% {
-        transform: translate(0, 0) scale(1);
-      }
-      25% {
-        transform: translate(30px, -30px) scale(1.1);
-      }
-      50% {
-        transform: translate(-20px, 20px) scale(0.9);
-      }
-      75% {
-        transform: translate(20px, 30px) scale(1.05);
-      }
-    }
-
-    .bg-grid {
-      position: absolute;
-      inset: 0;
-      background-image: 
-        rgba(255, 255, 255, 0.03),
-        rgba(255, 255, 255, 0.03);
-      background-size: 50px 50px;
-      opacity: 0.4;
-    }
-
-    .login-container {
+    /* ---- Left brand panel ---- */
+    .brand-pane {
       position: relative;
-      z-index: 1;
-      width: min(480px, 100%);
-    }
-
-    .login-panel {
-      animation: fadeInUp 0.8s ease-out;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .login-header {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 32px;
-      text-align: center;
+      justify-content: space-between;
+      gap: 40px;
+      padding: 56px 56px 40px;
+      color: #fff;
+      background: var(--ink);
+      overflow: hidden;
     }
-
-    .logo-wrapper {
-      position: relative;
-      width: 120px;
-      height: 120px;
-      padding: 20px;
-      border-radius: 28px;
-      background: rgba(255, 255, 255, 0.95);
-      box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      animation: logoFloat 3s ease-in-out infinite;
-    }
-
-    @keyframes logoFloat {
-      0%, 100% {
-        transform: translateY(0) rotate(0deg);
-      }
-      50% {
-        transform: translateY(-10px) rotate(2deg);
-      }
-    }
-
-    .logo-wrapper::before {
+    /* one calm brand accent, not floating orbs */
+    .brand-pane::after {
       content: '';
       position: absolute;
-      inset: -2px;
-      border-radius: 28px;
-      background: #667eea;
-      opacity: 0.6;
-      filter: blur(10px);
-      z-index: -1;
-      animation: pulse 3s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 0.6;
-        transform: scale(0.95);
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.05);
-      }
-    }
-
-    .logo-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-    }
-
-    .header-text h1 {
-      margin: 0;
-      font-size: 42px;
-      font-weight: 950;
-      letter-spacing: -0.04em;
-      background: #fff;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: 0 2px 20px rgba(255, 255, 255, 0.3);
-    }
-
-    .header-text p {
-      margin: 8px 0 0;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-    }
-
-    .login-card {
-      position: relative;
-      padding: 32px;
-      border-radius: 24px !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      background: rgba(255, 255, 255, 0.95) !important;
-      backdrop-filter: blur(20px);
-      box-shadow: 
-        0 30px 90px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
-      overflow: visible;
-      animation: cardEntrance 0.8s ease-out 0.2s both;
-    }
-
-    @keyframes cardEntrance {
-      from {
-        opacity: 0;
-        transform: scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    .card-glow {
-      position: absolute;
-      inset: -100px;
-      background: rgba(102, 126, 234, 0.3);
+      right: -160px;
+      top: -120px;
+      width: 460px;
+      height: 460px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(31, 59, 224, 0.55), transparent 70%);
       pointer-events: none;
-      z-index: -1;
     }
 
-    mat-card-header {
-      padding: 0;
-      margin-bottom: 28px;
+    .brand-top { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+    .brand-logo { width: 38px; height: 38px; object-fit: contain; border-radius: 9px; background: #fff; padding: 5px; }
+    .brand-name { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+
+    .brand-copy { position: relative; z-index: 1; max-width: 460px; }
+    .brand-kicker {
+      margin: 0 0 14px; font-size: 12px; font-weight: 800; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--brand-teal);
+    }
+    .brand-copy h1 { margin: 0; font-size: 34px; line-height: 1.18; font-weight: 800; letter-spacing: -0.02em; }
+    .brand-lead { margin: 18px 0 0; font-size: 15px; line-height: 1.6; color: rgba(255, 255, 255, 0.72); font-weight: 500; }
+
+    .brand-points { position: relative; z-index: 1; list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+    .brand-points li { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9); }
+    .brand-points mat-icon {
+      width: 36px; height: 36px; font-size: 20px; display: grid; place-items: center;
+      border-radius: 10px; background: rgba(255, 255, 255, 0.08); color: var(--brand-teal); flex: none;
     }
 
-    mat-card-title {
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      color: var(--ink);
-      margin-bottom: 8px !important;
+    .brand-foot { position: relative; z-index: 1; margin: 0; font-size: 12.5px; color: rgba(255, 255, 255, 0.45); }
+
+    /* ---- Right form panel ---- */
+    .form-pane { display: grid; place-items: center; padding: 48px 32px; }
+    .form-wrap { width: 100%; max-width: 380px; }
+
+    .form-head h2 { margin: 0; font-size: 27px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+    .form-head p { margin: 8px 0 28px; color: var(--text-muted); font-size: 14.5px; font-weight: 500; }
+
+    form { display: grid; gap: 6px; }
+    .field { width: 100%; }
+    .field mat-icon[matPrefix] { color: var(--text-faint); margin-right: 8px; }
+
+    .row { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 18px; }
+
+    .submit {
+      height: 48px; font-size: 15px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
     }
+    .submit mat-spinner { display: inline-block; }
 
-    mat-card-subtitle {
-      color: var(--text-muted) !important;
-      font-size: 14px;
-      font-weight: 600;
-    }
+    .note { margin: 22px 0 0; text-align: center; color: var(--text-faint); font-size: 12.5px; font-weight: 600; }
 
-    mat-card-content {
-      padding: 0;
-    }
-
-    form {
-      display: grid;
-      gap: 20px;
-    }
-
-    .form-field {
-      width: 100%;
-    }
-
-    .form-field ::ng-deep .mat-mdc-text-field-wrapper {
-      background: var(--surface);
-      transition: all var(--transition-fast);
-    }
-
-    .form-field ::ng-deep .mat-mdc-form-field-focus-overlay {
-      background: transparent;
-    }
-
-    .form-field:hover ::ng-deep .mat-mdc-text-field-wrapper {
-      background: var(--surface-alt);
-    }
-
-    .form-field ::ng-deep .mat-mdc-form-field-icon-prefix mat-icon {
-      color: var(--text-muted);
-      margin-right: 8px;
-    }
-
-    .form-options {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: -8px;
-    }
-
-    .submit-btn {
-      height: 52px !important;
-      font-size: 16px !important;
-      font-weight: 800 !important;
-      border-radius: 14px !important;
-      background: var(--brand-primary) !important;
-      box-shadow: 
-        0 12px 28px rgba(31, 59, 224, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-      transition: all var(--transition-fast) !important;
-      gap: 8px;
-
-      .submit-btn-content {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
-      
-      &:hover:not([disabled]) {
-        transform: translateY(-2px);
-        box-shadow: 
-          0 18px 38px rgba(31, 59, 224, 0.45),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-      }
-
-      &:active:not([disabled]) {
-        transform: translateY(0);
-      }
-
-      &[disabled] {
-        opacity: 0.6;
-      }
-
-      mat-spinner {
-        display: inline-block;
-        margin-right: 8px;
-      }
-    }
-
-    mat-card-footer {
-      padding: 20px 0 0;
-      margin-top: 24px;
-      border-top: 1px solid var(--divider);
-    }
-
-    .footer-links {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      font-size: 13px;
-    }
-
-    .footer-links .link {
-      color: var(--brand-primary);
-      font-weight: 700;
-      text-decoration: none;
-      transition: all var(--transition-fast);
-      
-      &:hover {
-        color: var(--brand-primary-dark);
-        text-decoration: underline;
-      }
-    }
-
-    .footer-links .divider {
-      color: var(--text-faint);
-    }
-
-    .login-footer {
-      margin-top: 24px;
-      text-align: center;
-      
-      p {
-        margin: 0;
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 13px;
-        font-weight: 600;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .login-page {
-        padding: 16px;
-      }
-
-      .logo-wrapper {
-        width: 100px;
-        height: 100px;
-        padding: 16px;
-      }
-
-      .header-text h1 {
-        font-size: 32px;
-      }
-
-      .login-card {
-        padding: 24px;
-      }
-
-      mat-card-title {
-        font-size: 24px;
-      }
-
-      .submit-btn {
-        height: 48px !important;
-      }
+    @media (max-width: 880px) {
+      .login { grid-template-columns: 1fr; }
+      .brand-pane { display: none; }
+      .form-pane { padding: 40px 24px; }
     }
   `]
 })
@@ -485,9 +173,10 @@ export class LoginComponent {
   private readonly auth = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
-  
+
   loading = false;
   hidePassword = true;
+  readonly year = new Date().getFullYear();
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

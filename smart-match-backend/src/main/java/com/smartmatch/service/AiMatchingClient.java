@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClient;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,7 +41,7 @@ public class AiMatchingClient {
 
     public AiMatchingClient(
             @Value("${smartmatch.ai.api-key:}") String apiKey,
-            @Value("${smartmatch.ai.model:openrouter/free}") String model,
+            @Value("${smartmatch.ai.model:deepseek/deepseek-chat-v3-0324:free}") String model,
             @Value("${smartmatch.ai.max-tokens:1024}") long maxTokens,
             @Value("${smartmatch.ai.base-url:https://openrouter.ai/api/v1}") String baseUrl,
             @Value("${smartmatch.ai.referer:https://interlance.app}") String referer,
@@ -208,8 +209,59 @@ public class AiMatchingClient {
                 json.path("details").asText(""));
     }
 
+    /** One ranked match between a subject and a candidate item, carrying the item's id. */
+    public record RankedMatch(String id, double score, List<String> reasons, List<String> gaps) {
+    }
+
+    /**
+     * Rank many items (offers for a candidate, or candidates for an offer) in a single LLM call.
+     * {@code items} maps each item id to its descriptive text. Returns a score 0-100 per id with
+     * reasons and gaps. Efficient and free-tier friendly: one request scores the whole list.
+     */
+    public List<RankedMatch> rankMatches(String subjectLabel, String subjectText,
+                                         String itemLabel, java.util.LinkedHashMap<String, String> items) {
+        if (!enabled || items == null || items.isEmpty()) {
+            return List.of();
+        }
+        StringBuilder itemsTxt = new StringBuilder();
+        items.forEach((id, text) -> itemsTxt.append("- id=").append(id).append(" | ").append(text).append('\n'));
+        String prompt = "You are a strict recruiting matching engine. Score how well each " + itemLabel
+                + " fits the " + subjectLabel + " from 0-100, based on required-skill coverage, skill depth, "
+                + "field relevance and seniority. Be strict and do not inflate.\n\n"
+                + subjectLabel.toUpperCase(Locale.ROOT) + ":\n" + subjectText + "\n\n"
+                + itemLabel.toUpperCase(Locale.ROOT) + "S:\n" + itemsTxt + "\n"
+                + "Return ONLY JSON: {\"matches\":[{\"id\":<id>,\"score\":<0-100 integer>,"
+                + "\"reasons\":[<2-3 short concrete strings>],\"gaps\":[<0-2 short missing-skill strings>]}]} "
+                + "ranked by score descending. Include every id exactly once.";
+        JsonNode json = callJson(prompt, Math.max(maxTokens, 4000));
+        List<RankedMatch> out = new ArrayList<>();
+        JsonNode matches = json.path("matches");
+        if (matches.isArray()) {
+            matches.forEach(node -> {
+                String id = node.path("id").asText("").trim();
+                if (!id.isBlank()) {
+                    out.add(new RankedMatch(
+                            id,
+                            clampScore(node.path("score").asDouble(0.0)),
+                            stringList(node.path("reasons")),
+                            stringList(node.path("gaps"))));
+                }
+            });
+        }
+        return out;
+    }
+
+    private static double clampScore(double value) {
+        if (value < 0) return 0;
+        return Math.min(value, 100);
+    }
+
     private JsonNode callJson(String prompt) {
-        String raw = call(prompt);
+        return callJson(prompt, maxTokens);
+    }
+
+    private JsonNode callJson(String prompt, long tokenBudget) {
+        String raw = call(prompt, tokenBudget);
         try {
             return MAPPER.readTree(extractJson(raw));
         } catch (Exception exception) {
@@ -219,9 +271,13 @@ public class AiMatchingClient {
     }
 
     private String call(String prompt) {
+        return call(prompt, maxTokens);
+    }
+
+    private String call(String prompt, long tokenBudget) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("model", model);
-        body.put("max_tokens", maxTokens);
+        body.put("max_tokens", tokenBudget);
         body.put("messages", List.of(
                 Map.of("role", "system", "content", SYSTEM),
                 Map.of("role", "user", "content", prompt)));

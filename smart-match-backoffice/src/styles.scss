@@ -1,10 +1,11 @@
 @use '@angular/material' as mat;
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+// Fonts are loaded in index.html (<link> with preconnect) for reliable, flash-free loading.
 
 html {
   color-scheme: light;
-  @include mat.theme((color: mat.$azure-palette, typography: Roboto, density: 0));
+  // Drive Material's own typography with the brand font so component text and custom CSS stay
+  // consistent (previously Material used Roboto — which wasn't even loaded — causing mixed fonts).
+  @include mat.theme((color: mat.$azure-palette, typography: 'Plus Jakarta Sans', density: 0));
 }
 
 :root {

@@ -20,6 +20,7 @@ import { profileService } from '../../services/profileService';
 import { chatService } from '../../services/chatService';
 import { applicationService } from '../../services/applicationService';
 import { computeMatch } from '../../utils/match';
+import { useCandidateMatches } from '../../match/CandidateMatchContext';
 import { CandidateProfile, Offer, OfferMatch } from '../../types';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/spacing';
@@ -27,6 +28,7 @@ import { radius } from '../../theme/spacing';
 export function OfferDetailsScreen({ route, navigation }: NativeStackScreenProps<CandidateStackParamList, 'OfferDetails'>) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { matchFor } = useCandidateMatches();
   const [offer, setOffer] = useState<Offer | undefined>(route.params.offer);
   const [loading, setLoading] = useState(!route.params.offer);
   const [profile, setProfile] = useState<CandidateProfile | undefined>(undefined);
@@ -60,6 +62,9 @@ export function OfferDetailsScreen({ route, navigation }: NativeStackScreenProps
   if (loading || !offer) return <LoadingView />;
 
   const match: OfferMatch = computeMatch(skills, offer.requiredSkills ?? []);
+  const aiMatch = matchFor(route.params.offerId);
+  const displayScore = typeof aiMatch?.score === 'number' ? aiMatch.score : match.score;
+  const aiReasons = aiMatch?.reasons ?? [];
   const hasSkills = skills.length > 0;
 
   return (
@@ -79,12 +84,14 @@ export function OfferDetailsScreen({ route, navigation }: NativeStackScreenProps
           <View style={styles.metaItem}><Icon name="clock" size={14} color={colors.muted} /><Text style={styles.meta}>{offer.duration || 'Flexible'}</Text></View>
         </View>
 
-        {hasSkills && offer.requiredSkills?.length ? (
+        {(aiMatch || hasSkills) && offer.requiredSkills?.length ? (
           <SurfaceCard style={styles.matchCard}>
-            <MatchRing score={match.score} size={84} />
+            <MatchRing score={displayScore} size={84} />
             <View style={styles.matchBody}>
-              <Text style={styles.matchTitle}>Your fit for this role</Text>
-              <Text style={styles.matchSub}>{match.matched.length} of {offer.requiredSkills.length} required skills matched.</Text>
+              <Text style={styles.matchTitle}>{aiMatch ? 'AI fit for this role' : 'Your fit for this role'}</Text>
+              <Text style={styles.matchSub}>
+                {aiReasons.length ? aiReasons[0] : `${match.matched.length} of ${offer.requiredSkills.length} required skills matched.`}
+              </Text>
               {match.matched.length ? (
                 <View style={styles.breakRow}>
                   <View style={[styles.dot, { backgroundColor: colors.matchHigh }]} />

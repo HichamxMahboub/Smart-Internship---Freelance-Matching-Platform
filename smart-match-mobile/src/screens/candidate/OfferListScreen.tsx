@@ -12,6 +12,7 @@ import { FilterChip } from '../../components/Chip';
 import { offerService } from '../../services/offerService';
 import { profileService } from '../../services/profileService';
 import { matchForOffer } from '../../utils/match';
+import { useCandidateMatches } from '../../match/CandidateMatchContext';
 import { Offer, OfferType } from '../../types';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/spacing';
@@ -36,6 +37,7 @@ export function OfferListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
   const [sort, setSort] = useState<Sort>('match');
+  const { scoreFor } = useCandidateMatches();
 
   const load = async (type: OfferType = mode) => {
     try {
@@ -52,9 +54,14 @@ export function OfferListScreen() {
   const changeMode = (next: OfferType) => { setMode(next); load(next); };
   const copy = COPY[mode];
   const hasSkills = skills.length > 0;
+  // Prefer the real AI match score; fall back to the local skill-overlap heuristic until it loads.
   const ranked = offers
-    .map((offer) => ({ offer, score: matchForOffer(skills, offer).score }))
-    .sort((a, b) => (sort === 'match' && hasSkills ? b.score - a.score : 0));
+    .map((offer) => {
+      const ai = scoreFor(offer.id);
+      const score = ai ?? (hasSkills ? matchForOffer(skills, offer).score : undefined);
+      return { offer, score, hasScore: typeof score === 'number' };
+    })
+    .sort((a, b) => (sort === 'match' ? (b.score ?? -1) - (a.score ?? -1) : 0));
 
   return (
     <View style={styles.container}>
@@ -100,7 +107,7 @@ export function OfferListScreen() {
           </View>
         }
         ListEmptyComponent={<EmptyState icon="search" title="Nothing here yet" message={copy.empty} />}
-        renderItem={({ item }) => <OfferCard offer={item.offer} matchScore={hasSkills ? item.score : undefined} onPress={() => navigation.navigate('OfferDetails', { offerId: item.offer.id, offer: item.offer })} />}
+        renderItem={({ item }) => <OfferCard offer={item.offer} matchScore={item.hasScore ? item.score : undefined} onPress={() => navigation.navigate('OfferDetails', { offerId: item.offer.id, offer: item.offer })} />}
       />
     </View>
   );

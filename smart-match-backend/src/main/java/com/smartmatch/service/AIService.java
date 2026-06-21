@@ -4,6 +4,7 @@ import com.smartmatch.dto.ai.AIJobRequest;
 import com.smartmatch.dto.ai.AIResultResponse;
 import com.smartmatch.dto.ai.CandidateRecommendationResponse;
 import com.smartmatch.dto.application.ApplicationResponse;
+import com.smartmatch.dto.assistant.MatchItem;
 import com.smartmatch.exception.BadRequestException;
 import com.smartmatch.exception.ForbiddenException;
 import com.smartmatch.exception.NotFoundException;
@@ -23,6 +24,7 @@ import com.smartmatch.repository.ApplicationRepository;
 import com.smartmatch.repository.CandidateProfileRepository;
 import com.smartmatch.repository.CompanyRepository;
 import com.smartmatch.repository.OfferRepository;
+import com.smartmatch.repository.UserRepository;
 import com.smartmatch.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,9 +48,17 @@ public class AIService {
     private final OfferRepository offerRepository;
     private final ApplicationRepository applicationRepository;
     private final CompanyRepository companyRepository;
+    private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final AiMatchingClient aiMatchingClient;
     private final ResumeParserService resumeParserService;
+
+    /** Short-lived cache of a candidate's ranked offer matches, to avoid re-calling the LLM on every screen. */
+    private static final long MATCH_CACHE_TTL_MS = 10 * 60 * 1000L;
+    private final java.util.Map<String, CachedMatches> candidateMatchCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private record CachedMatches(long at, List<MatchItem> items) {
+    }
 
     public AIResultResponse createJob(AIJobRequest request) {
         User user = requirePremiumOrAdmin();
@@ -116,6 +126,112 @@ public class AIService {
                 .map(application -> toCandidateRecommendation(application, offer))
                 .sorted(Comparator.comparing(CandidateRecommendationResponse::matchingScore).reversed())
                 .toList();
+    }
+
+    /**
+     * Real AI ranking of every published offer for a candidate, in a single LLM call (cached 10 min).
+     * Falls back to the deterministic skill-overlap heuristic when the LLM is disabled or unavailable.
+     * Powers the candidate Assistant screen and the match badges shown across the app.
+     */
+    public List<MatchItem> candidateOfferMatches(String candidateId) {
+        CachedMatches cached = candidateMatchCache.get(candidateId);
+        if (cached != null && System.currentTimeMillis() - cached.at() < MATCH_CACHE_TTL_MS) {
+            return cached.items();
+        }
+        CandidateProfile profile = candidateProfileRepository.findByUserId(candidateId).orElse(null);
+        List<Offer> offers = offerRepository.findByStatus(OfferStatus.PUBLISHED);
+        List<String> skills = profile == null ? List.of() : safeList(profile.getSkills());
+
+        java.util.Map<String, AiMatchingClient.RankedMatch> ranked = java.util.Map.of();
+        if (profile != null && aiMatchingClient.isEnabled() && !offers.isEmpty()) {
+            java.util.LinkedHashMap<String, String> items = new java.util.LinkedHashMap<>();
+            offers.forEach(offer -> items.put(offer.getId(), offerText(offer)));
+            ranked = aiMatchingClient.rankMatches("candidate", buildCandidateContext(profile).text(), "offer", items)
+                    .stream()
+                    .collect(java.util.stream.Collectors.toMap(
+                            AiMatchingClient.RankedMatch::id, m -> m, (a, b) -> a));
+        }
+
+        final java.util.Map<String, AiMatchingClient.RankedMatch> byId = ranked;
+        List<MatchItem> result = offers.stream().map(offer -> {
+            AiMatchingClient.RankedMatch match = byId.get(offer.getId());
+            Company company = offer.getCompanyId() == null ? null
+                    : companyRepository.findById(offer.getCompanyId()).orElse(null);
+            int score = match != null
+                    ? (int) Math.round(match.score())
+                    : (int) Math.round(calculateMatchingScore(skills, offer.getRequiredSkills()));
+            return new MatchItem(
+                    offer.getId(), null, offer.getTitle(), null,
+                    company != null ? company.getName() : null,
+                    offer.getType() == null ? null : offer.getType().name(), null,
+                    score,
+                    match != null ? match.reasons() : List.of(),
+                    match != null ? match.gaps() : List.of());
+        }).sorted(Comparator.comparingInt((MatchItem item) -> item.score() == null ? 0 : item.score()).reversed())
+                .toList();
+
+        candidateMatchCache.put(candidateId, new CachedMatches(System.currentTimeMillis(), result));
+        return result;
+    }
+
+    /**
+     * Real AI ranking of the applicants of one offer, in a single LLM call. Persists each computed
+     * score on the application so recruiter lists stay consistent. Verifies the caller owns the offer.
+     */
+    public List<MatchItem> offerCandidateMatches(String offerId) {
+        User user = SecurityUtils.currentUser();
+        Offer offer = offerRepository.findById(offerId)
+                .orElseThrow(() -> new NotFoundException("Offer not found with id: " + offerId));
+        if (user.getRole() == Role.RECRUITER) {
+            Company company = companyRepository.findById(offer.getCompanyId())
+                    .orElseThrow(() -> new NotFoundException("Company not found for offer"));
+            if (!company.getRecruiterId().equals(user.getId())) {
+                throw new ForbiddenException("You can only rank candidates for your own offers");
+            }
+        }
+        List<Application> applications = applicationRepository.findByOfferIdIn(List.of(offerId));
+        if (applications.isEmpty()) {
+            return List.of();
+        }
+
+        java.util.LinkedHashMap<String, String> items = new java.util.LinkedHashMap<>();
+        java.util.Map<String, CandidateProfile> profileByCandidate = new java.util.HashMap<>();
+        for (Application application : applications) {
+            CandidateProfile profile = candidateProfileRepository.findByUserId(application.getCandidateId()).orElse(null);
+            profileByCandidate.put(application.getCandidateId(), profile);
+            if (profile != null) {
+                items.put(application.getCandidateId(), profileText(profile));
+            }
+        }
+
+        java.util.Map<String, AiMatchingClient.RankedMatch> byId = java.util.Map.of();
+        if (aiMatchingClient.isEnabled() && !items.isEmpty()) {
+            byId = aiMatchingClient.rankMatches("offer", offerText(offer), "candidate", items)
+                    .stream()
+                    .collect(java.util.stream.Collectors.toMap(
+                            AiMatchingClient.RankedMatch::id, m -> m, (a, b) -> a));
+        }
+
+        List<MatchItem> result = new ArrayList<>();
+        for (Application application : applications) {
+            CandidateProfile profile = profileByCandidate.get(application.getCandidateId());
+            AiMatchingClient.RankedMatch match = byId.get(application.getCandidateId());
+            double score = match != null
+                    ? match.score()
+                    : calculateMatchingScore(profile == null ? List.of() : profile.getSkills(), offer.getRequiredSkills());
+            application.setMatchingScore(score);
+            applicationRepository.save(application);
+            String name = userRepository.findById(application.getCandidateId())
+                    .map(User::getFullName).orElse(null);
+            result.add(new MatchItem(
+                    null, application.getCandidateId(), null, name, null, null,
+                    profile != null ? profile.getHeadline() : null,
+                    (int) Math.round(score),
+                    match != null ? match.reasons() : List.of(),
+                    match != null ? match.gaps() : List.of()));
+        }
+        result.sort(Comparator.comparingInt((MatchItem item) -> item.score() == null ? 0 : item.score()).reversed());
+        return result;
     }
 
     /** Heuristic skill-overlap score used as the offline fallback when the LLM is disabled. */

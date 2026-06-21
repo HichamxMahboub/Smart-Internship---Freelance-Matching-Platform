@@ -39,7 +39,7 @@ services:
       APP_SEED_ENABLED: ${APP_SEED_ENABLED:-true}
       APP_CV_UPLOAD_DIR: /uploads/cv
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openrouter/free}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-deepseek/deepseek-chat-v3-0324:free}
       OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
       OPENROUTER_MAX_TOKENS: ${OPENROUTER_MAX_TOKENS:-1024}
       ASSISTANT_N8N_URL: ${ASSISTANT_N8N_URL:-http://n8n:5678/webhook/interlance-assistant}
@@ -59,6 +59,9 @@ services:
       STRIPE_PREMIUM_AMOUNT: ${STRIPE_PREMIUM_AMOUNT:-99}
     volumes:
       - smart_match_uploads:/uploads
+      # Mount the Firebase service account into the container at the path the app expects
+      # (FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/firebase-service-account.json).
+      - ./smart-match-backend/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
 
   backoffice:
     build:
