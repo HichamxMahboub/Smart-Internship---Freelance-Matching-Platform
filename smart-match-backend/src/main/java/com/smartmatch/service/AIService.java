@@ -96,7 +96,7 @@ public class AIService {
         AIResult result = aiResultRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("AI result not found with id: " + id));
         if (user.getRole() != Role.ADMIN && !result.getUserId().equals(user.getId())) {
-            throw new ForbiddenException("You can only view your own AI results");
+            throw new ForbiddenException("You can only view your own matching assistance results");
         }
         return toResponse(result);
     }
@@ -354,7 +354,7 @@ public class AIService {
     private User requirePremiumOrAdmin() {
         User user = SecurityUtils.currentUser();
         if (user.getRole() != Role.ADMIN && user.getPlan() != Plan.PREMIUM) {
-            throw new ForbiddenException("Premium plan is required to use AI features");
+            throw new ForbiddenException("Premium plan is required to use intelligent matching features");
         }
         return user;
     }

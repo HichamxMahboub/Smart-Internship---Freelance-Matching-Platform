@@ -68,7 +68,7 @@ export function PremiumScreen() {
         <IconButton icon="chevron-left" onPress={() => navigation.goBack()} bg="rgba(255,255,255,0.16)" color={colors.white} />
         <View style={styles.heroBadge}><Icon name="star" size={16} color={colors.white} /><Text style={styles.heroBadgeText}>INTERLANCE PREMIUM</Text></View>
         <Text style={styles.heroTitle}>Turn your profile into a hiring signal</Text>
-        <Text style={styles.heroSub}>Unlock AI CV analysis, tailored offer recommendations, and optimization prompts.</Text>
+        <Text style={styles.heroSub}>Unlock CV matching analysis, tailored offer recommendations, and optimization prompts.</Text>
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <SurfaceCard style={styles.plan}>

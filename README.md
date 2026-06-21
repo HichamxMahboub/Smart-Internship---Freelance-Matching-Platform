@@ -13,7 +13,7 @@ Students and junior freelancers often struggle to find relevant opportunities, w
 ## Objectives
 
 - Centralize internship and freelance offer management.
-- Provide candidates with mobile access to offers, applications, favorites and premium AI features.
+- Provide candidates with mobile access to offers, applications, favorites and premium intelligent matching features.
 - Provide recruiters with company, offer and application management tools.
 - Provide admins with validation, moderation, analytics and monitoring tools.
 - Secure access with Firebase Authentication and role-based authorization.
@@ -21,7 +21,7 @@ Students and junior freelancers often struggle to find relevant opportunities, w
 
 ## Main Actors
 
-- **Candidate**: browses offers, applies, saves favorites, manages profile, upgrades to premium and uses AI features.
+- **Candidate**: browses offers, applies, saves favorites, manages profile, upgrades to premium and uses intelligent matching features.
 - **Recruiter**: manages recruiter profile, company, offers and received applications.
 - **Admin**: validates companies, supervises users/offers/subscriptions/logs and monitors dashboard analytics.
 
@@ -68,7 +68,7 @@ In this workspace, these folders are prepared side-by-side at the repository roo
 
 ## Backend Description
 
-`smart-match-backend` is a Spring Boot REST API that exposes modules for authentication, users, candidate profiles, recruiter profiles, companies, offers, applications, favorites, subscriptions, payments, AI results, notifications and admin dashboard. It uses MongoDB documents and Firebase Authentication.
+`smart-match-backend` is a Spring Boot REST API that exposes modules for authentication, users, candidate profiles, recruiter profiles, companies, offers, applications, favorites, subscriptions, payments, matching assistance results, notifications and admin dashboard. It uses MongoDB documents and Firebase Authentication.
 
 ## Backoffice Description
 
@@ -76,7 +76,7 @@ In this workspace, these folders are prepared side-by-side at the repository roo
 
 ## Mobile App Description
 
-`smart-match-mobile` is an Expo React Native TypeScript app for candidates and recruiters. It supports Firebase login/register, offer browsing, application submission, favorites, candidate profile, premium subscription, AI jobs, notifications, recruiter company management, recruiter offers and recruiter applications.
+`smart-match-mobile` is an Expo React Native TypeScript app for candidates and recruiters. It supports Firebase login/register, offer browsing, application submission, favorites, candidate profile, premium subscription, intelligent matching jobs, notifications, recruiter company management, recruiter offers and recruiter applications.
 
 ## Database Collections
 
@@ -124,7 +124,7 @@ Premium upgrades create `PENDING` subscription/payment records and activate only
 - Save/remove favorites.
 - Manage candidate profile.
 - Upgrade to premium.
-- Run simulated AI analysis/recommendations.
+- Run simulated matching analysis/recommendations.
 - Read notifications.
 
 ### Recruiter
@@ -234,7 +234,7 @@ Never commit real Firebase service account JSON files.
 6. Recruiter creates and publishes an offer.
 7. Candidate browses, favorites and applies to the offer.
 8. Recruiter changes application status to `INTERVIEW`.
-9. Candidate upgrades to premium and runs AI CV analysis.
+9. Candidate upgrades to premium and runs CV matching analysis.
 10. Admin opens dashboard, subscriptions and logs.
 
 ## Screenshots
@@ -249,8 +249,6 @@ Add screenshots before final submission:
 - Backoffice dashboard
 - Backoffice company validation
 - Swagger UI
-
-## Team Members
 
 - HICHAM MAHBOUB
 - Supervisor: To be confirmed

@@ -23,7 +23,7 @@ The platform is composed of three main applications and two external services:
 ## Role-Based Access Control
 
 - Public users can list and view published offers.
-- Candidates can manage candidate profile, applications, favorites, subscriptions, AI features and notifications.
+- Candidates can manage candidate profile, applications, favorites, subscriptions, intelligent matching features and notifications.
 - Recruiters can manage company, recruiter profile, offers and received applications.
 - Admins can validate companies, manage users, moderate offers, view analytics, subscriptions and logs.
 
