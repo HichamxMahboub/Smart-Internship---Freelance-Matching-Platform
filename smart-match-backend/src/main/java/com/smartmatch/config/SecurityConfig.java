@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.http.HttpStatus;
 
 @Configuration
@@ -24,7 +25,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(cors -> cors.configure(http))
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.ignoringRequestMatchers(
+                        new AntPathRequestMatcher("/**", HttpMethod.OPTIONS.name()),
+                        new AntPathRequestMatcher("/api/auth/sync-user", HttpMethod.POST.name()),
+                        new AntPathRequestMatcher("/api/subscriptions/webhook/payment", HttpMethod.POST.name()),
+                        new AntPathRequestMatcher("/api/subscriptions/demo-confirm", HttpMethod.POST.name()),
+                        new AntPathRequestMatcher("/api/payments/stripe/webhook", HttpMethod.POST.name())
+                ))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) ->
