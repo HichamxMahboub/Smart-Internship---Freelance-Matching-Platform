@@ -2,6 +2,12 @@
 
 > Interlance est l’évolution du projet Smart Match, une plateforme intelligente de stages et missions freelance.
 
+## English Summary
+
+Interlance is a full-stack internship and freelance matching platform designed for candidate, recruiter, and administrator workflows. It includes a Spring Boot backend, Angular backoffice, React Native mobile app, MongoDB persistence, Docker-based local setup, Swagger documentation, role-based access, notifications, company validation, applications, and matching-oriented features.
+
+This repository demonstrates backend architecture, REST API design, role-based systems, mobile/web integration, admin workflows, documentation, security basics, and deployment preparation.
+
 ## Présentation
 
 Interlance est un projet full stack académique qui met en relation des candidats, étudiants et freelances avec des recruteurs et des entreprises. La plateforme centralise la publication de stages et missions freelance, le suivi des candidatures, la validation des entreprises et une assistance intelligente au matching.
@@ -149,6 +155,14 @@ Consulter aussi la [documentation sécurité](docs/security.md) et le [flux de p
 ## Déploiement
 
 Le répertoire [deployment](deployment/README.md) décrit les services Docker et les manifests Kubernetes disponibles. Avant toute mise en production, configurer MongoDB sécurisé, HTTPS, Firebase Admin, Cloudinary, OpenRouter, n8n et les secrets de paiement dans une plateforme de gestion de secrets.
+
+## Portfolio Value
+
+- Multi-role full-stack platform with candidate, recruiter, and admin use cases.
+- Spring Boot REST API with MongoDB, Swagger, security boundaries, and Docker setup.
+- Angular backoffice and React Native mobile application connected to the same backend.
+- Documentation depth suitable for internship interviews and academic review.
+- Clear demonstration of digital transformation in recruitment and freelance workflows.
 
 ## Licence et cadre académique
 
